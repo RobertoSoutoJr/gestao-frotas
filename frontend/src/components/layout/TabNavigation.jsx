@@ -2,11 +2,11 @@ import { cn } from '../../lib/utils';
 import { Truck, Users, Fuel, Wrench, BarChart3 } from 'lucide-react';
 
 const tabs = [
-  { id: 'trucks', label: 'Trucks', icon: Truck },
-  { id: 'drivers', label: 'Drivers', icon: Users },
-  { id: 'fuel', label: 'Fuel', icon: Fuel },
-  { id: 'maintenance', label: 'Maintenance', icon: Wrench },
-  { id: 'reports', label: 'Reports', icon: BarChart3 }
+  { id: 'trucks', label: 'Caminhões', icon: Truck },
+  { id: 'drivers', label: 'Motoristas', icon: Users },
+  { id: 'fuel', label: 'Abastecimento', icon: Fuel },
+  { id: 'maintenance', label: 'Manutenção', icon: Wrench },
+  { id: 'reports', label: 'Relatórios', icon: BarChart3 }
 ];
 
 export function TabNavigation({ activeTab, onChange }) {

@@ -52,7 +52,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
       onSuccess?.();
     } catch (error) {
       console.error('Failed to create maintenance record:', error);
-      alert(error.message || 'Failed to create maintenance record');
+      alert(error.message || 'Falha ao registrar manutenção');
     } finally {
       setLoading(false);
     }
@@ -70,12 +70,12 @@ export function MaintenanceForm({ trucks, onSuccess }) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Select
           name="caminhao_id"
-          label="Truck"
+          label="Caminhão"
           value={formData.caminhao_id}
           onChange={handleChange}
           required
         >
-          <option value="">Select a truck</option>
+          <option value="">Selecione um caminhão</option>
           {trucks.map(truck => (
             <option key={truck.id} value={truck.id}>
               {truck.placa} - {truck.modelo}
@@ -85,7 +85,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
 
         <Select
           name="tipo_manutencao"
-          label="Maintenance Type"
+          label="Tipo de Manutenção"
           value={formData.tipo_manutencao}
           onChange={handleChange}
           required
@@ -99,8 +99,8 @@ export function MaintenanceForm({ trucks, onSuccess }) {
 
         <Input
           name="descricao"
-          label="Description"
-          placeholder="What was done?"
+          label="Descrição"
+          placeholder="O que foi feito?"
           value={formData.descricao}
           onChange={handleChange}
           required
@@ -109,7 +109,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
 
         <Input
           name="valor_total"
-          label="Total Amount (R$)"
+          label="Valor Total (R$)"
           type="number"
           step="0.01"
           placeholder="500.00"
@@ -120,7 +120,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
 
         <Input
           name="km_manutencao"
-          label="Mileage (km)"
+          label="Quilometragem (km)"
           type="number"
           placeholder="50000"
           value={formData.km_manutencao}
@@ -130,7 +130,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
 
         <Input
           name="data_manutencao"
-          label="Date"
+          label="Data"
           type="date"
           value={formData.data_manutencao}
           onChange={handleChange}
@@ -140,7 +140,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
       </div>
 
       <Button type="submit" variant="danger" loading={loading} className="w-full">
-        Register Maintenance
+        Registrar Manutenção
       </Button>
     </form>
   );

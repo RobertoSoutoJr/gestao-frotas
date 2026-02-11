@@ -8,14 +8,14 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>Register Fuel Record</CardTitle>
+          <CardTitle>Registrar Abastecimento</CardTitle>
         </CardHeader>
         <CardContent>
           {trucks.length === 0 || drivers.length === 0 ? (
             <EmptyState
               icon={Fuel}
-              title="Missing data"
-              description="You need to register at least one truck and one driver before adding fuel records"
+              title="Dados faltando"
+              description="Você precisa cadastrar pelo menos um caminhão e um motorista antes de adicionar registros de abastecimento"
             />
           ) : (
             <FuelForm trucks={trucks} drivers={drivers} onSuccess={onRefetch} />

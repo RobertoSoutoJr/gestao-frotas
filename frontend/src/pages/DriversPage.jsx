@@ -9,7 +9,7 @@ export function DriversPage({ drivers, onRefetch }) {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>Register New Driver</CardTitle>
+          <CardTitle>Cadastrar Novo Motorista</CardTitle>
         </CardHeader>
         <CardContent>
           <DriverForm onSuccess={onRefetch} />
@@ -18,7 +18,7 @@ export function DriversPage({ drivers, onRefetch }) {
 
       <div>
         <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Team ({drivers.length})
+          Equipe ({drivers.length})
         </h2>
 
         {drivers.length === 0 ? (
@@ -26,8 +26,8 @@ export function DriversPage({ drivers, onRefetch }) {
             <CardContent className="py-12">
               <EmptyState
                 icon={Users}
-                title="No drivers registered"
-                description="Add your first driver to start managing the team"
+                title="Nenhum motorista cadastrado"
+                description="Adicione seu primeiro motorista para começar a gerenciar a equipe"
               />
             </CardContent>
           </Card>

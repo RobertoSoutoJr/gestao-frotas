@@ -36,7 +36,7 @@ export function LoadingScreen() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <Spinner size="lg" />
-        <p className="mt-4 text-sm text-zinc-500">Loading...</p>
+        <p className="mt-4 text-sm text-zinc-500">Carregando...</p>
       </div>
     </div>
   );

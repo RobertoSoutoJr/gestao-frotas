@@ -1,18 +1,67 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { Select } from '../components/ui/Select';
+import { Input } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3 } from 'lucide-react';
-import { formatCurrency, formatNumber } from '../lib/utils';
+import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X } from 'lucide-react';
+import { formatCurrency, formatNumber, formatDate } from '../lib/utils';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
+  const [selectedTruck, setSelectedTruck] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Aplicar filtros
+  const filteredData = useMemo(() => {
+    let filteredFuel = fuelRecords;
+    let filteredMaintenance = maintenanceRecords;
+
+    // Filtro por caminhão
+    if (selectedTruck !== 'all') {
+      const truckId = Number(selectedTruck);
+      filteredFuel = filteredFuel.filter(r => r.caminhao_id === truckId);
+      filteredMaintenance = filteredMaintenance.filter(r => r.caminhao_id === truckId);
+    }
+
+    // Filtro por data
+    if (startDate) {
+      filteredFuel = filteredFuel.filter(r => {
+        const recordDate = new Date(r.created_at);
+        return recordDate >= new Date(startDate);
+      });
+      filteredMaintenance = filteredMaintenance.filter(r => {
+        const recordDate = new Date(r.data_manutencao);
+        return recordDate >= new Date(startDate);
+      });
+    }
+
+    if (endDate) {
+      filteredFuel = filteredFuel.filter(r => {
+        const recordDate = new Date(r.created_at);
+        return recordDate <= new Date(endDate);
+      });
+      filteredMaintenance = filteredMaintenance.filter(r => {
+        const recordDate = new Date(r.data_manutencao);
+        return recordDate <= new Date(endDate);
+      });
+    }
+
+    return { filteredFuel, filteredMaintenance };
+  }, [fuelRecords, maintenanceRecords, selectedTruck, startDate, endDate]);
+
   const stats = useMemo(() => {
-    return trucks.map(truck => {
-      const fuelData = fuelRecords.filter(r => r.caminhao_id === truck.id);
-      const maintenanceData = maintenanceRecords.filter(r => r.caminhao_id === truck.id);
+    const trucksToShow = selectedTruck === 'all'
+      ? trucks
+      : trucks.filter(t => t.id === Number(selectedTruck));
+
+    return trucksToShow.map(truck => {
+      const fuelData = filteredData.filteredFuel.filter(r => r.caminhao_id === truck.id);
+      const maintenanceData = filteredData.filteredMaintenance.filter(r => r.caminhao_id === truck.id);
 
       const totalFuel = fuelData.reduce((sum, r) => sum + Number(r.valor_total || 0), 0);
       const totalMaintenance = maintenanceData.reduce((sum, r) => sum + Number(r.valor_total || 0), 0);
@@ -28,28 +77,29 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
         maintenanceCount: maintenanceData.length
       };
     });
-  }, [trucks, fuelRecords, maintenanceRecords]);
+  }, [trucks, filteredData, selectedTruck]);
 
   const overallStats = useMemo(() => {
     const totalFuel = stats.reduce((sum, s) => sum + s.totalFuel, 0);
     const totalMaintenance = stats.reduce((sum, s) => sum + s.totalMaintenance, 0);
     const totalLiters = stats.reduce((sum, s) => sum + s.totalLiters, 0);
+    const trucksCount = stats.length;
 
     return {
       totalFuel,
       totalMaintenance,
       totalSpent: totalFuel + totalMaintenance,
       totalLiters,
-      avgFuelPerTruck: trucks.length > 0 ? totalFuel / trucks.length : 0,
-      avgMaintenancePerTruck: trucks.length > 0 ? totalMaintenance / trucks.length : 0
+      avgFuelPerTruck: trucksCount > 0 ? totalFuel / trucksCount : 0,
+      avgMaintenancePerTruck: trucksCount > 0 ? totalMaintenance / trucksCount : 0
     };
-  }, [stats, trucks.length]);
+  }, [stats]);
 
   const chartData = useMemo(() => {
     return stats.map(s => ({
       name: s.truck.placa,
-      Fuel: Number(s.totalFuel.toFixed(2)),
-      Maintenance: Number(s.totalMaintenance.toFixed(2))
+      Combustível: Number(s.totalFuel.toFixed(2)),
+      Manutenção: Number(s.totalMaintenance.toFixed(2))
     }));
   }, [stats]);
 
@@ -60,14 +110,51 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
     }));
   }, [stats]);
 
+  // Dados de evolução mensal
+  const monthlyData = useMemo(() => {
+    const months = {};
+
+    filteredData.filteredFuel.forEach(record => {
+      const date = new Date(record.created_at);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (!months[monthKey]) {
+        months[monthKey] = { combustivel: 0, manutencao: 0 };
+      }
+      months[monthKey].combustivel += Number(record.valor_total || 0);
+    });
+
+    filteredData.filteredMaintenance.forEach(record => {
+      const date = new Date(record.data_manutencao);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (!months[monthKey]) {
+        months[monthKey] = { combustivel: 0, manutencao: 0 };
+      }
+      months[monthKey].manutencao += Number(record.valor_total || 0);
+    });
+
+    return Object.keys(months).sort().map(key => ({
+      mes: key,
+      Combustível: Number(months[key].combustivel.toFixed(2)),
+      Manutenção: Number(months[key].manutencao.toFixed(2))
+    }));
+  }, [filteredData]);
+
+  const clearFilters = () => {
+    setSelectedTruck('all');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const hasActiveFilters = selectedTruck !== 'all' || startDate || endDate;
+
   if (trucks.length === 0) {
     return (
       <Card>
         <CardContent className="py-12">
           <EmptyState
             icon={BarChart3}
-            title="No data available"
-            description="Register trucks and add fuel/maintenance records to see reports"
+            title="Nenhum dado disponível"
+            description="Cadastre caminhões e adicione registros de abastecimento/manutenção para ver os relatórios"
           />
         </CardContent>
       </Card>
@@ -76,14 +163,67 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
   return (
     <div className="space-y-8">
-      {/* Overview Cards */}
+      {/* Filtros */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filtros
+              </CardTitle>
+              <CardDescription>
+                Filtre os dados por caminhão e período
+              </CardDescription>
+            </div>
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                <X className="mr-2 h-4 w-4" />
+                Limpar Filtros
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Select
+              label="Caminhão"
+              value={selectedTruck}
+              onChange={(e) => setSelectedTruck(e.target.value)}
+            >
+              <option value="all">Todos os Caminhões</option>
+              {trucks.map(truck => (
+                <option key={truck.id} value={truck.id}>
+                  {truck.placa} - {truck.modelo}
+                </option>
+              ))}
+            </Select>
+
+            <Input
+              label="Data Inicial"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+
+            <Input
+              label="Data Final"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cards de Resumo */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                  Total Spent
+                  Total Gasto
                 </p>
                 <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                   {formatCurrency(overallStats.totalSpent)}
@@ -101,7 +241,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                  Fuel Costs
+                  Combustível
                 </p>
                 <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                   {formatCurrency(overallStats.totalFuel)}
@@ -119,7 +259,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                  Maintenance
+                  Manutenção
                 </p>
                 <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                   {formatCurrency(overallStats.totalMaintenance)}
@@ -137,7 +277,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                  Total Liters
+                  Total de Litros
                 </p>
                 <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                   {formatNumber(overallStats.totalLiters, 0)}
@@ -151,12 +291,12 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
         </Card>
       </div>
 
-      {/* Charts */}
+      {/* Gráficos */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Costs by Truck</CardTitle>
-            <CardDescription>Comparison of fuel and maintenance costs</CardDescription>
+            <CardTitle>Custos por Caminhão</CardTitle>
+            <CardDescription>Comparação de gastos com combustível e manutenção</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -173,8 +313,8 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                   formatter={(value) => formatCurrency(value)}
                 />
                 <Legend />
-                <Bar dataKey="Fuel" fill="#f59e0b" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="Maintenance" fill="#ef4444" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="Combustível" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="Manutenção" fill="#ef4444" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -182,8 +322,8 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Total Spending Distribution</CardTitle>
-            <CardDescription>Total costs per truck</CardDescription>
+            <CardTitle>Distribuição de Gastos</CardTitle>
+            <CardDescription>Total de gastos por caminhão</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -207,12 +347,41 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        {monthlyData.length > 0 && (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Evolução Mensal</CardTitle>
+              <CardDescription>Gastos mensais com combustível e manutenção</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                  <XAxis dataKey="mes" stroke="#71717a" />
+                  <YAxis stroke="#71717a" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e4e4e7',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value) => formatCurrency(value)}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="Combustível" stroke="#f59e0b" strokeWidth={2} />
+                  <Line type="monotone" dataKey="Manutenção" stroke="#ef4444" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Detailed Breakdown */}
+      {/* Detalhamento por Caminhão */}
       <div>
         <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Detailed Breakdown
+          Detalhamento por Caminhão
         </h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {stats.map(stat => (
@@ -233,7 +402,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                     <FuelIcon className="h-4 w-4" />
-                    Fuel ({stat.fuelRecordsCount} records)
+                    Combustível ({stat.fuelRecordsCount} registros)
                   </span>
                   <span className="font-semibold text-orange-600">
                     {formatCurrency(stat.totalFuel)}
@@ -243,7 +412,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                     <Wrench className="h-4 w-4" />
-                    Maintenance ({stat.maintenanceCount} records)
+                    Manutenção ({stat.maintenanceCount} registros)
                   </span>
                   <span className="font-semibold text-red-600">
                     {formatCurrency(stat.totalMaintenance)}
@@ -264,10 +433,10 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                 {stat.totalLiters > 0 && (
                   <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Total Fuel Consumption
+                      Consumo Total
                     </p>
                     <p className="mt-1 font-mono text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                      {formatNumber(stat.totalLiters, 2)} liters
+                      {formatNumber(stat.totalLiters, 2)} litros
                     </p>
                   </div>
                 )}

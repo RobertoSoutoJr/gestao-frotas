@@ -10,7 +10,7 @@ export function TrucksPage({ trucks, onRefetch }) {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>Register New Truck</CardTitle>
+          <CardTitle>Cadastrar Novo Caminhão</CardTitle>
         </CardHeader>
         <CardContent>
           <TruckForm onSuccess={onRefetch} />
@@ -19,7 +19,7 @@ export function TrucksPage({ trucks, onRefetch }) {
 
       <div>
         <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Fleet ({trucks.length})
+          Frota ({trucks.length})
         </h2>
 
         {trucks.length === 0 ? (
@@ -27,8 +27,8 @@ export function TrucksPage({ trucks, onRefetch }) {
             <CardContent className="py-12">
               <EmptyState
                 icon={Truck}
-                title="No trucks registered"
-                description="Start by adding your first truck to the fleet"
+                title="Nenhum caminhão cadastrado"
+                description="Comece adicionando seu primeiro caminhão à frota"
               />
             </CardContent>
           </Card>
@@ -63,7 +63,7 @@ export function TrucksPage({ trucks, onRefetch }) {
                       <div className="flex items-center gap-2 text-sm">
                         <Truck className="h-4 w-4 text-zinc-400" />
                         <span className="text-zinc-600 dark:text-zinc-400">
-                          Capacity: {formatNumber(truck.capacidade_silo_ton)} tons
+                          Capacidade: {formatNumber(truck.capacidade_silo_ton)} tons
                         </span>
                       </div>
                     )}

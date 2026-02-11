@@ -30,7 +30,7 @@ export function TruckForm({ onSuccess }) {
       onSuccess?.();
     } catch (error) {
       console.error('Failed to create truck:', error);
-      alert(error.message || 'Failed to create truck');
+      alert(error.message || 'Falha ao cadastrar caminhão');
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,7 @@ export function TruckForm({ onSuccess }) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Input
           name="placa"
-          label="License Plate"
+          label="Placa"
           placeholder="ABC-1234"
           value={formData.placa}
           onChange={handleChange}
@@ -56,7 +56,7 @@ export function TruckForm({ onSuccess }) {
         />
         <Input
           name="modelo"
-          label="Model"
+          label="Modelo"
           placeholder="Scania R450"
           value={formData.modelo}
           onChange={handleChange}
@@ -64,7 +64,7 @@ export function TruckForm({ onSuccess }) {
         />
         <Input
           name="ano"
-          label="Year"
+          label="Ano"
           type="number"
           placeholder="2023"
           value={formData.ano}
@@ -72,7 +72,7 @@ export function TruckForm({ onSuccess }) {
         />
         <Input
           name="km_atual"
-          label="Current Mileage (km)"
+          label="Quilometragem Atual (km)"
           type="number"
           placeholder="50000"
           value={formData.km_atual}
@@ -80,7 +80,7 @@ export function TruckForm({ onSuccess }) {
         />
         <Input
           name="capacidade_silo_ton"
-          label="Silo Capacity (tons)"
+          label="Capacidade do Silo (ton)"
           type="number"
           step="0.01"
           placeholder="30"
@@ -90,7 +90,7 @@ export function TruckForm({ onSuccess }) {
         />
       </div>
       <Button type="submit" variant="primary" loading={loading} className="w-full">
-        Register Truck
+        Cadastrar Caminhão
       </Button>
     </form>
   );

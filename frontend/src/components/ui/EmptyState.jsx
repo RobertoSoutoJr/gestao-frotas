@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 
 export function EmptyState({
   icon: Icon = FileQuestion,
-  title = 'No data found',
+  title = 'Nenhum dado encontrado',
   description,
   action,
   className

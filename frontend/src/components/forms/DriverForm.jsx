@@ -21,7 +21,7 @@ export function DriverForm({ onSuccess }) {
       onSuccess?.();
     } catch (error) {
       console.error('Failed to create driver:', error);
-      alert(error.message || 'Failed to create driver');
+      alert(error.message || 'Falha ao cadastrar motorista');
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,7 @@ export function DriverForm({ onSuccess }) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Input
           name="nome"
-          label="Full Name"
+          label="Nome Completo"
           placeholder="João Silva"
           value={formData.nome}
           onChange={handleChange}
@@ -56,14 +56,14 @@ export function DriverForm({ onSuccess }) {
         />
         <Input
           name="telefone"
-          label="Phone"
+          label="Telefone"
           placeholder="(11) 98888-8888"
           value={formData.telefone}
           onChange={handleChange}
         />
       </div>
       <Button type="submit" variant="success" loading={loading} className="w-full">
-        Register Driver
+        Cadastrar Motorista
       </Button>
     </form>
   );

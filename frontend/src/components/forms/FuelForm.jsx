@@ -41,7 +41,7 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
       onSuccess?.();
     } catch (error) {
       console.error('Failed to create fuel record:', error);
-      alert(error.message || 'Failed to create fuel record');
+      alert(error.message || 'Falha ao registrar abastecimento');
     } finally {
       setLoading(false);
     }
@@ -59,12 +59,12 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Select
           name="caminhao_id"
-          label="Truck"
+          label="Caminhão"
           value={formData.caminhao_id}
           onChange={handleChange}
           required
         >
-          <option value="">Select a truck</option>
+          <option value="">Selecione um caminhão</option>
           {trucks.map(truck => (
             <option key={truck.id} value={truck.id}>
               {truck.placa} - {truck.modelo}
@@ -74,12 +74,12 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
 
         <Select
           name="motorista_id"
-          label="Driver"
+          label="Motorista"
           value={formData.motorista_id}
           onChange={handleChange}
           required
         >
-          <option value="">Select a driver</option>
+          <option value="">Selecione um motorista</option>
           {drivers.map(driver => (
             <option key={driver.id} value={driver.id}>
               {driver.nome}
@@ -89,7 +89,7 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
 
         <Input
           name="km_registro"
-          label="Mileage (km)"
+          label="Quilometragem (km)"
           type="number"
           placeholder="50000"
           value={formData.km_registro}
@@ -99,7 +99,7 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
 
         <Input
           name="litros"
-          label="Liters"
+          label="Litros"
           type="number"
           step="0.01"
           placeholder="200"
@@ -110,7 +110,7 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
 
         <Input
           name="valor_total"
-          label="Total Amount (R$)"
+          label="Valor Total (R$)"
           type="number"
           step="0.01"
           placeholder="1200.00"
@@ -121,7 +121,7 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
 
         <Input
           name="posto"
-          label="Gas Station"
+          label="Posto"
           placeholder="Shell"
           value={formData.posto}
           onChange={handleChange}
@@ -129,7 +129,7 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
       </div>
 
       <Button type="submit" variant="primary" loading={loading} className="w-full">
-        Register Fuel Record
+        Registrar Abastecimento
       </Button>
     </form>
   );

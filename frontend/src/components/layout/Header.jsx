@@ -11,10 +11,10 @@ export function Header() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-                Fleet<span className="text-blue-600">Pro</span>
+                Frota<span className="text-blue-600">Pro</span>
               </h1>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Financial & Operational Control
+                Controle Financeiro e Operacional
               </p>
             </div>
           </div>

@@ -8,14 +8,14 @@ export function MaintenancePage({ trucks, onRefetch }) {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>Register Maintenance</CardTitle>
+          <CardTitle>Registrar Manutenção</CardTitle>
         </CardHeader>
         <CardContent>
           {trucks.length === 0 ? (
             <EmptyState
               icon={Wrench}
-              title="No trucks available"
-              description="Register at least one truck before adding maintenance records"
+              title="Nenhum caminhão disponível"
+              description="Cadastre pelo menos um caminhão antes de adicionar registros de manutenção"
             />
           ) : (
             <MaintenanceForm trucks={trucks} onSuccess={onRefetch} />
