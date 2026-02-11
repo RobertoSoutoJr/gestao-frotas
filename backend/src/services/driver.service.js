@@ -2,33 +2,36 @@ const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 
 class DriverService {
-  async getAll() {
+  async getAll(userId) {
     const { data, error } = await supabase
       .from('motoristas')
       .select('*')
+      .eq('user_id', userId)
       .order('nome', { ascending: true });
 
     if (error) throw new AppError('Falha ao buscar motoristas', 500, error);
     return data;
   }
 
-  async getById(id) {
+  async getById(id, userId) {
     const { data, error } = await supabase
       .from('motoristas')
       .select('*')
       .eq('id', id)
+      .eq('user_id', userId)
       .single();
 
     if (error) throw new AppError('Motorista não encontrado', 404, error);
     return data;
   }
 
-  async create(driverData) {
-    // Check if CPF already exists
+  async create(driverData, userId) {
+    // Check if CPF already exists for this user
     const { data: existing } = await supabase
       .from('motoristas')
       .select('cpf')
       .eq('cpf', driverData.cpf)
+      .eq('user_id', userId)
       .single();
 
     if (existing) {
@@ -37,7 +40,7 @@ class DriverService {
 
     const { data, error } = await supabase
       .from('motoristas')
-      .insert([driverData])
+      .insert([{ ...driverData, user_id: userId }])
       .select()
       .single();
 
@@ -45,11 +48,12 @@ class DriverService {
     return data;
   }
 
-  async update(id, driverData) {
+  async update(id, driverData, userId) {
     const { data, error } = await supabase
       .from('motoristas')
       .update(driverData)
       .eq('id', id)
+      .eq('user_id', userId)
       .select()
       .single();
 
@@ -57,11 +61,12 @@ class DriverService {
     return data;
   }
 
-  async delete(id) {
+  async delete(id, userId) {
     const { error } = await supabase
       .from('motoristas')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', userId);
 
     if (error) throw new AppError('Falha ao deletar motorista', 500, error);
     return { message: 'Motorista deletado com sucesso' };

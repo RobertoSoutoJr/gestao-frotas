@@ -5,5 +5,7 @@ export const maintenanceService = {
   getById: (id) => api.get(`/manutencoes/${id}`),
   getByTruck: (truckId) => api.get(`/manutencoes/truck/${truckId}`),
   getStats: (truckId) => api.get(`/manutencoes/truck/${truckId}/stats`),
-  create: (data) => api.post('/manutencoes', data)
+  create: (data) => api.post('/manutencoes', data),
+  update: (id, data) => api.put(`/manutencoes/${id}`, data),
+  delete: (id) => api.delete(`/manutencoes/${id}`)
 };

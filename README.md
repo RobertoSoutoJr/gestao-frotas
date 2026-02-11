@@ -1,356 +1,269 @@
-# FleetPro - Fleet Management System
+# 🚛 FrotaPro v1.0
 
-Enterprise-grade fleet management system with financial and operational control, built with modern technologies and clean architecture principles.
+> Sistema completo de gestão de frotas com autenticação, dashboard interativo e controle total de operações.
 
-## 🚀 Tech Stack
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React-19.2-61dafb.svg)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22-339933.svg)](https://nodejs.org/)
 
-### Backend
-- **Node.js** + **Express 5.2**
-- **Supabase** (PostgreSQL)
-- **Zod** - Schema validation
-- **CORS** enabled
-- Layered architecture (Routes → Controllers → Services)
+## 🎯 Visão Geral
 
-### Frontend
-- **React 19.2** + **Vite 7.3**
-- **Tailwind CSS 4.1** - Modern utility-first CSS
-- **Recharts** - Interactive data visualizations
-- **Lucide React** - Beautiful icons
-- **Axios** - HTTP client with interceptors
+FrotaPro é uma plataforma profissional para gestão completa de frotas de caminhões. Controle caminhões, motoristas, abastecimentos, manutenções e tenha acesso a relatórios detalhados em tempo real.
 
-## 📁 Project Structure
+### ✨ Principais Recursos
+
+- 🔐 **Autenticação completa** - Login, registro e gestão de usuários
+- 👥 **Multi-tenancy** - Cada usuário gerencia apenas seus dados
+- 📊 **Dashboard interativo** - Estatísticas e gráficos em tempo real
+- 🚚 **Gestão de caminhões** - CRUD completo com busca e filtros
+- 👤 **Gestão de motoristas** - Cadastro e controle de equipe
+- ⛽ **Controle de abastecimentos** - Histórico completo com análises
+- 🔧 **Gestão de manutenções** - 8 tipos de manutenção com badges coloridos
+- 📈 **Relatórios avançados** - Gráficos de custos, distribuição e evolução
+- 🔍 **Busca e filtros** - Em todas as páginas com múltiplos critérios
+- 🌓 **Modo escuro** - Toggle suave entre temas claro e escuro
+- ✏️ **Edição inline** - Modais para editar qualquer registro
+- 🗑️ **Exclusão segura** - Confirmação antes de deletar
+- 📱 **Design responsivo** - Funciona perfeitamente em mobile e desktop
+- 🎨 **Interface moderna** - Design profissional sem aparência genérica
+
+## 🏗️ Arquitetura
+
+### Backend (Node.js + Express)
 
 ```
-gestao-frotas/
-├── backend/
-│   ├── src/
-│   │   ├── config/          # Database & environment config
-│   │   ├── controllers/     # Request handlers
-│   │   ├── services/        # Business logic layer
-│   │   ├── routes/          # API endpoints
-│   │   ├── validators/      # Zod schemas
-│   │   ├── middlewares/     # Error handling & logging
-│   │   └── server.js        # Express app entry point
-│   ├── .env                 # Environment variables (not tracked)
-│   └── package.json
-│
-└── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   ├── ui/          # Reusable UI components
-    │   │   ├── forms/       # Form components
-    │   │   └── layout/      # Layout components
-    │   ├── pages/           # Page components
-    │   ├── hooks/           # Custom React hooks
-    │   ├── services/        # API service layer
-    │   ├── lib/             # Utility functions
-    │   ├── App.jsx          # Main app component
-    │   └── main.jsx         # Entry point
-    └── package.json
+backend/
+├── src/
+│   ├── config/           # Configurações (Supabase, ambiente)
+│   ├── middlewares/      # Auth JWT, error handling, async wrapper
+│   ├── validators/       # Schemas Zod para validação
+│   ├── services/         # Lógica de negócio
+│   ├── controllers/      # Handlers de requisições
+│   └── routes/           # Definição de rotas REST
+├── migrations/           # Migrações de banco de dados
+└── server.js            # Entry point
 ```
 
-## 🏗️ Backend Architecture
+**Tecnologias:**
+- Express 5.2 - Framework web
+- Supabase - PostgreSQL gerenciado
+- Zod - Validação de schemas
+- bcryptjs - Hash de senhas
+- jsonwebtoken - Autenticação JWT
+- pg - Driver PostgreSQL nativo
 
-### Layered Architecture
+### Frontend (React + Vite)
 
-**Routes → Controllers → Services → Database**
-
-- **Routes**: Define API endpoints and HTTP methods
-- **Controllers**: Handle requests, validate input, send responses
-- **Services**: Business logic, database operations
-- **Validators**: Zod schemas for type-safe validation
-
-### API Endpoints
-
-#### Trucks (`/caminhoes`)
 ```
-GET    /caminhoes           - List all trucks
-GET    /caminhoes/:id       - Get truck by ID
-POST   /caminhoes           - Create new truck
-PUT    /caminhoes/:id       - Update truck
-DELETE /caminhoes/:id       - Delete truck
-```
-
-#### Drivers (`/motoristas`)
-```
-GET    /motoristas          - List all drivers
-GET    /motoristas/:id      - Get driver by ID
-POST   /motoristas          - Create new driver
-PUT    /motoristas/:id      - Update driver
-DELETE /motoristas/:id      - Delete driver
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── ui/          # Componentes reutilizáveis (Button, Input, Modal)
+│   │   ├── forms/       # Formulários especializados
+│   │   └── layout/      # Header, TabNavigation
+│   ├── pages/           # Páginas principais (Dashboard, Trucks, etc.)
+│   ├── contexts/        # React Context (Auth, Theme)
+│   ├── hooks/           # Custom hooks (useAuth, useTheme, useFleet)
+│   ├── services/        # API clients
+│   └── lib/             # Utilitários (cn, formatters)
+└── index.html
 ```
 
-#### Fuel Records (`/abastecimentos`)
-```
-GET    /abastecimentos                      - List all fuel records
-GET    /abastecimentos/:id                  - Get fuel record by ID
-GET    /abastecimentos/truck/:truckId       - Get records by truck
-GET    /abastecimentos/truck/:truckId/consumption - Calculate consumption
-POST   /abastecimentos                      - Create fuel record
-```
+**Tecnologias:**
+- React 19.2 - UI library
+- Vite 7.3 - Build tool
+- Tailwind CSS 4.1 - Styling
+- Recharts - Gráficos interativos
+- Lucide React - Ícones modernos
+- Axios - Cliente HTTP
 
-#### Maintenance (`/manutencoes`)
-```
-GET    /manutencoes                 - List all maintenance records
-GET    /manutencoes/:id             - Get maintenance by ID
-GET    /manutencoes/truck/:truckId  - Get records by truck
-GET    /manutencoes/truck/:truckId/stats - Get statistics
-POST   /manutencoes                 - Create maintenance record
-```
+## 🚀 Início Rápido
 
-### Validation Schemas
+### Pré-requisitos
 
-All endpoints are protected with **Zod** validation:
-- License plate format validation (ABC-1234 or ABC1D23)
-- CPF format validation
-- Phone number format validation
-- Year, mileage, and monetary value constraints
-- Maintenance type enum validation
+- Node.js 18+
+- npm ou yarn
+- Conta no Supabase (gratuita)
 
-### Error Handling
+### 1. Clone o repositório
 
-Global error handler with:
-- Zod validation errors → 400 (detailed field errors)
-- Operational errors → Custom status codes
-- Unknown errors → 500 (logged)
-- Development mode includes stack traces
-
-## 🎨 Frontend Architecture
-
-### Component-Based Design
-
-#### UI Components (`/components/ui`)
-- **Button** - Multiple variants (primary, success, danger, outline, ghost)
-- **Input** - Labeled inputs with error states
-- **Select** - Dropdown with validation
-- **Card** - Container with header, title, description, content
-- **Badge** - Status indicators
-- **Spinner** - Loading states
-- **EmptyState** - No data placeholders
-- **Toast** - Notification system
-
-#### Form Components (`/components/forms`)
-- **TruckForm** - Vehicle registration
-- **DriverForm** - Driver registration
-- **FuelForm** - Fuel record creation
-- **MaintenanceForm** - Maintenance logging
-
-#### Pages
-- **TrucksPage** - Fleet management
-- **DriversPage** - Team management
-- **FuelPage** - Fuel tracking
-- **MaintenancePage** - Maintenance logging
-- **ReportsPage** - Financial analytics with charts
-
-### Custom Hooks
-
-#### `useFleet()`
-Centralized state management for all fleet data:
-```jsx
-const { trucks, drivers, fuelRecords, maintenanceRecords, loading, error, refetch } = useFleet();
+```bash
+git clone https://github.com/RobertoSoutoJr/gestao-frotas.git
+cd gestao-frotas
 ```
 
-#### `useToast()`
-Toast notification system:
-```jsx
-const { toasts, toast, success, error, dismiss } = useToast();
-success('Title', 'Description');
-error('Error', 'Something went wrong');
-```
+### 2. Configure o Backend
 
-### Service Layer
-
-Axios-based API client with:
-- Centralized base URL configuration
-- Response interceptors for error handling
-- Automatic data extraction
-- Type-safe service functions
-
-## 📊 Features
-
-### Core Functionality
-- ✅ Truck registration and management
-- ✅ Driver registration and management
-- ✅ Fuel consumption tracking
-- ✅ Maintenance record logging
-- ✅ Financial reports with charts
-- ✅ Automatic mileage updates
-- ✅ Cost per kilometer calculation
-
-### Data Visualizations
-- **Bar Chart** - Fuel vs Maintenance costs per truck
-- **Pie Chart** - Total spending distribution
-- **Overview Cards** - Total spent, fuel costs, maintenance, liters
-- **Detailed Breakdown** - Per-truck cost analysis
-
-### UX Features
-- Loading states with spinners
-- Empty states with helpful messages
-- Toast notifications for actions
-- Form validation with error messages
-- Responsive design (mobile-first)
-- Professional color scheme (Zinc + Blue)
-
-## ⚙️ Setup & Installation
-
-### Prerequisites
-- Node.js 20+
-- Supabase account
-- Git
-
-### Backend Setup
-
-1. Navigate to backend directory:
 ```bash
 cd backend
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Create `.env` file:
+Crie o arquivo `.env`:
+
 ```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_key
+SUPABASE_URL=sua_url_do_supabase
+SUPABASE_KEY=sua_public_key
+SUPABASE_SERVICE_KEY=sua_service_role_key
+DATABASE_PASSWORD=sua_senha_postgres
 PORT=3001
 NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
 ```
 
-4. Start server:
+Execute as migrações:
+
 ```bash
-npm run dev      # Development with nodemon
-npm start        # Production
+node migrations/001-create-auth-system.js
 ```
 
-### Frontend Setup
+Inicie o servidor:
 
-1. Navigate to frontend directory:
-```bash
-cd frontend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create `.env` file (optional):
-```env
-VITE_API_URL=http://localhost:3001
-```
-
-4. Start development server:
 ```bash
 npm run dev
 ```
 
-5. Open browser:
-```
-http://localhost:5173
-```
+### 3. Configure o Frontend
 
-### Database Schema (Supabase)
-
-Create these tables in Supabase:
-
-#### `caminhoes` (trucks)
-```sql
-CREATE TABLE caminhoes (
-  id SERIAL PRIMARY KEY,
-  placa VARCHAR(10) UNIQUE NOT NULL,
-  modelo VARCHAR(100) NOT NULL,
-  ano INTEGER,
-  km_atual NUMERIC DEFAULT 0,
-  capacidade_silo_ton NUMERIC,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+```bash
+cd ../frontend
+npm install
 ```
 
-#### `motoristas` (drivers)
-```sql
-CREATE TABLE motoristas (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  cpf VARCHAR(14) UNIQUE NOT NULL,
-  telefone VARCHAR(20),
-  created_at TIMESTAMP DEFAULT NOW()
-);
+Crie o arquivo `.env`:
+
+```env
+VITE_API_URL=http://localhost:3001
 ```
 
-#### `abastecimentos` (fuel records)
-```sql
-CREATE TABLE abastecimentos (
-  id SERIAL PRIMARY KEY,
-  caminhao_id INTEGER REFERENCES caminhoes(id) ON DELETE CASCADE,
-  motorista_id INTEGER REFERENCES motoristas(id),
-  km_registro NUMERIC NOT NULL,
-  litros NUMERIC NOT NULL,
-  valor_total NUMERIC NOT NULL,
-  posto VARCHAR(200),
-  created_at TIMESTAMP DEFAULT NOW()
-);
+Inicie o app:
+
+```bash
+npm run dev
 ```
 
-#### `manutencoes` (maintenance)
-```sql
-CREATE TABLE manutencoes (
-  id SERIAL PRIMARY KEY,
-  caminhao_id INTEGER REFERENCES caminhoes(id) ON DELETE CASCADE,
-  descricao TEXT NOT NULL,
-  tipo_manutencao VARCHAR(50) NOT NULL,
-  valor_total NUMERIC NOT NULL,
-  km_manutencao NUMERIC NOT NULL,
-  data_manutencao DATE NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
+Acesse: **http://localhost:5173**
 
-## 🎯 Code Quality Standards
+## 📖 Uso
+
+### Primeiro Acesso
+
+1. Abra a aplicação no navegador
+2. Clique em **"Criar conta gratuita"**
+3. Preencha seus dados (nome, email, senha)
+4. Faça login com suas credenciais
+
+### Navegação
+
+- **Dashboard** - Visão geral com estatísticas e gráficos
+- **Caminhões** - Cadastre e gerencie sua frota
+- **Motoristas** - Controle sua equipe
+- **Abastecimentos** - Registre e analise consumo
+- **Manutenções** - Histórico completo de manutenções
+- **Relatórios** - Análises detalhadas com filtros
+
+### Funcionalidades CRUD
+
+Todas as entidades suportam:
+- ✅ **Criar** - Formulários validados
+- 📖 **Listar** - Com busca e filtros
+- ✏️ **Editar** - Modais de edição
+- 🗑️ **Excluir** - Com confirmação
+
+## 🔒 Segurança
+
+- Senhas com hash bcrypt (salt rounds: 10)
+- JWT tokens (access + refresh)
+- Multi-tenancy com RLS (Row Level Security)
+- Service Role Key para operações admin
+- Validação de inputs com Zod
+- Proteção contra SQL injection
+- CORS configurado
+
+## 🎨 Design System
+
+### Cores Principais
+
+- **Blue 600** - Primary actions
+- **Indigo 600** - Secondary actions
+- **Green 600** - Success states
+- **Red 600** - Danger/Delete
+- **Zinc scales** - Neutrals
+
+### Componentes UI
+
+- Button (5 variantes)
+- Input (com ícones e máscaras)
+- Select
+- Card
+- Modal
+- ConfirmDialog
+- Badge
+- Toast
+- Spinner
+- EmptyState
+
+## 📊 Banco de Dados
+
+### Tabelas
+
+- `users` - Usuários do sistema
+- `user_sessions` - Sessões JWT
+- `caminhoes` - Frota de caminhões
+- `motoristas` - Equipe de motoristas
+- `abastecimentos` - Registros de abastecimento
+- `manutencoes` - Histórico de manutenções
+
+Todas as tabelas possuem:
+- RLS habilitado
+- Índices otimizados
+- Foreign keys com CASCADE
+- Campo `user_id` para multi-tenancy
+
+## 🛠️ Scripts Disponíveis
 
 ### Backend
-- ✅ **Clean Code** - Self-documenting code with clear naming
-- ✅ **SOLID Principles** - Single responsibility, dependency injection
-- ✅ **DRY** - Reusable services and validators
-- ✅ **Error Handling** - Global error middleware
-- ✅ **Validation** - Type-safe Zod schemas
-- ✅ **Async/Await** - Modern async handling
 
-### Frontend
-- ✅ **Component Composition** - Reusable UI components
-- ✅ **Custom Hooks** - Logic separation
-- ✅ **Service Layer** - API abstraction
-- ✅ **Utility Functions** - Formatting helpers
-- ✅ **Loading States** - Better UX
-- ✅ **Error Boundaries** - Graceful error handling
-
-## 🚀 Production Deployment
-
-### Backend
 ```bash
-cd backend
-npm install --production
-NODE_ENV=production npm start
+npm run dev     # Inicia servidor em modo desenvolvimento
+npm start       # Inicia servidor em produção
 ```
 
 ### Frontend
+
 ```bash
-cd frontend
-npm run build
-# Serve the dist/ folder with nginx, vercel, netlify, etc.
+npm run dev     # Inicia Vite dev server
+npm run build   # Build para produção
+npm run preview # Preview do build
 ```
 
-## 📝 License
+## 🤝 Contribuindo
 
-MIT
+1. Fork o projeto
+2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
-## 👨‍💻 Author
+## 📝 Licença
 
-**Roberto Souto Jr**
-- GitHub: [@RobertoSoutoJr](https://github.com/RobertoSoutoJr)
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 👨‍💻 Desenvolvido com
+
+- ❤️ Paixão por código limpo
+- ☕ Muito café
+- 🤖 Assistência de Claude Code (Anthropic)
+
+## 🔗 Links
+
+- [Documentação do Supabase](https://supabase.com/docs)
+- [React Documentation](https://react.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Recharts](https://recharts.org/)
 
 ---
 
-**Built with ❤️ using modern web technologies**
+<p align="center">
+  Feito com 💙 por Roberto Souto Jr<br>
+  © 2026 FrotaPro - Gestão Profissional de Frotas
+</p>

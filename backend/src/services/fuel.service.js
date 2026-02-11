@@ -3,7 +3,7 @@ const { AppError } = require('../middlewares/errorHandler');
 const truckService = require('./truck.service');
 
 class FuelService {
-  async getAll() {
+  async getAll(userId) {
     const { data, error } = await supabase
       .from('abastecimentos')
       .select(`
@@ -11,13 +11,14 @@ class FuelService {
         caminhoes:caminhao_id(placa, modelo),
         motoristas:motorista_id(nome)
       `)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar registros de abastecimento', 500, error);
     return data;
   }
 
-  async getById(id) {
+  async getById(id, userId) {
     const { data, error } = await supabase
       .from('abastecimentos')
       .select(`
@@ -26,43 +27,45 @@ class FuelService {
         motoristas:motorista_id(nome)
       `)
       .eq('id', id)
+      .eq('user_id', userId)
       .single();
 
     if (error) throw new AppError('Registro de abastecimento não encontrado', 404, error);
     return data;
   }
 
-  async getByTruck(truckId) {
+  async getByTruck(truckId, userId) {
     const { data, error } = await supabase
       .from('abastecimentos')
       .select('*')
       .eq('caminhao_id', truckId)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar registros de abastecimento do caminhão', 500, error);
     return data;
   }
 
-  async create(fuelData) {
+  async create(fuelData, userId) {
     // Verify truck and driver exist
-    await truckService.getById(fuelData.caminhao_id);
+    await truckService.getById(fuelData.caminhao_id, userId);
 
     const { data, error } = await supabase
       .from('abastecimentos')
-      .insert([fuelData])
+      .insert([{ ...fuelData, user_id: userId }])
       .select()
       .single();
 
     if (error) throw new AppError('Falha ao criar registro de abastecimento', 500, error);
 
     // Update truck mileage
-    await truckService.updateMileage(fuelData.caminhao_id, fuelData.km_registro);
+    await truckService.updateMileage(fuelData.caminhao_id, fuelData.km_registro, userId);
 
     return data;
   }
 
-  async calculateConsumption(truckId) {
-    const records = await this.getByTruck(truckId);
+  async calculateConsumption(truckId, userId) {
+    const records = await this.getByTruck(truckId, userId);
 
     if (records.length < 2) {
       return { message: 'Dados insuficientes para calcular consumo' };

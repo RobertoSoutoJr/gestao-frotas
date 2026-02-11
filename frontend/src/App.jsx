@@ -1,25 +1,39 @@
 import { useState } from 'react';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useAuth } from './hooks/useAuth';
 import { Header } from './components/layout/Header';
 import { TabNavigation } from './components/layout/TabNavigation';
+import { DashboardPage } from './pages/DashboardPage';
 import { TrucksPage } from './pages/TrucksPage';
 import { DriversPage } from './pages/DriversPage';
 import { FuelPage } from './pages/FuelPage';
 import { MaintenancePage } from './pages/MaintenancePage';
 import { ReportsPage } from './pages/ReportsPage';
+import { AuthPage } from './pages/AuthPage';
 import { LoadingScreen } from './components/ui/Spinner';
 import { ToastContainer } from './components/ui/Toast';
 import { useFleet } from './hooks/useFleet';
 import { useToast } from './hooks/useToast';
 
-function App() {
-  const [activeTab, setActiveTab] = useState('trucks');
+function AppContent() {
+  const [activeTab, setActiveTab] = useState('dashboard');
   const { trucks, drivers, fuelRecords, maintenanceRecords, loading, error, refetch } = useFleet();
   const { toasts, success, dismiss } = useToast();
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const handleRefetch = () => {
     refetch();
     success('Sucesso', 'Dados atualizados com sucesso');
   };
+
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return <AuthPage />;
+  }
 
   if (loading) {
     return <LoadingScreen />;
@@ -42,6 +56,14 @@ function App() {
       <TabNavigation activeTab={activeTab} onChange={setActiveTab} />
 
       <main className="container mx-auto px-4 py-8">
+        {activeTab === 'dashboard' && (
+          <DashboardPage
+            trucks={trucks}
+            fuelRecords={fuelRecords}
+            maintenanceRecords={maintenanceRecords}
+          />
+        )}
+
         {activeTab === 'trucks' && (
           <TrucksPage trucks={trucks} onRefetch={handleRefetch} />
         )}
@@ -69,6 +91,16 @@ function App() {
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -2,33 +2,36 @@ const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 
 class TruckService {
-  async getAll() {
+  async getAll(userId) {
     const { data, error } = await supabase
       .from('caminhoes')
       .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar caminhões', 500, error);
     return data;
   }
 
-  async getById(id) {
+  async getById(id, userId) {
     const { data, error } = await supabase
       .from('caminhoes')
       .select('*')
       .eq('id', id)
+      .eq('user_id', userId)
       .single();
 
     if (error) throw new AppError('Caminhão não encontrado', 404, error);
     return data;
   }
 
-  async create(truckData) {
-    // Check if license plate already exists
+  async create(truckData, userId) {
+    // Check if license plate already exists for this user
     const { data: existing } = await supabase
       .from('caminhoes')
       .select('placa')
       .eq('placa', truckData.placa)
+      .eq('user_id', userId)
       .single();
 
     if (existing) {
@@ -37,7 +40,7 @@ class TruckService {
 
     const { data, error } = await supabase
       .from('caminhoes')
-      .insert([truckData])
+      .insert([{ ...truckData, user_id: userId }])
       .select()
       .single();
 
@@ -45,11 +48,12 @@ class TruckService {
     return data;
   }
 
-  async update(id, truckData) {
+  async update(id, truckData, userId) {
     const { data, error } = await supabase
       .from('caminhoes')
       .update(truckData)
       .eq('id', id)
+      .eq('user_id', userId)
       .select()
       .single();
 
@@ -57,24 +61,25 @@ class TruckService {
     return data;
   }
 
-  async delete(id) {
+  async delete(id, userId) {
     const { error } = await supabase
       .from('caminhoes')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', userId);
 
     if (error) throw new AppError('Falha ao deletar caminhão', 500, error);
     return { message: 'Caminhão deletado com sucesso' };
   }
 
-  async updateMileage(id, newMileage) {
-    const truck = await this.getById(id);
+  async updateMileage(id, newMileage, userId) {
+    const truck = await this.getById(id, userId);
 
     if (newMileage < truck.km_atual) {
       throw new AppError('Nova quilometragem não pode ser menor que a atual', 400);
     }
 
-    return this.update(id, { km_atual: newMileage });
+    return this.update(id, { km_atual: newMileage }, userId);
   }
 }
 

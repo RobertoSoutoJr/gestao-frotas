@@ -5,5 +5,7 @@ export const fuelService = {
   getById: (id) => api.get(`/abastecimentos/${id}`),
   getByTruck: (truckId) => api.get(`/abastecimentos/truck/${truckId}`),
   getConsumption: (truckId) => api.get(`/abastecimentos/truck/${truckId}/consumption`),
-  create: (data) => api.post('/abastecimentos', data)
+  create: (data) => api.post('/abastecimentos', data),
+  update: (id, data) => api.put(`/abastecimentos/${id}`, data),
+  delete: (id) => api.delete(`/abastecimentos/${id}`)
 };
