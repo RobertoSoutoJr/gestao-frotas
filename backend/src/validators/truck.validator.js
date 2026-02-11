@@ -2,22 +2,22 @@ const { z } = require('zod');
 
 const createTruckSchema = z.object({
   placa: z.string()
-    .min(7, 'License plate must have at least 7 characters')
-    .max(10, 'License plate too long')
-    .regex(/^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/, 'Invalid license plate format'),
+    .min(7, 'Placa deve ter pelo menos 7 caracteres')
+    .max(10, 'Placa muito longa')
+    .regex(/^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/, 'Formato de placa inválido'),
   modelo: z.string()
-    .min(2, 'Model name too short')
-    .max(100, 'Model name too long'),
+    .min(2, 'Nome do modelo muito curto')
+    .max(100, 'Nome do modelo muito longo'),
   ano: z.number()
     .int()
-    .min(1990, 'Year must be 1990 or later')
-    .max(new Date().getFullYear() + 1, 'Invalid year')
+    .min(1990, 'Ano deve ser 1990 ou posterior')
+    .max(new Date().getFullYear() + 1, 'Ano inválido')
     .optional(),
   km_atual: z.number()
-    .nonnegative('Mileage cannot be negative')
+    .nonnegative('Quilometragem não pode ser negativa')
     .optional(),
   capacidade_silo_ton: z.number()
-    .positive('Capacity must be positive')
+    .positive('Capacidade deve ser positiva')
     .optional()
 });
 

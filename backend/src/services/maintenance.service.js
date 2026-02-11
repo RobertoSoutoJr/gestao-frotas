@@ -12,7 +12,7 @@ class MaintenanceService {
       `)
       .order('data_manutencao', { ascending: false });
 
-    if (error) throw new AppError('Failed to fetch maintenance records', 500, error);
+    if (error) throw new AppError('Falha ao buscar registros de manutenção', 500, error);
     return data;
   }
 
@@ -26,7 +26,7 @@ class MaintenanceService {
       .eq('id', id)
       .single();
 
-    if (error) throw new AppError('Maintenance record not found', 404, error);
+    if (error) throw new AppError('Registro de manutenção não encontrado', 404, error);
     return data;
   }
 
@@ -37,7 +37,7 @@ class MaintenanceService {
       .eq('caminhao_id', truckId)
       .order('data_manutencao', { ascending: false });
 
-    if (error) throw new AppError('Failed to fetch truck maintenance records', 500, error);
+    if (error) throw new AppError('Falha ao buscar registros de manutenção do caminhão', 500, error);
     return data;
   }
 
@@ -51,7 +51,7 @@ class MaintenanceService {
       .select()
       .single();
 
-    if (error) throw new AppError('Failed to create maintenance record', 500, error);
+    if (error) throw new AppError('Falha ao criar registro de manutenção', 500, error);
 
     // Update truck mileage
     await truckService.updateMileage(maintenanceData.caminhao_id, maintenanceData.km_manutencao);

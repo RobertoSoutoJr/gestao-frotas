@@ -13,7 +13,7 @@ class FuelService {
       `)
       .order('created_at', { ascending: false });
 
-    if (error) throw new AppError('Failed to fetch fuel records', 500, error);
+    if (error) throw new AppError('Falha ao buscar registros de abastecimento', 500, error);
     return data;
   }
 
@@ -28,7 +28,7 @@ class FuelService {
       .eq('id', id)
       .single();
 
-    if (error) throw new AppError('Fuel record not found', 404, error);
+    if (error) throw new AppError('Registro de abastecimento não encontrado', 404, error);
     return data;
   }
 
@@ -39,7 +39,7 @@ class FuelService {
       .eq('caminhao_id', truckId)
       .order('created_at', { ascending: false });
 
-    if (error) throw new AppError('Failed to fetch truck fuel records', 500, error);
+    if (error) throw new AppError('Falha ao buscar registros de abastecimento do caminhão', 500, error);
     return data;
   }
 
@@ -53,7 +53,7 @@ class FuelService {
       .select()
       .single();
 
-    if (error) throw new AppError('Failed to create fuel record', 500, error);
+    if (error) throw new AppError('Falha ao criar registro de abastecimento', 500, error);
 
     // Update truck mileage
     await truckService.updateMileage(fuelData.caminhao_id, fuelData.km_registro);
@@ -65,7 +65,7 @@ class FuelService {
     const records = await this.getByTruck(truckId);
 
     if (records.length < 2) {
-      return { message: 'Not enough data to calculate consumption' };
+      return { message: 'Dados insuficientes para calcular consumo' };
     }
 
     const sortedRecords = records.sort((a, b) => a.km_registro - b.km_registro);

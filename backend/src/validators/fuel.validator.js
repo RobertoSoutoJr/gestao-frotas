@@ -1,12 +1,12 @@
 const { z } = require('zod');
 
 const createFuelRecordSchema = z.object({
-  caminhao_id: z.number().int().positive('Invalid truck ID'),
-  motorista_id: z.number().int().positive('Invalid driver ID'),
-  km_registro: z.number().nonnegative('Mileage cannot be negative'),
-  litros: z.number().positive('Liters must be positive'),
-  valor_total: z.number().positive('Total amount must be positive'),
-  posto: z.string().max(200, 'Gas station name too long').optional()
+  caminhao_id: z.number().int().positive('ID do caminhão inválido'),
+  motorista_id: z.number().int().positive('ID do motorista inválido'),
+  km_registro: z.number().nonnegative('Quilometragem não pode ser negativa'),
+  litros: z.number().positive('Litros deve ser positivo'),
+  valor_total: z.number().positive('Valor total deve ser positivo'),
+  posto: z.string().max(200, 'Nome do posto muito longo').optional()
 });
 
 module.exports = { createFuelRecordSchema };

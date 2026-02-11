@@ -15,7 +15,7 @@ const errorHandler = (err, req, res, next) => {
   if (err instanceof ZodError) {
     return res.status(400).json({
       success: false,
-      message: 'Validation error',
+      message: 'Erro de validação',
       errors: err.errors.map(e => ({
         field: e.path.join('.'),
         message: e.message
@@ -37,7 +37,7 @@ const errorHandler = (err, req, res, next) => {
 
   return res.status(500).json({
     success: false,
-    message: 'Internal server error',
+    message: 'Erro interno do servidor',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };

@@ -8,7 +8,7 @@ class TruckService {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw new AppError('Failed to fetch trucks', 500, error);
+    if (error) throw new AppError('Falha ao buscar caminhões', 500, error);
     return data;
   }
 
@@ -19,7 +19,7 @@ class TruckService {
       .eq('id', id)
       .single();
 
-    if (error) throw new AppError('Truck not found', 404, error);
+    if (error) throw new AppError('Caminhão não encontrado', 404, error);
     return data;
   }
 
@@ -32,7 +32,7 @@ class TruckService {
       .single();
 
     if (existing) {
-      throw new AppError('License plate already registered', 409);
+      throw new AppError('Placa já cadastrada', 409);
     }
 
     const { data, error } = await supabase
@@ -41,7 +41,7 @@ class TruckService {
       .select()
       .single();
 
-    if (error) throw new AppError('Failed to create truck', 500, error);
+    if (error) throw new AppError('Falha ao criar caminhão', 500, error);
     return data;
   }
 
@@ -53,7 +53,7 @@ class TruckService {
       .select()
       .single();
 
-    if (error) throw new AppError('Failed to update truck', 500, error);
+    if (error) throw new AppError('Falha ao atualizar caminhão', 500, error);
     return data;
   }
 
@@ -63,15 +63,15 @@ class TruckService {
       .delete()
       .eq('id', id);
 
-    if (error) throw new AppError('Failed to delete truck', 500, error);
-    return { message: 'Truck deleted successfully' };
+    if (error) throw new AppError('Falha ao deletar caminhão', 500, error);
+    return { message: 'Caminhão deletado com sucesso' };
   }
 
   async updateMileage(id, newMileage) {
     const truck = await this.getById(id);
 
     if (newMileage < truck.km_atual) {
-      throw new AppError('New mileage cannot be less than current mileage', 400);
+      throw new AppError('Nova quilometragem não pode ser menor que a atual', 400);
     }
 
     return this.update(id, { km_atual: newMileage });

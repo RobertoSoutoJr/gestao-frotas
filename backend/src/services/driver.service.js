@@ -8,7 +8,7 @@ class DriverService {
       .select('*')
       .order('nome', { ascending: true });
 
-    if (error) throw new AppError('Failed to fetch drivers', 500, error);
+    if (error) throw new AppError('Falha ao buscar motoristas', 500, error);
     return data;
   }
 
@@ -19,7 +19,7 @@ class DriverService {
       .eq('id', id)
       .single();
 
-    if (error) throw new AppError('Driver not found', 404, error);
+    if (error) throw new AppError('Motorista não encontrado', 404, error);
     return data;
   }
 
@@ -32,7 +32,7 @@ class DriverService {
       .single();
 
     if (existing) {
-      throw new AppError('CPF already registered', 409);
+      throw new AppError('CPF já cadastrado', 409);
     }
 
     const { data, error } = await supabase
@@ -41,7 +41,7 @@ class DriverService {
       .select()
       .single();
 
-    if (error) throw new AppError('Failed to create driver', 500, error);
+    if (error) throw new AppError('Falha ao criar motorista', 500, error);
     return data;
   }
 
@@ -53,7 +53,7 @@ class DriverService {
       .select()
       .single();
 
-    if (error) throw new AppError('Failed to update driver', 500, error);
+    if (error) throw new AppError('Falha ao atualizar motorista', 500, error);
     return data;
   }
 
@@ -63,8 +63,8 @@ class DriverService {
       .delete()
       .eq('id', id);
 
-    if (error) throw new AppError('Failed to delete driver', 500, error);
-    return { message: 'Driver deleted successfully' };
+    if (error) throw new AppError('Falha ao deletar motorista', 500, error);
+    return { message: 'Motorista deletado com sucesso' };
   }
 }
 
