@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
-import { fuelService } from '../services/fuel';
+import { fuelService } from '../../services/fuel';
 
 export function FuelForm({ trucks, drivers, onSuccess }) {
   const [loading, setLoading] = useState(false);

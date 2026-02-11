@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
-import { maintenanceService } from '../services/maintenance';
+import { maintenanceService } from '../../services/maintenance';
 
 const MAINTENANCE_TYPES = [
   'Preventiva',
