@@ -222,15 +222,15 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-[#E0E0E0]/50">
                   Total Gasto
                 </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <p className="mt-2 text-2xl font-bold text-[#E0E0E0]">
                   {formatCurrency(overallStats.totalSpent)}
                 </p>
               </div>
               <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-900/20">
-                <DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <DollarSign className="h-6 w-6 text-[#00FFFF]" />
               </div>
             </div>
           </CardContent>
@@ -240,15 +240,15 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-[#E0E0E0]/50">
                   Combustível
                 </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <p className="mt-2 text-2xl font-bold text-[#E0E0E0]">
                   {formatCurrency(overallStats.totalFuel)}
                 </p>
               </div>
               <div className="rounded-full bg-orange-100 p-3 dark:bg-orange-900/20">
-                <FuelIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                <FuelIcon className="h-6 w-6 text-[#FF9900]" />
               </div>
             </div>
           </CardContent>
@@ -258,10 +258,10 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-[#E0E0E0]/50">
                   Manutenção
                 </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <p className="mt-2 text-2xl font-bold text-[#E0E0E0]">
                   {formatCurrency(overallStats.totalMaintenance)}
                 </p>
               </div>
@@ -276,15 +276,15 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-[#E0E0E0]/50">
                   Total de Litros
                 </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <p className="mt-2 text-2xl font-bold text-[#E0E0E0]">
                   {formatNumber(overallStats.totalLiters, 0)}
                 </p>
               </div>
               <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/20">
-                <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <TrendingUp className="h-6 w-6 text-[#00FF88]" />
               </div>
             </div>
           </CardContent>
@@ -380,7 +380,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
       {/* Detalhamento por Caminhão */}
       <div>
-        <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+        <h2 className="mb-4 font-[Orbitron] text-xl font-semibold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
           Detalhamento por Caminhão
         </h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -400,7 +400,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <span className="flex items-center gap-2 text-sm text-[#E0E0E0]/40">
                     <FuelIcon className="h-4 w-4" />
                     Combustível ({stat.fuelRecordsCount} registros)
                   </span>
@@ -410,7 +410,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <span className="flex items-center gap-2 text-sm text-[#E0E0E0]/40">
                     <Wrench className="h-4 w-4" />
                     Manutenção ({stat.maintenanceCount} registros)
                   </span>
@@ -421,10 +421,10 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
                 <div className="border-t border-zinc-200 pt-4 dark:border-zinc-700">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                    <span className="text-lg font-bold text-[#E0E0E0]">
                       Total
                     </span>
-                    <span className="text-xl font-bold text-blue-600">
+                    <span className="text-xl font-bold text-[#00FFFF]">
                       {formatCurrency(stat.totalSpent)}
                     </span>
                   </div>
@@ -432,10 +432,10 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
                 {stat.totalLiters > 0 && (
                   <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    <p className="text-xs text-[#E0E0E0]/50">
                       Consumo Total
                     </p>
-                    <p className="mt-1 font-mono text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                    <p className="mt-1 font-mono text-sm font-medium text-[#E0E0E0]">
                       {formatNumber(stat.totalLiters, 2)} litros
                     </p>
                   </div>

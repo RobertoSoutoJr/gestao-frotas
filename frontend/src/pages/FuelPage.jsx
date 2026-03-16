@@ -293,7 +293,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
 
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 className="font-[Orbitron] text-xl font-semibold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
             Histórico ({filteredFuelRecords.length} de {fuelRecords.length})
           </h2>
           <Button
@@ -347,7 +347,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
         {loading ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-zinc-500">Carregando...</p>
+              <p className="text-[#E0E0E0]/50">Carregando...</p>
             </CardContent>
           </Card>
         ) : fuelRecords.length === 0 ? (
@@ -378,17 +378,17 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
-                          <Fuel className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#00FFFF]/10">
+                          <Fuel className="h-5 w-5 text-[#00FFFF]" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-zinc-400" />
-                            <span className="font-semibold text-zinc-900 dark:text-zinc-50">
+                            <Truck className="h-4 w-4 text-[#FF00FF]/50" />
+                            <span className="font-semibold text-[#E0E0E0]">
                               {getTruckName(fuel.caminhao_id)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-zinc-500">
+                          <div className="flex items-center gap-2 text-sm text-[#E0E0E0]/50">
                             <User className="h-3 w-3" />
                             <span>{getDriverName(fuel.motorista_id)}</span>
                           </div>
@@ -397,28 +397,28 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
 
                       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                         <div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">KM Registro</p>
-                          <p className="font-mono font-semibold text-zinc-900 dark:text-zinc-50">
+                          <p className="text-xs text-[#E0E0E0]/50">KM Registro</p>
+                          <p className="font-mono font-semibold text-[#E0E0E0]">
                             {formatNumber(fuel.km_registro, 0)} km
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Litros</p>
-                          <p className="flex items-center gap-1 font-semibold text-zinc-900 dark:text-zinc-50">
-                            <Droplet className="h-3 w-3 text-blue-500" />
+                          <p className="text-xs text-[#E0E0E0]/50">Litros</p>
+                          <p className="flex items-center gap-1 font-semibold text-[#E0E0E0]">
+                            <Droplet className="h-3 w-3 text-[#00FFFF]" />
                             {formatNumber(fuel.litros)} L
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Valor Total</p>
-                          <p className="flex items-center gap-1 font-semibold text-zinc-900 dark:text-zinc-50">
-                            <DollarSign className="h-3 w-3 text-green-500" />
+                          <p className="text-xs text-[#E0E0E0]/50">Valor Total</p>
+                          <p className="flex items-center gap-1 font-semibold text-[#E0E0E0]">
+                            <DollarSign className="h-3 w-3 text-[#00FF88]" />
                             {formatCurrency(fuel.valor_total)}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Data</p>
-                          <p className="flex items-center gap-1 text-sm text-zinc-900 dark:text-zinc-50">
+                          <p className="text-xs text-[#E0E0E0]/50">Data</p>
+                          <p className="flex items-center gap-1 text-sm text-[#E0E0E0]">
                             <Calendar className="h-3 w-3" />
                             {formatDate(fuel.created_at)}
                           </p>

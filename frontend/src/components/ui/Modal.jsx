@@ -9,19 +9,13 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     } else {
       document.body.style.overflow = 'unset';
     }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
+      if (e.key === 'Escape' && isOpen) onClose();
     };
-
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
@@ -41,19 +35,26 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
       onClick={onClose}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-      {/* Modal */}
+      {/* Modal — Terminal Window */}
       <div
         className={`relative w-full ${sizeClasses[size]} animate-scale-in`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              {title}
-            </h2>
+        <div className="border-2 border-[#00FFFF] bg-black/90 shadow-[0_0_30px_rgba(0,255,255,0.2)]">
+          {/* Title Bar */}
+          <div className="flex items-center justify-between border-b border-[#00FFFF]/30 bg-[#00FFFF]/10 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="flex gap-2">
+                <div className="h-3 w-3 rounded-full bg-[#FF00FF]" />
+                <div className="h-3 w-3 rounded-full bg-[#00FFFF]" />
+                <div className="h-3 w-3 rounded-full bg-[#FF9900]" />
+              </div>
+              <h2 className="font-[Orbitron] text-sm font-semibold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
+                {title}
+              </h2>
+            </div>
             <Button
               variant="ghost"
               size="sm"

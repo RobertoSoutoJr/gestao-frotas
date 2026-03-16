@@ -14,7 +14,6 @@ export function LoginPage({ onToggle }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       await login(formData.email, formData.password);
       success('Bem-vindo!', 'Login realizado com sucesso');
@@ -30,72 +29,101 @@ export function LoginPage({ onToggle }) {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Lado esquerdo - Imagem/Banner */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl">
-              <Truck className="h-10 w-10" />
+    <div className="min-h-screen flex bg-[#090014]">
+      {/* Background */}
+      <div className="vw-grid-bg" />
+      <div className="vw-chromatic" />
+
+      {/* Left Panel — Hero */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center">
+        {/* Floating Sun */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-gradient-to-b from-[#FF9900] to-[#FF00FF] opacity-15 blur-[100px]" />
+
+        <div className="relative z-10 flex flex-col px-16 text-white max-w-xl">
+          <div className="flex items-center gap-4 mb-12">
+            <div className="flex h-16 w-16 items-center justify-center border-2 border-[#00FFFF] rotate-45 bg-[#00FFFF]/10 shadow-[0_0_30px_rgba(0,255,255,0.3)]">
+              <Truck className="h-8 w-8 text-[#00FFFF] -rotate-45" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold">FrotaPro</h1>
-              <p className="text-blue-200 text-sm">Gestão Inteligente de Frotas</p>
+              <h1 className="font-[Orbitron] text-4xl font-black tracking-wider">
+                <span className="text-[#E0E0E0]">FROTA</span>
+                <span className="text-gradient-sunset">PRO</span>
+              </h1>
+              <p className="font-mono text-sm text-[#FF00FF]/60">&gt; Gestão Inteligente de Frotas</p>
             </div>
           </div>
-          <h2 className="text-5xl font-bold mb-6 leading-tight">
-            Controle total da sua frota
+
+          <h2 className="font-[Orbitron] text-5xl font-black leading-tight mb-6 text-glow-white">
+            CONTROLE
+            <br />
+            <span className="text-gradient-sunset drop-shadow-[0_0_30px_rgba(255,0,255,0.6)]">
+              TOTAL
+            </span>
+            <br />
+            DA SUA FROTA
           </h2>
-          <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-            Gerencie caminhões, motoristas, abastecimentos e manutenções em uma única plataforma profissional.
+
+          <p className="font-mono text-lg text-[#E0E0E0]/60 mb-10 leading-relaxed">
+            &gt; Gerencie caminhões, motoristas, abastecimentos e manutenções em uma única plataforma.
           </p>
+
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold mb-1">100%</div>
-              <div className="text-sm text-blue-200">Controle Operacional</div>
+            <div className="border border-[#00FFFF]/30 border-t-2 border-t-[#00FFFF] bg-[#1a103c]/60 p-5">
+              <div className="font-[Orbitron] text-3xl font-black text-[#00FFFF] text-glow-cyan">100%</div>
+              <div className="font-mono text-sm text-[#E0E0E0]/50 mt-1">&gt; Controle Operacional</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold mb-1">24/7</div>
-              <div className="text-sm text-blue-200">Acesso aos Dados</div>
+            <div className="border border-[#FF00FF]/30 border-t-2 border-t-[#FF00FF] bg-[#1a103c]/60 p-5">
+              <div className="font-[Orbitron] text-3xl font-black text-[#FF00FF] text-glow-magenta">24/7</div>
+              <div className="font-mono text-sm text-[#E0E0E0]/50 mt-1">&gt; Acesso aos Dados</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Lado direito - Formulário */}
-      <div className="flex-1 flex items-center justify-center px-8 py-12 bg-zinc-50 dark:bg-zinc-950">
+      {/* Right Panel — Login Form */}
+      <div className="flex-1 flex items-center justify-center px-8 py-12 relative z-10">
         <div className="w-full max-w-md">
+          {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <Truck className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">FrotaPro</span>
+            <div className="flex h-10 w-10 items-center justify-center border-2 border-[#00FFFF] rotate-45 bg-[#00FFFF]/10">
+              <Truck className="h-5 w-5 text-[#00FFFF] -rotate-45" />
+            </div>
+            <span className="font-[Orbitron] text-2xl font-black text-gradient-sunset">FROTAPRO</span>
           </div>
 
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
-              Bem-vindo de volta
-            </h2>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Entre com suas credenciais para continuar
-            </p>
-          </div>
+          {/* Terminal Window */}
+          <div className="border-2 border-[#00FFFF] bg-black/80 shadow-[0_0_30px_rgba(0,255,255,0.15)]">
+            {/* Title Bar */}
+            <div className="flex items-center gap-3 border-b border-[#00FFFF]/30 bg-[#00FFFF]/5 px-4 py-3">
+              <div className="flex gap-2">
+                <div className="h-3 w-3 rounded-full bg-[#FF00FF]" />
+                <div className="h-3 w-3 rounded-full bg-[#00FFFF]" />
+                <div className="h-3 w-3 rounded-full bg-[#FF9900]" />
+              </div>
+              <span className="font-mono text-xs text-[#00FFFF]/60">&gt; login_session.exe</span>
+            </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-4">
-              <div>
+            <div className="p-8">
+              <div className="text-center mb-8">
+                <h2 className="font-[Orbitron] text-2xl font-bold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_10px_rgba(0,255,255,0.8)]">
+                  Acessar Sistema
+                </h2>
+                <p className="font-mono text-sm text-[#E0E0E0]/50 mt-2">
+                  &gt; Insira suas credenciais
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <Input
                   type="email"
                   name="email"
                   label="Email"
-                  placeholder="seu@email.com"
+                  placeholder="usuario@email.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
                   icon={Mail}
                 />
-              </div>
-
-              <div>
                 <Input
                   type="password"
                   name="password"
@@ -106,35 +134,36 @@ export function LoginPage({ onToggle }) {
                   required
                   icon={Lock}
                 />
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={loading}
+                  className="w-full py-3 text-base"
+                >
+                  <span className="inline-flex items-center gap-2 skew-x-12">
+                    Acessar
+                    <ArrowRight className="h-5 w-5" />
+                  </span>
+                </Button>
+              </form>
+
+              <div className="mt-8 text-center">
+                <p className="font-mono text-sm text-[#E0E0E0]/50">
+                  Sem conta?{' '}
+                  <button
+                    onClick={onToggle}
+                    className="text-[#FF00FF] hover:text-[#00FFFF] font-semibold transition-colors uppercase tracking-wider"
+                  >
+                    Registrar
+                  </button>
+                </p>
               </div>
             </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              loading={loading}
-              className="w-full py-3 text-base font-semibold flex items-center justify-center gap-2"
-            >
-              Entrar
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </form>
-
-          <div className="mt-8 text-center">
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Não tem uma conta?{' '}
-              <button
-                onClick={onToggle}
-                className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
-              >
-                Criar conta gratuita
-              </button>
-            </p>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-800">
-            <p className="text-center text-sm text-zinc-500">
-              © 2026 FrotaPro. Gestão profissional de frotas.
+          <div className="mt-6 text-center">
+            <p className="font-mono text-xs text-[#E0E0E0]/30">
+              &gt; © 2026 FrotaPro — Sistema de Gestão de Frotas
             </p>
           </div>
         </div>
