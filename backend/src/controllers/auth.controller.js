@@ -14,8 +14,35 @@ exports.register = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'Usuário cadastrado com sucesso',
+    message: 'Código de verificação enviado para o email',
     data: result
+  });
+});
+
+exports.verifyEmail = asyncHandler(async (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    return res.status(400).json({ success: false, message: 'Email e código são obrigatórios' });
+  }
+  const result = await authService.verifyEmail(email, code);
+
+  res.json({
+    success: true,
+    message: 'Email verificado com sucesso',
+    data: result
+  });
+});
+
+exports.resendCode = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email é obrigatório' });
+  }
+  const result = await authService.resendVerificationCode(email);
+
+  res.json({
+    success: true,
+    message: result.message
   });
 });
 

@@ -5,6 +5,8 @@ const { protect } = require('../middlewares/auth.middleware');
 
 // Rotas públicas
 router.post('/register', authController.register);
+router.post('/verify-email', authController.verifyEmail);
+router.post('/resend-code', authController.resendCode);
 router.post('/login', authController.login);
 router.post('/refresh-token', authController.refreshToken);
 router.post('/logout', authController.logout);

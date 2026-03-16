@@ -7,9 +7,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [pendingVerification, setPendingVerification] = useState(null); // email aguardando verificação
 
   useEffect(() => {
-    // Carregar usuário do localStorage
     const loadUser = () => {
       const storedUser = authService.getCurrentUser();
       const token = localStorage.getItem('accessToken');
@@ -26,16 +26,36 @@ export function AuthProvider({ children }) {
 
   const register = async (data) => {
     const response = await authService.register(data);
-    setUser(response.data.user);
-    setIsAuthenticated(true);
+    // Não autentica ainda — precisa verificar email
+    setPendingVerification(data.email);
     return response;
   };
 
-  const login = async (email, password) => {
-    const response = await authService.login(email, password);
+  const verifyEmail = async (email, code) => {
+    const response = await authService.verifyEmail(email, code);
     setUser(response.data.user);
     setIsAuthenticated(true);
+    setPendingVerification(null);
     return response;
+  };
+
+  const resendCode = async (email) => {
+    return await authService.resendCode(email);
+  };
+
+  const login = async (email, password) => {
+    try {
+      const response = await authService.login(email, password);
+      setUser(response.data.user);
+      setIsAuthenticated(true);
+      return response;
+    } catch (err) {
+      // Se o erro for 403, email não verificado
+      if (err.status === 403) {
+        setPendingVerification(email);
+      }
+      throw err;
+    }
   };
 
   const logout = async () => {
@@ -49,14 +69,22 @@ export function AuthProvider({ children }) {
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
+  const cancelVerification = () => {
+    setPendingVerification(null);
+  };
+
   const value = {
     user,
     loading,
     isAuthenticated,
+    pendingVerification,
     register,
+    verifyEmail,
+    resendCode,
     login,
     logout,
-    updateUser
+    updateUser,
+    cancelVerification
   };
 
   return (
