@@ -3,25 +3,25 @@ import { cn } from '../../lib/utils';
 
 export function EmptyState({
   icon: Icon = FileQuestion,
-  title = 'Nenhum dado encontrado',
+  title,
   description,
-  action,
+  children,
   className
 }) {
   return (
     <div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
-      <div className="rounded-full bg-zinc-100 p-6 dark:bg-zinc-800">
-        <Icon className="h-10 w-10 text-zinc-400" />
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-white/[0.05]">
+        <Icon className="h-7 w-7 text-[#8A8F98]" />
       </div>
-      <h3 className="mt-6 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+      <h3 className="text-base font-semibold text-[#EDEDEF]">
         {title}
       </h3>
       {description && (
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 max-w-sm text-sm text-[#8A8F98]">
           {description}
         </p>
       )}
-      {action && <div className="mt-6">{action}</div>}
+      {children && <div className="mt-4">{children}</div>}
     </div>
   );
 }

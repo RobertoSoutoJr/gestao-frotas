@@ -12,9 +12,9 @@ const tabs = [
 
 export function TabNavigation({ activeTab, onChange }) {
   return (
-    <nav className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <nav className="relative z-10 border-b border-white/[0.06] bg-[#050506]/80 backdrop-blur-xl">
       <div className="container mx-auto px-4">
-        <div className="flex gap-1 overflow-x-auto">
+        <div className="flex overflow-x-auto">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -24,14 +24,14 @@ export function TabNavigation({ activeTab, onChange }) {
                 key={tab.id}
                 onClick={() => onChange(tab.id)}
                 className={cn(
-                  'flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors',
+                  'flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'
+                    ? 'border-[#5E6AD2] text-[#EDEDEF] bg-white/[0.03]'
+                    : 'border-transparent text-[#8A8F98] hover:text-[#EDEDEF]'
                 )}
               >
                 <Icon className="h-4 w-4" />
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             );
           })}

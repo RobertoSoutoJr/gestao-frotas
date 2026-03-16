@@ -1,64 +1,61 @@
 import { CheckCircle, XCircle, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-const variants = {
-  success: {
-    bg: 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800',
-    icon: CheckCircle,
-    iconColor: 'text-green-600 dark:text-green-400'
-  },
-  error: {
-    bg: 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800',
-    icon: XCircle,
-    iconColor: 'text-red-600 dark:text-red-400'
-  },
-  default: {
-    bg: 'bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800',
-    icon: null,
-    iconColor: ''
-  }
-};
+function Toast({ toast, onDismiss }) {
+  const variants = {
+    success: {
+      border: 'border-emerald-500/30',
+      icon: <CheckCircle className="h-4 w-4 text-emerald-400" />,
+    },
+    error: {
+      border: 'border-red-500/30',
+      icon: <XCircle className="h-4 w-4 text-red-400" />,
+    },
+    default: {
+      border: 'border-[#5E6AD2]/30',
+      icon: null,
+    },
+  };
 
-export function Toast({ id, title, description, variant = 'default', onDismiss }) {
-  const config = variants[variant];
-  const Icon = config.icon;
+  const style = variants[toast.variant] || variants.default;
 
   return (
     <div
       className={cn(
-        'pointer-events-auto w-full max-w-sm rounded-lg border p-4 shadow-lg',
-        'animate-in slide-in-from-right',
-        config.bg
+        'animate-in slide-in-from-right pointer-events-auto flex w-full max-w-sm items-start gap-3',
+        'border bg-[#0a0a0c] rounded-xl p-4 backdrop-blur-md',
+        'shadow-[0_8px_32px_rgba(0,0,0,0.5)]',
+        style.border
       )}
     >
-      <div className="flex items-start gap-3">
-        {Icon && <Icon className={cn('h-5 w-5 flex-shrink-0', config.iconColor)} />}
-        <div className="flex-1 space-y-1">
-          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-            {title}
+      {style.icon && <div className="mt-0.5 shrink-0">{style.icon}</div>}
+      <div className="flex-1">
+        {toast.title && (
+          <p className="text-sm font-semibold text-[#EDEDEF]">
+            {toast.title}
           </p>
-          {description && (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {description}
-            </p>
-          )}
-        </div>
-        <button
-          onClick={() => onDismiss(id)}
-          className="flex-shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        )}
+        {toast.description && (
+          <p className="mt-0.5 text-xs text-[#8A8F98]">{toast.description}</p>
+        )}
       </div>
+      <button
+        onClick={() => onDismiss(toast.id)}
+        className="shrink-0 text-[#8A8F98] hover:text-[#EDEDEF] transition-colors"
+      >
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 }
 
 export function ToastContainer({ toasts, onDismiss }) {
+  if (!toasts?.length) return null;
+
   return (
-    <div className="pointer-events-none fixed bottom-0 right-0 z-50 flex max-w-full flex-col gap-2 p-4">
-      {toasts.map((toast) => (
-        <Toast key={toast.id} {...toast} onDismiss={onDismiss} />
+    <div className="fixed bottom-4 right-4 z-[60] flex flex-col gap-2">
+      {toasts.map(toast => (
+        <Toast key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
     </div>
   );

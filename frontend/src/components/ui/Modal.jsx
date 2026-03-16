@@ -9,19 +9,13 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     } else {
       document.body.style.overflow = 'unset';
     }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
+      if (e.key === 'Escape' && isOpen) onClose();
     };
-
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
@@ -41,24 +35,24 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
       onClick={onClose}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
 
-      {/* Modal */}
+      {/* Modal box */}
       <div
         className={`relative w-full ${sizeClasses[size]} animate-scale-in`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="bg-[#0a0a0c] border border-white/[0.08] rounded-2xl shadow-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+          <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
+            <h2 className="text-base font-semibold text-[#EDEDEF]">
               {title}
             </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-[#8A8F98] hover:text-[#EDEDEF]"
             >
               <X className="h-4 w-4" />
             </Button>

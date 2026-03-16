@@ -9,7 +9,15 @@ import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Cart
 import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X } from 'lucide-react';
 import { formatCurrency, formatNumber, formatDate } from '../lib/utils';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#5E6AD2', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+
+const tooltipStyle = {
+  backgroundColor: 'rgba(10,10,12,0.95)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  borderRadius: '12px',
+  fontFamily: '"Inter", sans-serif',
+  color: '#EDEDEF',
+};
 
 export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
   const [selectedTruck, setSelectedTruck] = useState('all');
@@ -169,7 +177,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
+                <Filter className="h-4 w-4" />
                 Filtros
               </CardTitle>
               <CardDescription>
@@ -222,15 +230,15 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-[#8A8F98]">
                   Total Gasto
                 </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <p className="mt-1.5 text-2xl font-bold text-[#EDEDEF]">
                   {formatCurrency(overallStats.totalSpent)}
                 </p>
               </div>
-              <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-900/20">
-                <DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="rounded-xl bg-[#5E6AD2]/10 p-3">
+                <DollarSign className="h-5 w-5 text-[#5E6AD2]" />
               </div>
             </div>
           </CardContent>
@@ -240,15 +248,15 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-[#8A8F98]">
                   Combustível
                 </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <p className="mt-1.5 text-2xl font-bold text-[#EDEDEF]">
                   {formatCurrency(overallStats.totalFuel)}
                 </p>
               </div>
-              <div className="rounded-full bg-orange-100 p-3 dark:bg-orange-900/20">
-                <FuelIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              <div className="rounded-xl bg-amber-500/10 p-3">
+                <FuelIcon className="h-5 w-5 text-amber-400" />
               </div>
             </div>
           </CardContent>
@@ -258,15 +266,15 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-[#8A8F98]">
                   Manutenção
                 </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <p className="mt-1.5 text-2xl font-bold text-[#EDEDEF]">
                   {formatCurrency(overallStats.totalMaintenance)}
                 </p>
               </div>
-              <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/20">
-                <Wrench className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="rounded-xl bg-red-500/10 p-3">
+                <Wrench className="h-5 w-5 text-red-400" />
               </div>
             </div>
           </CardContent>
@@ -276,15 +284,15 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-[#8A8F98]">
                   Total de Litros
                 </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <p className="mt-1.5 text-2xl font-bold text-[#EDEDEF]">
                   {formatNumber(overallStats.totalLiters, 0)}
                 </p>
               </div>
-              <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/20">
-                <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="rounded-xl bg-emerald-500/10 p-3">
+                <TrendingUp className="h-5 w-5 text-emerald-400" />
               </div>
             </div>
           </CardContent>
@@ -299,22 +307,18 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             <CardDescription>Comparação de gastos com combustível e manutenção</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                <XAxis dataKey="name" stroke="#71717a" />
-                <YAxis stroke="#71717a" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="name" stroke="#8A8F98" style={{ fontSize: '11px' }} />
+                <YAxis stroke="#8A8F98" style={{ fontSize: '11px' }} />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #e4e4e7',
-                    borderRadius: '8px'
-                  }}
+                  contentStyle={tooltipStyle}
                   formatter={(value) => formatCurrency(value)}
                 />
-                <Legend />
-                <Bar dataKey="Combustível" fill="#f59e0b" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="Manutenção" fill="#ef4444" radius={[8, 8, 0, 0]} />
+                <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
+                <Bar dataKey="Combustível" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Manutenção" fill="#EF4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -326,7 +330,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             <CardDescription>Total de gastos por caminhão</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={pieData}
@@ -342,7 +346,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => formatCurrency(value)} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(value) => formatCurrency(value)} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -355,22 +359,18 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
               <CardDescription>Gastos mensais com combustível e manutenção</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                  <XAxis dataKey="mes" stroke="#71717a" />
-                  <YAxis stroke="#71717a" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="mes" stroke="#8A8F98" style={{ fontSize: '11px' }} />
+                  <YAxis stroke="#8A8F98" style={{ fontSize: '11px' }} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e4e4e7',
-                      borderRadius: '8px'
-                    }}
+                    contentStyle={tooltipStyle}
                     formatter={(value) => formatCurrency(value)}
                   />
-                  <Legend />
-                  <Line type="monotone" dataKey="Combustível" stroke="#f59e0b" strokeWidth={2} />
-                  <Line type="monotone" dataKey="Manutenção" stroke="#ef4444" strokeWidth={2} />
+                  <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
+                  <Line type="monotone" dataKey="Combustível" stroke="#F59E0B" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Manutenção" stroke="#EF4444" strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -380,19 +380,19 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
       {/* Detalhamento por Caminhão */}
       <div>
-        <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+        <h2 className="mb-4 text-lg font-semibold text-[#EDEDEF]">
           Detalhamento por Caminhão
         </h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {stats.map(stat => (
             <Card key={stat.truck.id} className="overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                <div className="flex items-center justify-between text-white">
+              <div className="bg-gradient-to-r from-[#5E6AD2]/20 to-[#8B5CF6]/10 border-b border-white/[0.06] px-6 py-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-bold">{stat.truck.placa}</h3>
-                    <p className="text-sm opacity-90">{stat.truck.modelo}</p>
+                    <h3 className="text-lg font-bold text-[#EDEDEF]">{stat.truck.placa}</h3>
+                    <p className="text-sm text-[#8A8F98]">{stat.truck.modelo}</p>
                   </div>
-                  <Badge variant="default" className="bg-white/20 text-white">
+                  <Badge variant="default">
                     {formatNumber(stat.truck.km_atual || 0, 0)} km
                   </Badge>
                 </div>
@@ -400,42 +400,42 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <span className="flex items-center gap-2 text-sm text-[#8A8F98]">
                     <FuelIcon className="h-4 w-4" />
                     Combustível ({stat.fuelRecordsCount} registros)
                   </span>
-                  <span className="font-semibold text-orange-600">
+                  <span className="font-semibold text-amber-400">
                     {formatCurrency(stat.totalFuel)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <span className="flex items-center gap-2 text-sm text-[#8A8F98]">
                     <Wrench className="h-4 w-4" />
                     Manutenção ({stat.maintenanceCount} registros)
                   </span>
-                  <span className="font-semibold text-red-600">
+                  <span className="font-semibold text-red-400">
                     {formatCurrency(stat.totalMaintenance)}
                   </span>
                 </div>
 
-                <div className="border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                <div className="border-t border-white/[0.06] pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                    <span className="text-base font-semibold text-[#EDEDEF]">
                       Total
                     </span>
-                    <span className="text-xl font-bold text-blue-600">
+                    <span className="text-xl font-bold text-[#5E6AD2]">
                       {formatCurrency(stat.totalSpent)}
                     </span>
                   </div>
                 </div>
 
                 {stat.totalLiters > 0 && (
-                  <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <div className="rounded-xl bg-white/[0.04] border border-white/[0.04] p-3">
+                    <p className="text-xs text-[#8A8F98]">
                       Consumo Total
                     </p>
-                    <p className="mt-1 font-mono text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                    <p className="mt-1 text-sm font-medium text-[#EDEDEF]">
                       {formatNumber(stat.totalLiters, 2)} litros
                     </p>
                   </div>

@@ -1,18 +1,18 @@
 import { cn } from '../../lib/utils';
 
 const variants = {
-  default: 'bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200',
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm',
-  success: 'bg-green-600 text-white hover:bg-green-700 shadow-sm',
-  danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
-  outline: 'border-2 border-zinc-200 bg-transparent hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800',
-  ghost: 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
+  primary: 'bg-[#5E6AD2] text-white hover:bg-[#6872D9] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_4px_16px_rgba(94,106,210,0.35)] active:scale-[0.98]',
+  default: 'bg-white/[0.05] text-[#EDEDEF] hover:bg-white/[0.08] shadow-[0_0_0_1px_rgba(255,255,255,0.06)]',
+  success: 'bg-emerald-600 text-white hover:bg-emerald-500 active:scale-[0.98]',
+  danger:  'bg-red-600 text-white hover:bg-red-500 active:scale-[0.98]',
+  outline: 'border border-white/10 bg-transparent text-[#EDEDEF] hover:bg-white/[0.05]',
+  ghost:   'bg-transparent text-[#8A8F98] hover:bg-white/[0.05] hover:text-[#EDEDEF]',
 };
 
 const sizes = {
   sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-base',
-  lg: 'px-6 py-3 text-lg'
+  md: 'px-4 py-2 text-sm',
+  lg: 'px-5 py-2.5 text-base',
 };
 
 export function Button({
@@ -27,9 +27,9 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-lg font-medium transition-all',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-        'disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5E6AD2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050506]',
+        'disabled:pointer-events-none disabled:opacity-40',
         variants[variant],
         sizes[size],
         className

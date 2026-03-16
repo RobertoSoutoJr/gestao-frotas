@@ -22,12 +22,21 @@ if (token) {
 const authService = {
   async register(data) {
     const response = await api.post('/auth/register', data);
+    return response;
+  },
+
+  async verifyEmail(email, code) {
+    const response = await api.post('/auth/verify-email', { email, code });
     if (response.data.accessToken) {
       setAuthToken(response.data.accessToken);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.data.user));
     }
     return response;
+  },
+
+  async resendCode(email) {
+    return await api.post('/auth/resend-code', { email });
   },
 
   async login(email, password) {

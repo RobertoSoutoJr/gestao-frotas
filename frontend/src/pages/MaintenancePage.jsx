@@ -25,14 +25,14 @@ const MAINTENANCE_TYPES = [
 ];
 
 const TYPE_COLORS = {
-  Preventiva: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400',
-  Corretiva: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
-  Pneus: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
-  Motor: 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400',
-  Freios: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400',
-  Suspensão: 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400',
-  Elétrica: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400',
-  Outros: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'
+  Preventiva: 'bg-emerald-500/15 text-emerald-400',
+  Corretiva:  'bg-red-500/15 text-red-400',
+  Pneus:      'bg-blue-500/15 text-blue-400',
+  Motor:      'bg-amber-500/15 text-amber-400',
+  Freios:     'bg-yellow-500/15 text-yellow-400',
+  Suspensão:  'bg-purple-500/15 text-purple-400',
+  Elétrica:   'bg-cyan-500/15 text-cyan-400',
+  Outros:     'bg-white/[0.08] text-[#8A8F98]'
 };
 
 function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess }) {
@@ -167,7 +167,7 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
           </Button>
           <Button
             type="submit"
-            variant="danger"
+            variant="primary"
             loading={loading}
             className="flex-1"
           >
@@ -246,8 +246,8 @@ export function MaintenancePage({ trucks, onRefetch }) {
   const loadMaintenanceRecords = async () => {
     try {
       setLoading(true);
-      const data = await maintenanceService.getAll();
-      setMaintenanceRecords(data);
+      const response = await maintenanceService.getAll();
+      setMaintenanceRecords(response.data || response || []);
     } catch (err) {
       console.error('Failed to load maintenance records:', err);
       error('Erro', 'Falha ao carregar registros de manutenção');
@@ -314,7 +314,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
 
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-lg font-semibold text-[#EDEDEF]">
             Histórico ({filteredMaintenanceRecords.length} de {maintenanceRecords.length})
           </h2>
           <Button
@@ -380,7 +380,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
         {loading ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-zinc-500">Carregando...</p>
+              <p className="text-[#8A8F98]">Carregando...</p>
             </CardContent>
           </Card>
         ) : maintenanceRecords.length === 0 ? (
@@ -411,47 +411,47 @@ export function MaintenancePage({ trucks, onRefetch }) {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
-                          <Wrench className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
+                          <Wrench className="h-5 w-5 text-amber-400" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-zinc-400" />
-                            <span className="font-semibold text-zinc-900 dark:text-zinc-50">
+                            <Truck className="h-4 w-4 text-[#8A8F98]" />
+                            <span className="font-semibold text-[#EDEDEF]">
                               {getTruckName(maintenance.caminhao_id)}
                             </span>
                           </div>
                           <div className="mt-1">
-                            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[maintenance.tipo_manutencao] || TYPE_COLORS.Outros}`}>
+                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_COLORS[maintenance.tipo_manutencao] || TYPE_COLORS.Outros}`}>
                               {maintenance.tipo_manutencao}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/50">
-                        <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                      <div className="rounded-lg bg-white/[0.03] border border-white/[0.04] p-3">
+                        <p className="text-sm text-[#8A8F98]">
                           {maintenance.descricao}
                         </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                         <div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">KM Manutenção</p>
-                          <p className="font-mono font-semibold text-zinc-900 dark:text-zinc-50">
+                          <p className="text-xs text-[#8A8F98]">KM Manutenção</p>
+                          <p className="font-medium text-[#EDEDEF]">
                             {formatNumber(maintenance.km_manutencao, 0)} km
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Valor Total</p>
-                          <p className="flex items-center gap-1 font-semibold text-zinc-900 dark:text-zinc-50">
-                            <DollarSign className="h-3 w-3 text-green-500" />
+                          <p className="text-xs text-[#8A8F98]">Valor Total</p>
+                          <p className="flex items-center gap-1 font-medium text-[#EDEDEF]">
+                            <DollarSign className="h-3 w-3 text-emerald-400" />
                             {formatCurrency(maintenance.valor_total)}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Data</p>
-                          <p className="flex items-center gap-1 text-sm text-zinc-900 dark:text-zinc-50">
+                          <p className="text-xs text-[#8A8F98]">Data</p>
+                          <p className="flex items-center gap-1 text-sm text-[#EDEDEF]">
                             <Calendar className="h-3 w-3" />
                             {formatDate(maintenance.data_manutencao)}
                           </p>

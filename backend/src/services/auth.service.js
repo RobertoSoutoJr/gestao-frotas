@@ -1,11 +1,12 @@
 const bcrypt = require('bcryptjs');
-const supabase = require('../config/database');
+const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 const {
   generateAccessToken,
   generateRefreshToken,
   verifyToken
 } = require('../middlewares/auth.middleware');
+const emailService = require('./email.service');
 
 class AuthService {
   async register(userData) {
@@ -14,47 +15,149 @@ class AuthService {
     // Verificar se email já existe
     const { data: existingUser } = await supabase
       .from('users')
-      .select('email')
+      .select('email, email_verified')
       .eq('email', email.toLowerCase())
       .single();
 
-    if (existingUser) {
+    if (existingUser && existingUser.email_verified) {
       throw new AppError('Email já cadastrado', 409);
     }
 
-    // Hash da senha
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
+    let user;
 
-    // Criar usuário
-    const { data: user, error } = await supabase
-      .from('users')
+    if (existingUser && !existingUser.email_verified) {
+      // Usuário existe mas não verificou — atualizar dados
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(password, salt);
+
+      const { data: updated, error } = await supabase
+        .from('users')
+        .update({ nome, password_hash, empresa: empresa || null, telefone: telefone || null })
+        .eq('email', email.toLowerCase())
+        .select('id, nome, email, empresa, telefone, avatar_url, email_verified, created_at')
+        .single();
+
+      if (error) throw new AppError('Erro ao atualizar usuário', 500);
+      user = updated;
+    } else {
+      // Criar novo usuário
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(password, salt);
+
+      const { data: newUser, error } = await supabase
+        .from('users')
+        .insert({
+          nome,
+          email: email.toLowerCase(),
+          password_hash,
+          empresa: empresa || null,
+          telefone: telefone || null,
+          email_verified: false
+        })
+        .select('id, nome, email, empresa, telefone, avatar_url, email_verified, created_at')
+        .single();
+
+      if (error) throw new AppError('Erro ao criar usuário', 500);
+      user = newUser;
+    }
+
+    // Gerar e enviar código de verificação
+    await this.sendVerificationCode(user.id, user.email, user.nome);
+
+    return {
+      user,
+      pendingVerification: true
+    };
+  }
+
+  async sendVerificationCode(userId, email, nome) {
+    const code = emailService.generateCode();
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+    // Invalidar códigos anteriores
+    await supabase
+      .from('email_verifications')
+      .delete()
+      .eq('user_id', userId);
+
+    // Salvar novo código
+    await supabase
+      .from('email_verifications')
       .insert({
-        nome,
-        email: email.toLowerCase(),
-        password_hash,
-        empresa: empresa || null,
-        telefone: telefone || null
-      })
-      .select('id, nome, email, empresa, telefone, avatar_url, created_at')
+        user_id: userId,
+        email,
+        code,
+        expires_at: expiresAt.toISOString()
+      });
+
+    // Enviar email
+    try {
+      await emailService.sendVerificationCode(email, code, nome);
+    } catch (err) {
+      console.error('Erro ao enviar email de verificação:', err.message);
+      throw new AppError('Erro ao enviar email de verificação. Verifique o email informado.', 500);
+    }
+  }
+
+  async verifyEmail(email, code) {
+    const { data: verification, error } = await supabase
+      .from('email_verifications')
+      .select('*, users!inner(id, nome, email, empresa, telefone, avatar_url, email_verified, created_at)')
+      .eq('email', email.toLowerCase())
+      .eq('code', code)
+      .eq('verified', false)
       .single();
 
-    if (error) {
-      throw new AppError('Erro ao criar usuário', 500);
+    if (error || !verification) {
+      throw new AppError('Código inválido', 400);
     }
+
+    if (new Date(verification.expires_at) < new Date()) {
+      throw new AppError('Código expirado. Solicite um novo código.', 400);
+    }
+
+    // Marcar código como verificado
+    await supabase
+      .from('email_verifications')
+      .update({ verified: true })
+      .eq('id', verification.id);
+
+    // Marcar usuário como verificado
+    await supabase
+      .from('users')
+      .update({ email_verified: true, updated_at: new Date().toISOString() })
+      .eq('id', verification.user_id);
+
+    const user = verification.users;
+    user.email_verified = true;
 
     // Gerar tokens
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
-
-    // Salvar refresh token no banco
     await this.saveRefreshToken(user.id, refreshToken);
 
-    return {
-      user,
-      accessToken,
-      refreshToken
-    };
+    return { user, accessToken, refreshToken };
+  }
+
+  async resendVerificationCode(email) {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, nome, email, email_verified')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (!user) {
+      throw new AppError('Email não encontrado', 404);
+    }
+
+    if (user.email_verified) {
+      throw new AppError('Email já verificado', 400);
+    }
+
+    await this.sendVerificationCode(user.id, user.email, user.nome);
+
+    return { message: 'Novo código enviado' };
   }
 
   async login(email, password) {
@@ -76,31 +179,30 @@ class AuthService {
       throw new AppError('Credenciais inválidas', 401);
     }
 
+    // Verificar se email foi confirmado
+    if (!user.email_verified) {
+      // Reenviar código
+      await this.sendVerificationCode(user.id, user.email, user.nome);
+      throw new AppError('Email não verificado. Um novo código foi enviado.', 403);
+    }
+
     // Gerar tokens
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
-
-    // Salvar refresh token
     await this.saveRefreshToken(user.id, refreshToken);
 
     // Remover password_hash do retorno
     delete user.password_hash;
 
-    return {
-      user,
-      accessToken,
-      refreshToken
-    };
+    return { user, accessToken, refreshToken };
   }
 
   async refreshAccessToken(refreshToken) {
-    // Verificar token
     const decoded = verifyToken(refreshToken);
     if (!decoded || decoded.type !== 'refresh') {
       throw new AppError('Refresh token inválido', 401);
     }
 
-    // Verificar se token existe no banco
     const { data: session } = await supabase
       .from('user_sessions')
       .select('*')
@@ -112,18 +214,13 @@ class AuthService {
       throw new AppError('Sessão inválida', 401);
     }
 
-    // Verificar se token expirou
     if (new Date(session.expires_at) < new Date()) {
       await this.deleteRefreshToken(refreshToken);
       throw new AppError('Sessão expirada. Por favor, faça login novamente.', 401);
     }
 
-    // Gerar novo access token
     const newAccessToken = generateAccessToken(decoded.userId);
-
-    return {
-      accessToken: newAccessToken
-    };
+    return { accessToken: newAccessToken };
   }
 
   async logout(refreshToken) {
@@ -136,7 +233,7 @@ class AuthService {
   async getProfile(userId) {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, nome, email, empresa, telefone, avatar_url, created_at, updated_at')
+      .select('id, nome, email, empresa, telefone, avatar_url, email_verified, created_at, updated_at')
       .eq('id', userId)
       .single();
 
@@ -166,7 +263,6 @@ class AuthService {
   }
 
   async changePassword(userId, currentPassword, newPassword) {
-    // Buscar usuário
     const { data: user } = await supabase
       .from('users')
       .select('password_hash')
@@ -177,17 +273,14 @@ class AuthService {
       throw new AppError('Usuário não encontrado', 404);
     }
 
-    // Verificar senha atual
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isPasswordValid) {
       throw new AppError('Senha atual incorreta', 400);
     }
 
-    // Hash da nova senha
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(newPassword, salt);
 
-    // Atualizar senha
     const { error } = await supabase
       .from('users')
       .update({
@@ -200,7 +293,6 @@ class AuthService {
       throw new AppError('Erro ao alterar senha', 500);
     }
 
-    // Invalidar todas as sessões do usuário
     await supabase
       .from('user_sessions')
       .delete()
@@ -210,7 +302,6 @@ class AuthService {
   }
 
   async saveRefreshToken(userId, refreshToken) {
-    // Calcular data de expiração (30 dias)
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 

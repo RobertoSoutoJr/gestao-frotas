@@ -14,7 +14,6 @@ export function LoginPage({ onToggle }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       await login(formData.email, formData.password);
       success('Bem-vindo!', 'Login realizado com sucesso');
@@ -30,111 +29,125 @@ export function LoginPage({ onToggle }) {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Lado esquerdo - Imagem/Banner */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl">
-              <Truck className="h-10 w-10" />
+    <div className="min-h-screen flex bg-[#050506]">
+      {/* Background */}
+      <div className="linear-bg" />
+      <div className="linear-grid" />
+
+      {/* Left Panel — Hero */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center">
+        {/* Accent blob */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[#5E6AD2] opacity-[0.08] blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col px-16 max-w-xl">
+          <div className="flex items-center gap-3 mb-12">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5E6AD2]/15 border border-[#5E6AD2]/25">
+              <Truck className="h-6 w-6 text-[#5E6AD2]" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold">FrotaPro</h1>
-              <p className="text-blue-200 text-sm">Gestão Inteligente de Frotas</p>
+              <h1 className="text-3xl font-bold tracking-tight">
+                <span className="text-[#EDEDEF]">Frota</span>
+                <span className="text-[#5E6AD2]">Pro</span>
+              </h1>
+              <p className="text-sm text-[#8A8F98] mt-0.5">Gestão Inteligente de Frotas</p>
             </div>
           </div>
-          <h2 className="text-5xl font-bold mb-6 leading-tight">
-            Controle total da sua frota
+
+          <h2 className="text-5xl font-bold leading-tight mb-6 text-[#EDEDEF]">
+            Controle total<br />
+            <span className="text-[#5E6AD2]">da sua frota.</span>
           </h2>
-          <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-            Gerencie caminhões, motoristas, abastecimentos e manutenções em uma única plataforma profissional.
+
+          <p className="text-lg text-[#8A8F98] mb-10 leading-relaxed">
+            Gerencie caminhões, motoristas, abastecimentos e manutenções em uma única plataforma.
           </p>
+
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold mb-1">100%</div>
-              <div className="text-sm text-blue-200">Controle Operacional</div>
+            <div className="bg-white/[0.05] rounded-2xl border border-white/[0.06] p-5">
+              <div className="text-3xl font-bold text-[#EDEDEF]">100%</div>
+              <div className="text-sm text-[#8A8F98] mt-1">Controle Operacional</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold mb-1">24/7</div>
-              <div className="text-sm text-blue-200">Acesso aos Dados</div>
+            <div className="bg-white/[0.05] rounded-2xl border border-white/[0.06] p-5">
+              <div className="text-3xl font-bold text-[#EDEDEF]">24/7</div>
+              <div className="text-sm text-[#8A8F98] mt-1">Acesso aos Dados</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Lado direito - Formulário */}
-      <div className="flex-1 flex items-center justify-center px-8 py-12 bg-zinc-50 dark:bg-zinc-950">
+      {/* Right Panel — Login Form */}
+      <div className="flex-1 flex items-center justify-center px-8 py-12 relative z-10">
         <div className="w-full max-w-md">
+          {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <Truck className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">FrotaPro</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#5E6AD2]/15 border border-[#5E6AD2]/25">
+              <Truck className="h-4 w-4 text-[#5E6AD2]" />
+            </div>
+            <span className="text-2xl font-bold">
+              <span className="text-[#EDEDEF]">Frota</span>
+              <span className="text-[#5E6AD2]">Pro</span>
+            </span>
           </div>
 
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
-              Bem-vindo de volta
-            </h2>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Entre com suas credenciais para continuar
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-4">
-              <div>
-                <Input
-                  type="email"
-                  name="email"
-                  label="Email"
-                  placeholder="seu@email.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  icon={Mail}
-                />
-              </div>
-
-              <div>
-                <Input
-                  type="password"
-                  name="password"
-                  label="Senha"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  icon={Lock}
-                />
-              </div>
+          {/* Form Card */}
+          <div className="bg-[#0a0a0c] rounded-2xl border border-white/[0.08] p-8 shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-[#EDEDEF]">
+                Entrar na conta
+              </h2>
+              <p className="text-sm text-[#8A8F98] mt-1">
+                Insira suas credenciais para acessar
+              </p>
             </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              loading={loading}
-              className="w-full py-3 text-base font-semibold flex items-center justify-center gap-2"
-            >
-              Entrar
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </form>
-
-          <div className="mt-8 text-center">
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Não tem uma conta?{' '}
-              <button
-                onClick={onToggle}
-                className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <Input
+                type="email"
+                name="email"
+                label="Email"
+                placeholder="usuario@email.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                icon={Mail}
+              />
+              <Input
+                type="password"
+                name="password"
+                label="Senha"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                icon={Lock}
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                loading={loading}
+                className="w-full h-10"
               >
-                Criar conta gratuita
-              </button>
-            </p>
+                Entrar
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-[#8A8F98]">
+                Não tem uma conta?{' '}
+                <button
+                  onClick={onToggle}
+                  className="text-[#5E6AD2] hover:text-[#6872D9] font-medium transition-colors"
+                >
+                  Criar conta
+                </button>
+              </p>
+            </div>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-800">
-            <p className="text-center text-sm text-zinc-500">
-              © 2026 FrotaPro. Gestão profissional de frotas.
+          <div className="mt-6 text-center">
+            <p className="text-xs text-[#8A8F98]/50">
+              © 2026 FrotaPro — Sistema de Gestão de Frotas
             </p>
           </div>
         </div>

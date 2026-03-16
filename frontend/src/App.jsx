@@ -16,24 +16,15 @@ import { ToastContainer } from './components/ui/Toast';
 import { useFleet } from './hooks/useFleet';
 import { useToast } from './hooks/useToast';
 
-function AppContent() {
+function AuthenticatedContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { trucks, drivers, fuelRecords, maintenanceRecords, loading, error, refetch } = useFleet();
   const { toasts, success, dismiss } = useToast();
-  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const handleRefetch = () => {
     refetch();
     success('Sucesso', 'Dados atualizados com sucesso');
   };
-
-  if (authLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (!isAuthenticated) {
-    return <AuthPage />;
-  }
 
   if (loading) {
     return <LoadingScreen />;
@@ -41,21 +32,29 @@ function AppContent() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600">Erro</h2>
-          <p className="mt-2 text-zinc-600">{error}</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#050506]">
+        <div className="linear-bg" />
+        <div className="relative z-10 text-center bg-[#0a0a0c] border border-white/[0.08] rounded-2xl p-8">
+          <h2 className="text-xl font-semibold text-red-400">
+            Erro ao carregar dados
+          </h2>
+          <p className="mt-2 text-sm text-[#8A8F98]">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-[#050506]">
+      {/* Background Effects */}
+      <div className="linear-bg" />
+      <div className="linear-grid" />
+
+      {/* App Content */}
       <Header />
       <TabNavigation activeTab={activeTab} onChange={setActiveTab} />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="relative z-10 container mx-auto px-4 py-8">
         {activeTab === 'dashboard' && (
           <DashboardPage
             trucks={trucks}
@@ -63,23 +62,18 @@ function AppContent() {
             maintenanceRecords={maintenanceRecords}
           />
         )}
-
         {activeTab === 'trucks' && (
           <TrucksPage trucks={trucks} onRefetch={handleRefetch} />
         )}
-
         {activeTab === 'drivers' && (
           <DriversPage drivers={drivers} onRefetch={handleRefetch} />
         )}
-
         {activeTab === 'fuel' && (
           <FuelPage trucks={trucks} drivers={drivers} onRefetch={handleRefetch} />
         )}
-
         {activeTab === 'maintenance' && (
           <MaintenancePage trucks={trucks} onRefetch={handleRefetch} />
         )}
-
         {activeTab === 'reports' && (
           <ReportsPage
             trucks={trucks}
@@ -92,6 +86,20 @@ function AppContent() {
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
+}
+
+function AppContent() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return <AuthPage />;
+  }
+
+  return <AuthenticatedContent />;
 }
 
 function App() {
