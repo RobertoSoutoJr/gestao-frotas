@@ -8,8 +8,8 @@ class EmailService {
   getTransporter() {
     if (!this.transporter) {
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
+        host: 'smtp.gmail.com',
+        port: 587,
         secure: false,
         auth: {
           user: process.env.SMTP_USER,
@@ -28,13 +28,13 @@ class EmailService {
     const transporter = this.getTransporter();
 
     const mailOptions = {
-      from: `"FrotaPro" <${process.env.SMTP_USER}>`,
+      from: `FrotaPro <${process.env.SMTP_USER}>`,
       to: email,
       subject: 'Código de Verificação - FrotaPro',
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
           <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 32px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">🚛 FrotaPro</h1>
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">FrotaPro</h1>
             <p style="color: #e0d4fc; margin: 8px 0 0; font-size: 14px;">Gestão Inteligente de Frotas</p>
           </div>
           <div style="padding: 32px;">

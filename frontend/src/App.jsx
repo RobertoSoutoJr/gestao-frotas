@@ -16,24 +16,15 @@ import { ToastContainer } from './components/ui/Toast';
 import { useFleet } from './hooks/useFleet';
 import { useToast } from './hooks/useToast';
 
-function AppContent() {
+function AuthenticatedContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { trucks, drivers, fuelRecords, maintenanceRecords, loading, error, refetch } = useFleet();
   const { toasts, success, dismiss } = useToast();
-  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const handleRefetch = () => {
     refetch();
     success('Sucesso', 'Dados atualizados com sucesso');
   };
-
-  if (authLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (!isAuthenticated) {
-    return <AuthPage />;
-  }
 
   if (loading) {
     return <LoadingScreen />;
@@ -92,6 +83,20 @@ function AppContent() {
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
+}
+
+function AppContent() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return <AuthPage />;
+  }
+
+  return <AuthenticatedContent />;
 }
 
 function App() {

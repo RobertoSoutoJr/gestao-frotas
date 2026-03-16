@@ -246,8 +246,8 @@ export function MaintenancePage({ trucks, onRefetch }) {
   const loadMaintenanceRecords = async () => {
     try {
       setLoading(true);
-      const data = await maintenanceService.getAll();
-      setMaintenanceRecords(data);
+      const response = await maintenanceService.getAll();
+      setMaintenanceRecords(response.data || response || []);
     } catch (err) {
       console.error('Failed to load maintenance records:', err);
       error('Erro', 'Falha ao carregar registros de manutenção');

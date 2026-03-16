@@ -220,8 +220,8 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
   const loadFuelRecords = async () => {
     try {
       setLoading(true);
-      const data = await fuelService.getAll();
-      setFuelRecords(data);
+      const response = await fuelService.getAll();
+      setFuelRecords(response.data || response || []);
     } catch (err) {
       console.error('Failed to load fuel records:', err);
       error('Erro', 'Falha ao carregar registros de abastecimento');
