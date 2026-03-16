@@ -1,4 +1,4 @@
-import { api } from './api';
+import api from './api';
 
 // Configurar token no header
 export const setAuthToken = (token) => {
