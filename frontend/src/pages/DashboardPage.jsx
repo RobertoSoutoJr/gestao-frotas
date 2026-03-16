@@ -7,31 +7,27 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 
-function StatCard({ title, value, icon: Icon, color, glowColor, subtitle }) {
+function StatCard({ title, value, icon: Icon, color, subtitle }) {
   return (
-    <Card className="relative overflow-hidden group hover:shadow-[0_0_25px_rgba(0,255,255,0.15)] hover:-translate-y-1 transition-all duration-200">
-      <CardContent className="p-6 relative z-10">
+    <Card className="relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-200">
+      <CardContent className="p-6">
         <div className="flex items-start justify-between">
-          <div className="space-y-2 flex-1">
-            <p className="font-mono text-xs uppercase tracking-wider text-[#E0E0E0]/50">
-              &gt; {title}
+          <div className="space-y-1.5 flex-1">
+            <p className="text-xs font-medium text-[#8A8F98] uppercase tracking-wider">
+              {title}
             </p>
-            <p className="font-[Orbitron] text-3xl font-black" style={{ color }}>
+            <p className="text-2xl font-bold text-[#EDEDEF]">
               {value}
             </p>
             {subtitle && (
-              <p className="font-mono text-xs text-[#E0E0E0]/40">{subtitle}</p>
+              <p className="text-xs text-[#8A8F98]">{subtitle}</p>
             )}
           </div>
           <div
-            className="flex h-14 w-14 items-center justify-center border-2 rotate-45 transition-transform duration-200 group-hover:rotate-[135deg]"
-            style={{
-              borderColor: color,
-              backgroundColor: `${color}15`,
-              boxShadow: `0 0 15px ${glowColor}`
-            }}
+            className="flex h-11 w-11 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${color}18` }}
           >
-            <Icon className="h-6 w-6 -rotate-45 group-hover:-rotate-[135deg] transition-transform duration-200" style={{ color }} />
+            <Icon className="h-5 w-5" style={{ color }} />
           </div>
         </div>
       </CardContent>
@@ -40,18 +36,18 @@ function StatCard({ title, value, icon: Icon, color, glowColor, subtitle }) {
 }
 
 const CHART_COLORS = {
-  magenta: '#FF00FF',
-  cyan: '#00FFFF',
-  orange: '#FF9900',
-  green: '#00FF88',
+  accent:    '#5E6AD2',
+  secondary: '#8B5CF6',
+  green:     '#10B981',
+  orange:    '#F59E0B',
 };
 
 const tooltipStyle = {
-  backgroundColor: 'rgba(26, 16, 60, 0.95)',
-  border: '1px solid #FF00FF',
-  borderRadius: '0px',
-  fontFamily: '"Share Tech Mono", monospace',
-  color: '#E0E0E0',
+  backgroundColor: 'rgba(10,10,12,0.95)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  borderRadius: '12px',
+  fontFamily: '"Inter", sans-serif',
+  color: '#EDEDEF',
 };
 
 export function DashboardPage({ trucks, fuelRecords, maintenanceRecords }) {
@@ -114,69 +110,69 @@ export function DashboardPage({ trucks, fuelRecords, maintenanceRecords }) {
   }, [trucks, fuelRecords, maintenanceRecords]);
 
   const costDistributionData = [
-    { name: 'Combustível', value: stats.fuelCost, color: CHART_COLORS.cyan },
-    { name: 'Manutenção', value: stats.maintenanceCost, color: CHART_COLORS.magenta }
+    { name: 'Combustível', value: stats.fuelCost, color: CHART_COLORS.accent },
+    { name: 'Manutenção', value: stats.maintenanceCost, color: CHART_COLORS.secondary }
   ];
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="font-[Orbitron] text-3xl font-black uppercase tracking-wider text-[#E0E0E0] text-glow-white">
+        <h1 className="text-2xl font-semibold text-[#EDEDEF]">
           Dashboard
         </h1>
-        <p className="mt-2 font-mono text-sm text-[#E0E0E0]/50">
-          &gt; Visão geral da frota e operações
+        <p className="mt-1 text-sm text-[#8A8F98]">
+          Visão geral da frota e operações do mês atual
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Caminhões Ativos" value={stats.activeTrucks} icon={Truck} color="#00FFFF" glowColor="rgba(0,255,255,0.3)" subtitle="Total na frota" />
-        <StatCard title="Motoristas" value={trucks.length > 0 ? Math.ceil(stats.activeTrucks * 1.5) : 0} icon={Users} color="#FF00FF" glowColor="rgba(255,0,255,0.3)" subtitle="Equipe disponível" />
-        <StatCard title="Gasto Mensal" value={formatCurrency(stats.totalCost)} icon={DollarSign} color="#00FF88" glowColor="rgba(0,255,136,0.3)" subtitle={`${formatCurrency(stats.fuelCost)} + ${formatCurrency(stats.maintenanceCost)}`} />
-        <StatCard title="KM Rodado" value={formatNumber(stats.totalKm, 0)} icon={Gauge} color="#FF9900" glowColor="rgba(255,153,0,0.3)" subtitle="Este mês" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard title="Caminhões Ativos" value={stats.activeTrucks} icon={Truck} color={CHART_COLORS.accent} subtitle="Total na frota" />
+        <StatCard title="Motoristas" value={trucks.length > 0 ? Math.ceil(stats.activeTrucks * 1.5) : 0} icon={Users} color={CHART_COLORS.secondary} subtitle="Equipe disponível" />
+        <StatCard title="Gasto Mensal" value={formatCurrency(stats.totalCost)} icon={DollarSign} color={CHART_COLORS.green} subtitle={`${formatCurrency(stats.fuelCost)} + ${formatCurrency(stats.maintenanceCost)}`} />
+        <StatCard title="KM Rodado" value={formatNumber(stats.totalKm, 0)} icon={Gauge} color={CHART_COLORS.orange} subtitle="Este mês" />
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Line Chart */}
-        <Card className="hover:shadow-[0_0_20px_rgba(0,255,255,0.1)] transition-all duration-200">
+        <Card className="transition-all duration-200">
           <CardContent className="p-6">
             <div className="mb-6">
-              <h3 className="font-[Orbitron] text-lg font-semibold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
-                Gastos — 6 Meses
+              <h3 className="text-base font-semibold text-[#EDEDEF]">
+                Gastos — Últimos 6 meses
               </h3>
-              <p className="font-mono text-xs text-[#E0E0E0]/40 mt-1">&gt; Evolução dos custos operacionais</p>
+              <p className="text-xs text-[#8A8F98] mt-1">Evolução dos custos operacionais</p>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <LineChart data={monthlySpendingData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2D1B4E" opacity={0.5} />
-                <XAxis dataKey="month" stroke="#E0E0E0" style={{ fontSize: '11px', fontFamily: '"Share Tech Mono"' }} />
-                <YAxis stroke="#E0E0E0" style={{ fontSize: '11px', fontFamily: '"Share Tech Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" opacity={1} />
+                <XAxis dataKey="month" stroke="#8A8F98" style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
+                <YAxis stroke="#8A8F98" style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} />
-                <Legend wrapperStyle={{ paddingTop: '20px', fontFamily: '"Share Tech Mono"' }} iconType="plainline" />
-                <Line type="monotone" dataKey="combustivel" name="Combustível" stroke={CHART_COLORS.cyan} strokeWidth={3} dot={{ fill: CHART_COLORS.cyan, r: 4, strokeWidth: 0 }} activeDot={{ r: 6, stroke: CHART_COLORS.cyan, strokeWidth: 2, fill: '#090014' }} />
-                <Line type="monotone" dataKey="manutencao" name="Manutenção" stroke={CHART_COLORS.magenta} strokeWidth={3} dot={{ fill: CHART_COLORS.magenta, r: 4, strokeWidth: 0 }} activeDot={{ r: 6, stroke: CHART_COLORS.magenta, strokeWidth: 2, fill: '#090014' }} />
+                <Legend wrapperStyle={{ paddingTop: '16px', fontFamily: '"Inter"', fontSize: '12px' }} iconType="plainline" />
+                <Line type="monotone" dataKey="combustivel" name="Combustível" stroke={CHART_COLORS.accent} strokeWidth={2} dot={{ fill: CHART_COLORS.accent, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, stroke: CHART_COLORS.accent, strokeWidth: 2, fill: '#0a0a0c' }} />
+                <Line type="monotone" dataKey="manutencao" name="Manutenção" stroke={CHART_COLORS.secondary} strokeWidth={2} dot={{ fill: CHART_COLORS.secondary, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, stroke: CHART_COLORS.secondary, strokeWidth: 2, fill: '#0a0a0c' }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Pie Chart */}
-        <Card className="hover:shadow-[0_0_20px_rgba(255,0,255,0.1)] transition-all duration-200">
+        <Card className="transition-all duration-200">
           <CardContent className="p-6">
             <div className="mb-6">
-              <h3 className="font-[Orbitron] text-lg font-semibold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
-                Distribuição
+              <h3 className="text-base font-semibold text-[#EDEDEF]">
+                Distribuição de Custos
               </h3>
-              <p className="font-mono text-xs text-[#E0E0E0]/40 mt-1">&gt; Combustível vs Manutenção</p>
+              <p className="text-xs text-[#8A8F98] mt-1">Combustível vs Manutenção</p>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie data={costDistributionData} cx="50%" cy="50%" labelLine={false}
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100} fill="#8884d8" dataKey="value" stroke="#090014" strokeWidth={2}>
+                  outerRadius={90} fill="#8884d8" dataKey="value" stroke="#0a0a0c" strokeWidth={2}>
                   {costDistributionData.map((entry, i) => (
                     <Cell key={`cell-${i}`} fill={entry.color} />
                   ))}
@@ -184,19 +180,19 @@ export function DashboardPage({ trucks, fuelRecords, maintenanceRecords }) {
                 <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} />
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 border border-[#00FFFF]/30 bg-[#00FFFF]/5 p-3">
-                <Fuel className="h-5 w-5 text-[#00FFFF]" />
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] p-3">
+                <Fuel className="h-4 w-4 text-[#5E6AD2]" />
                 <div>
-                  <p className="font-mono text-xs text-[#E0E0E0]/50">Combustível</p>
-                  <p className="font-[Orbitron] text-sm font-semibold text-[#00FFFF]">{formatCurrency(stats.fuelCost)}</p>
+                  <p className="text-xs text-[#8A8F98]">Combustível</p>
+                  <p className="text-sm font-semibold text-[#EDEDEF]">{formatCurrency(stats.fuelCost)}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 border border-[#FF00FF]/30 bg-[#FF00FF]/5 p-3">
-                <Wrench className="h-5 w-5 text-[#FF00FF]" />
+              <div className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] p-3">
+                <Wrench className="h-4 w-4 text-[#8B5CF6]" />
                 <div>
-                  <p className="font-mono text-xs text-[#E0E0E0]/50">Manutenção</p>
-                  <p className="font-[Orbitron] text-sm font-semibold text-[#FF00FF]">{formatCurrency(stats.maintenanceCost)}</p>
+                  <p className="text-xs text-[#8A8F98]">Manutenção</p>
+                  <p className="text-sm font-semibold text-[#EDEDEF]">{formatCurrency(stats.maintenanceCost)}</p>
                 </div>
               </div>
             </div>
@@ -205,27 +201,27 @@ export function DashboardPage({ trucks, fuelRecords, maintenanceRecords }) {
       </div>
 
       {/* Bar Chart */}
-      <Card className="hover:shadow-[0_0_20px_rgba(255,153,0,0.1)] transition-all duration-200">
+      <Card className="transition-all duration-200">
         <CardContent className="p-6">
           <div className="mb-6">
-            <h3 className="font-[Orbitron] text-lg font-semibold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
+            <h3 className="text-base font-semibold text-[#EDEDEF]">
               Top 5 — Custo por Veículo
             </h3>
-            <p className="font-mono text-xs text-[#E0E0E0]/40 mt-1">&gt; Veículos com maior custo operacional</p>
+            <p className="text-xs text-[#8A8F98] mt-1">Veículos com maior custo operacional</p>
           </div>
-          <ResponsiveContainer width="100%" height={350}>
+          <ResponsiveContainer width="100%" height={320}>
             <BarChart data={topTrucksData}>
               <defs>
                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CHART_COLORS.magenta} stopOpacity={1} />
-                  <stop offset="100%" stopColor={CHART_COLORS.cyan} stopOpacity={1} />
+                  <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={1} />
+                  <stop offset="100%" stopColor={CHART_COLORS.secondary} stopOpacity={1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2D1B4E" opacity={0.5} />
-              <XAxis dataKey="truck" stroke="#E0E0E0" style={{ fontSize: '11px', fontFamily: '"Share Tech Mono"' }} />
-              <YAxis stroke="#E0E0E0" style={{ fontSize: '11px', fontFamily: '"Share Tech Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} cursor={{ fill: 'rgba(255,0,255,0.05)' }} />
-              <Bar dataKey="gasto" name="Gasto Total" fill="url(#barGradient)" radius={[0, 0, 0, 0]} maxBarSize={60} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" opacity={1} />
+              <XAxis dataKey="truck" stroke="#8A8F98" style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
+              <YAxis stroke="#8A8F98" style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} cursor={{ fill: 'rgba(94,106,210,0.05)' }} />
+              <Bar dataKey="gasto" name="Gasto Total" fill="url(#barGradient)" radius={[4, 4, 0, 0]} maxBarSize={60} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

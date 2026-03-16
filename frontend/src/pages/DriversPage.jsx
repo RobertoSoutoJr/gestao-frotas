@@ -162,7 +162,7 @@ export function DriversPage({ drivers, onRefetch }) {
 
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="font-[Orbitron] text-xl font-semibold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
+          <h2 className="text-lg font-semibold text-[#EDEDEF]">
             Equipe ({filteredAndSortedDrivers.length} de {drivers.length})
           </h2>
           <Button
@@ -224,14 +224,14 @@ export function DriversPage({ drivers, onRefetch }) {
               <Card key={driver.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                      <Users className="h-5 w-5 text-[#E0E0E0]/40" />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.05]">
+                      <Users className="h-5 w-5 text-[#8A8F98]" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-[#E0E0E0]">
+                      <h3 className="font-semibold text-[#EDEDEF]">
                         {driver.nome}
                       </h3>
-                      <div className="mt-1 flex items-center gap-4 text-sm text-[#E0E0E0]/50">
+                      <div className="mt-1 flex items-center gap-4 text-sm text-[#8A8F98]">
                         <span className="flex items-center gap-1">
                           <CreditCard className="h-3 w-3" />
                           {formatCPF(driver.cpf)}

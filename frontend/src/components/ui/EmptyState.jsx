@@ -10,14 +10,14 @@ export function EmptyState({
 }) {
   return (
     <div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
-      <div className="mb-4 flex h-16 w-16 items-center justify-center border-2 border-[#FF00FF]/30 rotate-45 bg-[#FF00FF]/5">
-        <Icon className="h-8 w-8 text-[#FF00FF]/60 -rotate-45" />
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-white/[0.05]">
+        <Icon className="h-7 w-7 text-[#8A8F98]" />
       </div>
-      <h3 className="font-[Orbitron] text-lg font-semibold uppercase tracking-wider text-[#E0E0E0]/80">
+      <h3 className="text-base font-semibold text-[#EDEDEF]">
         {title}
       </h3>
       {description && (
-        <p className="mt-2 max-w-sm font-mono text-sm text-[#E0E0E0]/50">
+        <p className="mt-2 max-w-sm text-sm text-[#8A8F98]">
           {description}
         </p>
       )}

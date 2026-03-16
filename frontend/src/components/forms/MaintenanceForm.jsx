@@ -139,7 +139,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
         />
       </div>
 
-      <Button type="submit" variant="danger" loading={loading} className="w-full">
+      <Button type="submit" variant="primary" loading={loading} className="w-full">
         Registrar Manutenção
       </Button>
     </form>

@@ -57,34 +57,34 @@ export function Input({
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="font-mono text-sm uppercase tracking-wider text-[#E0E0E0]/70">
+        <label className="text-sm font-medium text-[#8A8F98]">
           {label}
-          {required && <span className="ml-1 text-[#FF00FF]">*</span>}
+          {required && <span className="ml-1 text-[#5E6AD2]">*</span>}
         </label>
       )}
       <div className="relative group">
         {Icon && (
           <div className={cn(
             'absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200',
-            isFocused ? 'text-[#00FFFF]' : 'text-[#FF00FF]/50',
-            showError && 'text-[#FF00FF]',
-            showSuccess && 'text-[#00FF88]'
+            isFocused ? 'text-[#5E6AD2]' : 'text-[#8A8F98]',
+            showError && 'text-red-400',
+            showSuccess && 'text-emerald-400'
           )}>
-            <Icon className="h-5 w-5" />
+            <Icon className="h-4 w-4" />
           </div>
         )}
         <input
           className={cn(
-            'flex h-12 w-full rounded-none border-b-2 bg-black/60 px-3 py-2',
-            'font-mono text-[#00FFFF] text-sm',
-            'placeholder:text-[#FF00FF]/40',
+            'flex h-10 w-full rounded-lg border bg-[#0F0F12] px-3 py-2',
+            'text-sm text-gray-100',
+            'placeholder:text-gray-500',
             'focus-visible:outline-none',
             'disabled:cursor-not-allowed disabled:opacity-40',
             'transition-all duration-200',
-            !showError && !showSuccess && 'border-[#FF00FF]/50 focus-visible:border-[#00FFFF] focus-visible:shadow-[0_2px_15px_rgba(0,255,255,0.3)]',
-            showError && 'border-[#FF00FF] bg-[#FF00FF]/5',
-            showSuccess && 'border-[#00FF88] pr-10',
-            Icon && 'pl-11',
+            !showError && !showSuccess && 'border-white/10 focus-visible:border-[#5E6AD2] focus-visible:ring-2 focus-visible:ring-[#5E6AD2]/20',
+            showError && 'border-red-500/50 bg-red-500/5 focus-visible:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500/20',
+            showSuccess && 'border-emerald-500/50 pr-10 focus-visible:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/20',
+            Icon && 'pl-9',
             className
           )}
           value={value}
@@ -95,21 +95,21 @@ export function Input({
           {...props}
         />
         {showSuccess && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#00FF88]">
-            <CheckCircle2 className="h-5 w-5" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400">
+            <CheckCircle2 className="h-4 w-4" />
           </div>
         )}
         {showError && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#FF00FF]">
-            <AlertCircle className="h-5 w-5" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-400">
+            <AlertCircle className="h-4 w-4" />
           </div>
         )}
       </div>
       {helperText && !showError && (
-        <p className="font-mono text-xs text-[#E0E0E0]/40">{helperText}</p>
+        <p className="text-xs text-[#8A8F98]">{helperText}</p>
       )}
       {showError && (
-        <p className="flex items-center gap-1 font-mono text-xs text-[#FF00FF]">
+        <p className="flex items-center gap-1 text-xs text-red-400">
           <AlertCircle className="h-3 w-3" />
           {error}
         </p>

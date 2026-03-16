@@ -4,18 +4,15 @@ import { cn } from '../../lib/utils';
 function Toast({ toast, onDismiss }) {
   const variants = {
     success: {
-      border: 'border-[#00FF88]',
-      glow: 'shadow-[0_0_15px_rgba(0,255,136,0.3)]',
-      icon: <CheckCircle className="h-5 w-5 text-[#00FF88]" />,
+      border: 'border-emerald-500/30',
+      icon: <CheckCircle className="h-4 w-4 text-emerald-400" />,
     },
     error: {
-      border: 'border-[#FF00FF]',
-      glow: 'shadow-[0_0_15px_rgba(255,0,255,0.3)]',
-      icon: <XCircle className="h-5 w-5 text-[#FF00FF]" />,
+      border: 'border-red-500/30',
+      icon: <XCircle className="h-4 w-4 text-red-400" />,
     },
     default: {
-      border: 'border-[#00FFFF]',
-      glow: 'shadow-[0_0_15px_rgba(0,255,255,0.3)]',
+      border: 'border-[#5E6AD2]/30',
       icon: null,
     },
   };
@@ -26,25 +23,25 @@ function Toast({ toast, onDismiss }) {
     <div
       className={cn(
         'animate-in slide-in-from-right pointer-events-auto flex w-full max-w-sm items-start gap-3',
-        'border-2 bg-black/90 p-4 backdrop-blur-md',
-        style.border,
-        style.glow
+        'border bg-[#0a0a0c] rounded-xl p-4 backdrop-blur-md',
+        'shadow-[0_8px_32px_rgba(0,0,0,0.5)]',
+        style.border
       )}
     >
       {style.icon && <div className="mt-0.5 shrink-0">{style.icon}</div>}
-      <div className="flex-1 font-mono">
+      <div className="flex-1">
         {toast.title && (
-          <p className="text-sm font-semibold uppercase tracking-wider text-[#E0E0E0]">
+          <p className="text-sm font-semibold text-[#EDEDEF]">
             {toast.title}
           </p>
         )}
         {toast.description && (
-          <p className="mt-1 text-xs text-[#E0E0E0]/60">{toast.description}</p>
+          <p className="mt-0.5 text-xs text-[#8A8F98]">{toast.description}</p>
         )}
       </div>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="shrink-0 text-[#E0E0E0]/40 hover:text-[#00FFFF] transition-colors"
+        className="shrink-0 text-[#8A8F98] hover:text-[#EDEDEF] transition-colors"
       >
         <X className="h-4 w-4" />
       </button>

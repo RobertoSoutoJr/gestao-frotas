@@ -35,31 +35,24 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
       onClick={onClose}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
 
-      {/* Modal — Terminal Window */}
+      {/* Modal box */}
       <div
         className={`relative w-full ${sizeClasses[size]} animate-scale-in`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="border-2 border-[#00FFFF] bg-black/90 shadow-[0_0_30px_rgba(0,255,255,0.2)]">
-          {/* Title Bar */}
-          <div className="flex items-center justify-between border-b border-[#00FFFF]/30 bg-[#00FFFF]/10 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-2">
-                <div className="h-3 w-3 rounded-full bg-[#FF00FF]" />
-                <div className="h-3 w-3 rounded-full bg-[#00FFFF]" />
-                <div className="h-3 w-3 rounded-full bg-[#FF9900]" />
-              </div>
-              <h2 className="font-[Orbitron] text-sm font-semibold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
-                {title}
-              </h2>
-            </div>
+        <div className="bg-[#0a0a0c] border border-white/[0.08] rounded-2xl shadow-2xl">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
+            <h2 className="text-base font-semibold text-[#EDEDEF]">
+              {title}
+            </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-[#8A8F98] hover:text-[#EDEDEF]"
             >
               <X className="h-4 w-4" />
             </Button>

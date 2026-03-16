@@ -4,8 +4,11 @@ export function Card({ className, children, ...props }) {
   return (
     <div
       className={cn(
-        'border border-[#FF00FF]/30 border-t-2 border-t-[#00FFFF]',
-        'bg-[#1a103c]/80 backdrop-blur-md',
+        'bg-gradient-to-b from-white/[0.06] to-white/[0.02]',
+        'border border-white/[0.06]',
+        'rounded-2xl',
+        'shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_8px_32px_rgba(0,0,0,0.4)]',
+        'hover:border-white/[0.10] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_12px_40px_rgba(0,0,0,0.5)]',
         'transition-all duration-200',
         className
       )}
@@ -31,8 +34,7 @@ export function CardTitle({ className, children, ...props }) {
   return (
     <h3
       className={cn(
-        'font-[Orbitron] text-xl font-semibold text-[#00FFFF] tracking-wide',
-        'drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]',
+        'text-lg font-semibold text-[#EDEDEF]',
         className
       )}
       {...props}
@@ -45,7 +47,7 @@ export function CardTitle({ className, children, ...props }) {
 export function CardDescription({ className, children, ...props }) {
   return (
     <p
-      className={cn('font-mono text-sm text-[#E0E0E0]/60', className)}
+      className={cn('text-sm text-[#8A8F98]', className)}
       {...props}
     >
       {children}

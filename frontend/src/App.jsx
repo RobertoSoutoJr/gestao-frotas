@@ -32,23 +32,23 @@ function AuthenticatedContent() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#090014]">
-        <div className="vw-grid-bg" />
-        <div className="relative z-10 text-center border-2 border-[#FF00FF] bg-black/80 p-8 shadow-[0_0_30px_rgba(255,0,255,0.2)]">
-          <h2 className="font-[Orbitron] text-2xl font-bold text-[#FF00FF] drop-shadow-[0_0_10px_rgba(255,0,255,0.8)]">
-            ERRO DE SISTEMA
+      <div className="flex min-h-screen items-center justify-center bg-[#050506]">
+        <div className="linear-bg" />
+        <div className="relative z-10 text-center bg-[#0a0a0c] border border-white/[0.08] rounded-2xl p-8">
+          <h2 className="text-xl font-semibold text-red-400">
+            Erro ao carregar dados
           </h2>
-          <p className="mt-3 font-mono text-[#E0E0E0]/60">&gt; {error}</p>
+          <p className="mt-2 text-sm text-[#8A8F98]">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#090014]">
+    <div className="min-h-screen bg-[#050506]">
       {/* Background Effects */}
-      <div className="vw-grid-bg" />
-      <div className="vw-chromatic" />
+      <div className="linear-bg" />
+      <div className="linear-grid" />
 
       {/* App Content */}
       <Header />
