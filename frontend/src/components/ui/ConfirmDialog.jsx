@@ -28,28 +28,28 @@ export function ConfirmDialog({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-[var(--color-overlay)] backdrop-blur-md" />
 
       <div
         className="relative w-full max-w-md animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-[#0a0a0c] rounded-2xl border border-white/[0.08] p-6 shadow-2xl">
+        <div className="bg-[var(--color-bg-elevated)] rounded-2xl border border-[var(--color-border-hover)] p-6 shadow-[0_24px_64px_var(--color-shadow)]">
           <div className="flex flex-col items-center text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-red-500/10">
               <AlertTriangle className="h-7 w-7 text-red-400" />
             </div>
-            <h3 className="text-lg font-semibold text-[#EDEDEF]">
+            <h3 className="text-lg font-semibold text-[var(--color-text)]">
               {title}
             </h3>
-            <p className="mt-2 text-sm text-[#8A8F98]">{description}</p>
+            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{description}</p>
           </div>
 
           <div className="mt-6 flex gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={onClose}
-              className="flex-1 border border-white/[0.08]"
+              className="flex-1"
               disabled={isLoading}
             >
               {cancelText}

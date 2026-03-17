@@ -3,9 +3,11 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { fuelService } from '../../services/fuel';
+import { useToast } from '../../hooks/useToast';
 
 export function FuelForm({ trucks, drivers, onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     caminhao_id: '',
     motorista_id: '',
@@ -14,6 +16,10 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
     valor_total: '',
     posto: ''
   });
+
+  const pricePerLiter = formData.litros && formData.valor_total
+    ? (Number(formData.valor_total) / Number(formData.litros)).toFixed(3)
+    : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,6 +36,7 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
       };
 
       await fuelService.create(data);
+      success('Sucesso!', 'Abastecimento registrado com sucesso');
       setFormData({
         caminhao_id: '',
         motorista_id: '',
@@ -39,9 +46,9 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
         posto: ''
       });
       onSuccess?.();
-    } catch (error) {
-      console.error('Failed to create fuel record:', error);
-      alert(error.message || 'Falha ao registrar abastecimento');
+    } catch (err) {
+      console.error('Failed to create fuel record:', err);
+      showError('Erro', err.message || 'Falha ao registrar abastecimento');
     } finally {
       setLoading(false);
     }
@@ -128,9 +135,26 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
         />
       </div>
 
+      {pricePerLiter && (
+        <div className="rounded-xl bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 px-4 py-3 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-[var(--color-text-secondary)]">Preço por litro calculado</p>
+            <p className="text-xl font-bold text-[var(--color-accent)] tabular-nums">R$ {pricePerLiter}</p>
+          </div>
+          <div className="text-right text-xs text-[var(--color-text-secondary)]">
+            {formatNumber(formData.litros)} L × R$ {pricePerLiter} = R$ {Number(formData.valor_total).toFixed(2)}
+          </div>
+        </div>
+      )}
+
       <Button type="submit" variant="primary" loading={loading} className="w-full">
         Registrar Abastecimento
       </Button>
     </form>
   );
+}
+
+function formatNumber(val) {
+  const n = Number(val);
+  return isNaN(n) ? '0' : n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 }

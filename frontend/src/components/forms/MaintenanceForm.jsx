@@ -3,6 +3,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { maintenanceService } from '../../services/maintenance';
+import { useToast } from '../../hooks/useToast';
 
 const MAINTENANCE_TYPES = [
   'Preventiva',
@@ -17,6 +18,7 @@ const MAINTENANCE_TYPES = [
 
 export function MaintenanceForm({ trucks, onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     caminhao_id: '',
     descricao: '',
@@ -41,6 +43,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
       };
 
       await maintenanceService.create(data);
+      success('Sucesso!', 'Manutenção registrada com sucesso');
       setFormData({
         caminhao_id: '',
         descricao: '',
@@ -50,9 +53,9 @@ export function MaintenanceForm({ trucks, onSuccess }) {
         data_manutencao: ''
       });
       onSuccess?.();
-    } catch (error) {
-      console.error('Failed to create maintenance record:', error);
-      alert(error.message || 'Falha ao registrar manutenção');
+    } catch (err) {
+      console.error('Failed to create maintenance record:', err);
+      showError('Erro', err.message || 'Falha ao registrar manutenção');
     } finally {
       setLoading(false);
     }

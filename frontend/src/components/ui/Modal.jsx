@@ -35,24 +35,24 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
       onClick={onClose}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-[var(--color-overlay)] backdrop-blur-md" />
 
       {/* Modal box */}
       <div
         className={`relative w-full ${sizeClasses[size]} animate-scale-in`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-[#0a0a0c] border border-white/[0.08] rounded-2xl shadow-2xl">
+        <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border-hover)] rounded-2xl shadow-[0_24px_64px_var(--color-shadow)]">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
-            <h2 className="text-base font-semibold text-[#EDEDEF]">
+          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+            <h2 className="text-base font-semibold text-[var(--color-text)]">
               {title}
             </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0 text-[#8A8F98] hover:text-[#EDEDEF]"
+              className="h-8 w-8 p-0"
             >
               <X className="h-4 w-4" />
             </Button>

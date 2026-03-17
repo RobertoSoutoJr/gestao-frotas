@@ -194,7 +194,7 @@ export function TrucksPage({ trucks, onRefetch }) {
 
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-[#EDEDEF]">
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">
             Frota ({filteredAndSortedTrucks.length} de {trucks.length})
           </h2>
           <Button
@@ -259,10 +259,10 @@ export function TrucksPage({ trucks, onRefetch }) {
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-[#EDEDEF]">
+                      <h3 className="text-lg font-bold text-[var(--color-text)]">
                         {truck.placa}
                       </h3>
-                      <p className="text-sm text-[#8A8F98]">
+                      <p className="text-sm text-[var(--color-text-secondary)]">
                         {truck.modelo}
                       </p>
                     </div>
@@ -273,16 +273,16 @@ export function TrucksPage({ trucks, onRefetch }) {
 
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <Gauge className="h-4 w-4 text-[#8A8F98]" />
-                      <span className="font-medium text-[#EDEDEF]">
+                      <Gauge className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                      <span className="font-medium text-[var(--color-text)]">
                         {formatNumber(truck.km_atual || 0, 0)} km
                       </span>
                     </div>
 
                     {truck.capacidade_silo_ton && (
                       <div className="flex items-center gap-2 text-sm">
-                        <Truck className="h-4 w-4 text-[#8A8F98]" />
-                        <span className="text-[#8A8F98]">
+                        <Truck className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                        <span className="text-[var(--color-text-secondary)]">
                           Capacidade: {formatNumber(truck.capacidade_silo_ton)} tons
                         </span>
                       </div>

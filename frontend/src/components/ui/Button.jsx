@@ -1,12 +1,12 @@
 import { cn } from '../../lib/utils';
 
 const variants = {
-  primary: 'bg-[#5E6AD2] text-white hover:bg-[#6872D9] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_4px_16px_rgba(94,106,210,0.35)] active:scale-[0.98]',
-  default: 'bg-white/[0.05] text-[#EDEDEF] hover:bg-white/[0.08] shadow-[0_0_0_1px_rgba(255,255,255,0.06)]',
+  primary: 'bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] shadow-[0_0_0_1px_var(--color-border),0_4px_16px_rgba(94,106,210,0.35)] active:scale-[0.98]',
+  default: 'bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] shadow-[0_0_0_1px_var(--color-border)]',
   success: 'bg-emerald-600 text-white hover:bg-emerald-500 active:scale-[0.98]',
   danger:  'bg-red-600 text-white hover:bg-red-500 active:scale-[0.98]',
-  outline: 'border border-white/10 bg-transparent text-[#EDEDEF] hover:bg-white/[0.05]',
-  ghost:   'bg-transparent text-[#8A8F98] hover:bg-white/[0.05] hover:text-[#EDEDEF]',
+  outline: 'border border-[var(--color-border)] bg-transparent text-[var(--color-text)] hover:bg-[var(--color-surface)]',
+  ghost:   'bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
 };
 
 const sizes = {
@@ -27,8 +27,8 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5E6AD2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050506]',
+        'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 cursor-pointer',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]',
         'disabled:pointer-events-none disabled:opacity-40',
         variants[variant],
         sizes[size],
