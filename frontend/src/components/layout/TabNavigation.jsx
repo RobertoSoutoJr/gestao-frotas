@@ -1,10 +1,14 @@
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, Truck, Users, Fuel, Wrench, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Truck, Users, Fuel, Wrench, BarChart3, Building2, Factory, Route, Warehouse } from 'lucide-react';
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'trucks', label: 'Caminhões', icon: Truck },
   { id: 'drivers', label: 'Motoristas', icon: Users },
+  { id: 'clients', label: 'Clientes', icon: Building2 },
+  { id: 'suppliers', label: 'Fornecedores', icon: Factory },
+  { id: 'trips', label: 'Viagens', icon: Route },
+  { id: 'stock', label: 'Estoque', icon: Warehouse },
   { id: 'fuel', label: 'Abastecimento', icon: Fuel },
   { id: 'maintenance', label: 'Manutenção', icon: Wrench },
   { id: 'reports', label: 'Relatórios', icon: BarChart3 }

@@ -7,6 +7,10 @@ import { TabNavigation } from './components/layout/TabNavigation';
 import { DashboardPage } from './pages/DashboardPage';
 import { TrucksPage } from './pages/TrucksPage';
 import { DriversPage } from './pages/DriversPage';
+import { ClientsPage } from './pages/ClientsPage';
+import { SuppliersPage } from './pages/SuppliersPage';
+import { TripsPage } from './pages/TripsPage';
+import { StockPage } from './pages/StockPage';
 import { FuelPage } from './pages/FuelPage';
 import { MaintenancePage } from './pages/MaintenancePage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -18,7 +22,7 @@ import { useToast } from './hooks/useToast';
 
 function AuthenticatedContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { trucks, drivers, fuelRecords, maintenanceRecords, loading, error, refetch } = useFleet();
+  const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, loading, error, refetch } = useFleet();
   const { toasts, success, dismiss } = useToast();
 
   const handleRefetch = () => {
@@ -66,6 +70,18 @@ function AuthenticatedContent() {
         )}
         {activeTab === 'drivers' && (
           <DriversPage drivers={drivers} onRefetch={handleRefetch} />
+        )}
+        {activeTab === 'clients' && (
+          <ClientsPage clients={clients} onRefetch={handleRefetch} />
+        )}
+        {activeTab === 'suppliers' && (
+          <SuppliersPage suppliers={suppliers} onRefetch={handleRefetch} />
+        )}
+        {activeTab === 'trips' && (
+          <TripsPage trucks={trucks} drivers={drivers} onRefetch={handleRefetch} />
+        )}
+        {activeTab === 'stock' && (
+          <StockPage onRefetch={handleRefetch} />
         )}
         {activeTab === 'fuel' && (
           <FuelPage trucks={trucks} drivers={drivers} onRefetch={handleRefetch} />

@@ -1,0 +1,495 @@
+import { useState, useEffect, useMemo } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { Input } from '../components/ui/Input';
+import { Select } from '../components/ui/Select';
+import { Badge } from '../components/ui/Badge';
+import {
+  Route, MapPin, Truck, Users, Package, DollarSign, CheckCircle,
+  Edit2, Trash2, Search, Filter, ArrowRight, Calendar
+} from 'lucide-react';
+import { formatCurrency, formatDate } from '../lib/utils';
+import { tripsService } from '../services/trips';
+import { clientsService } from '../services/clients';
+import { suppliersService } from '../services/suppliers';
+import { productsService } from '../services/products';
+import { useToast } from '../hooks/useToast';
+
+const FORMAS_PAGAMENTO = [
+  { value: 'dinheiro', label: 'Dinheiro' },
+  { value: 'pix', label: 'PIX' },
+  { value: 'transferencia', label: 'Transferência Bancária' },
+  { value: 'boleto', label: 'Boleto' },
+  { value: 'cheque', label: 'Cheque' },
+  { value: 'cartao', label: 'Cartão' },
+  { value: 'a_prazo', label: 'A Prazo' }
+];
+
+function TripForm({ trucks, drivers, clients, suppliers, products, onSuccess }) {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '',
+    produto_id: '', quantidade_sacas: '', preco_frete_saca: '', observacoes: ''
+  });
+
+  const selectedProduct = products.find(p => p.id === Number(formData.produto_id));
+  const selectedSupplier = suppliers.find(s => s.id === Number(formData.fornecedor_id));
+  const selectedClient = clients.find(c => c.id === Number(formData.cliente_id));
+
+  const qtdSacas = Number(formData.quantidade_sacas) || 0;
+  const precoSaca = selectedProduct?.preco_saca || 0;
+  const precoFrete = Number(formData.preco_frete_saca) || 0;
+  const pesoTotal = qtdSacas * 60;
+  const valorProduto = qtdSacas * precoSaca;
+  const valorFrete = qtdSacas * precoFrete;
+  const valorTotal = valorProduto + valorFrete;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await tripsService.create({
+        fornecedor_id: Number(formData.fornecedor_id),
+        cliente_id: Number(formData.cliente_id),
+        caminhao_id: Number(formData.caminhao_id),
+        motorista_id: Number(formData.motorista_id),
+        produto_id: Number(formData.produto_id),
+        quantidade_sacas: qtdSacas,
+        preco_produto_saca: precoSaca,
+        preco_frete_saca: precoFrete,
+        observacoes: formData.observacoes || null
+      });
+      setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', produto_id: '', quantidade_sacas: '', preco_frete_saca: '', observacoes: '' });
+      onSuccess?.();
+    } catch (error) {
+      alert(error.message || 'Falha ao cadastrar viagem');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Rota: Fornecedor -> Cliente */}
+      <div>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Rota da Viagem</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Select name="fornecedor_id" label="Fornecedor (Carregamento)" value={formData.fornecedor_id} onChange={handleChange} required>
+            <option value="">Selecione o fornecedor</option>
+            {suppliers.map(s => <option key={s.id} value={s.id}>{s.nome} {s.cidade ? `- ${s.cidade}/${s.estado}` : ''}</option>)}
+          </Select>
+          <Select name="cliente_id" label="Cliente (Descarga)" value={formData.cliente_id} onChange={handleChange} required>
+            <option value="">Selecione o cliente</option>
+            {clients.map(c => <option key={c.id} value={c.id}>{c.nome} {c.cidade ? `- ${c.cidade}/${c.estado}` : ''}</option>)}
+          </Select>
+        </div>
+        {selectedSupplier && selectedClient && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+            <MapPin className="h-4 w-4" />
+            {selectedSupplier.cidade || selectedSupplier.nome}
+            <ArrowRight className="h-4 w-4" />
+            {selectedClient.cidade || selectedClient.nome}
+          </div>
+        )}
+      </div>
+
+      {/* Veículo e Motorista */}
+      <div>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Veículo e Motorista</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Select name="caminhao_id" label="Caminhão" value={formData.caminhao_id} onChange={handleChange} required>
+            <option value="">Selecione o caminhão</option>
+            {trucks.map(t => <option key={t.id} value={t.id}>{t.placa} - {t.modelo}</option>)}
+          </Select>
+          <Select name="motorista_id" label="Motorista" value={formData.motorista_id} onChange={handleChange} required>
+            <option value="">Selecione o motorista</option>
+            {drivers.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
+          </Select>
+        </div>
+      </div>
+
+      {/* Produto e Valores */}
+      <div>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Produto e Valores</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Select name="produto_id" label="Produto" value={formData.produto_id} onChange={handleChange} required>
+            <option value="">Selecione o produto</option>
+            {products.filter(p => p.ativo).map(p => (
+              <option key={p.id} value={p.id}>{p.nome} - {formatCurrency(p.preco_saca)}/saca</option>
+            ))}
+          </Select>
+          <Input name="quantidade_sacas" label="Quantidade (Sacas)" type="number" placeholder="0" min="1" step="0.01" value={formData.quantidade_sacas} onChange={handleChange} required />
+          <Input name="preco_frete_saca" label="Frete por Saca (R$)" type="number" placeholder="0,00" min="0.50" max="10.00" step="0.01" value={formData.preco_frete_saca} onChange={handleChange} required helperText="R$0,50 a R$10,00" />
+        </div>
+      </div>
+
+      {/* Resumo Financeiro */}
+      {qtdSacas > 0 && precoFrete > 0 && selectedProduct && (
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Resumo Financeiro</h3>
+          <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+            <div>
+              <p className="text-zinc-500">Peso Total</p>
+              <p className="font-semibold text-zinc-900 dark:text-zinc-50">{pesoTotal.toLocaleString('pt-BR')} kg</p>
+            </div>
+            <div>
+              <p className="text-zinc-500">Valor Produto</p>
+              <p className="font-semibold text-zinc-900 dark:text-zinc-50">{formatCurrency(valorProduto)}</p>
+            </div>
+            <div>
+              <p className="text-zinc-500">Valor Frete</p>
+              <p className="font-semibold text-zinc-900 dark:text-zinc-50">{formatCurrency(valorFrete)}</p>
+            </div>
+            <div>
+              <p className="text-zinc-500">Total Geral</p>
+              <p className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(valorTotal)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Input name="observacoes" label="Observações" placeholder="Informações adicionais da viagem..." value={formData.observacoes} onChange={handleChange} />
+
+      <Button type="submit" variant="success" loading={loading} className="w-full">
+        Cadastrar Viagem
+      </Button>
+    </form>
+  );
+}
+
+function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
+  const [loading, setLoading] = useState(false);
+  const [formaPagamento, setFormaPagamento] = useState('');
+  const { success, error } = useToast();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await tripsService.finalize(trip.id, { forma_pagamento: formaPagamento });
+      success('Viagem Finalizada!', 'A viagem foi finalizada com sucesso');
+      onSuccess?.();
+      onClose();
+    } catch (err) {
+      error('Erro', err.message || 'Falha ao finalizar viagem');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Finalizar Viagem">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-zinc-500">Produto</p>
+              <p className="font-medium text-zinc-900 dark:text-zinc-50">{trip.produtos?.nome}</p>
+            </div>
+            <div>
+              <p className="text-zinc-500">Quantidade</p>
+              <p className="font-medium text-zinc-900 dark:text-zinc-50">{trip.quantidade_sacas} sacas</p>
+            </div>
+            <div>
+              <p className="text-zinc-500">Valor Produto</p>
+              <p className="font-medium text-zinc-900 dark:text-zinc-50">{formatCurrency(trip.valor_total_produto)}</p>
+            </div>
+            <div>
+              <p className="text-zinc-500">Valor Frete</p>
+              <p className="font-medium text-zinc-900 dark:text-zinc-50">{formatCurrency(trip.valor_total_frete)}</p>
+            </div>
+          </div>
+          <div className="mt-3 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+            <div className="flex justify-between">
+              <span className="font-semibold text-zinc-700 dark:text-zinc-300">Total a Pagar</span>
+              <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                {formatCurrency(Number(trip.valor_total_produto) + Number(trip.valor_total_frete))}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <Select label="Forma de Pagamento" value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} required>
+          <option value="">Selecione a forma de pagamento</option>
+          {FORMAS_PAGAMENTO.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+        </Select>
+
+        <div className="flex gap-3">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>Cancelar</Button>
+          <Button type="submit" variant="success" loading={loading} className="flex-1">
+            <CheckCircle className="mr-2 h-4 w-4" /> Finalizar Viagem
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+export function TripsPage({ trucks, drivers, onRefetch }) {
+  const { success, error } = useToast();
+  const [trips, setTrips] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [finalizingTrip, setFinalizingTrip] = useState(null);
+  const [deletingTrip, setDeletingTrip] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todas');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      setLoadingData(true);
+      const [tripsRes, clientsRes, suppliersRes, productsRes] = await Promise.all([
+        tripsService.getAll(),
+        clientsService.getAll(),
+        suppliersService.getAll(),
+        productsService.getAll()
+      ]);
+      setTrips(tripsRes.data || []);
+      setClients(clientsRes.data || []);
+      setSuppliers(suppliersRes.data || []);
+      setProducts(productsRes.data || []);
+    } catch (err) {
+      error('Erro', 'Falha ao carregar dados');
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const handleRefetch = () => {
+    fetchData();
+    onRefetch?.();
+  };
+
+  const filteredTrips = useMemo(() => {
+    return trips.filter(t => {
+      const matchSearch = searchTerm === '' || [
+        t.fornecedores?.nome, t.clientes?.nome, t.motoristas?.nome,
+        t.caminhoes?.placa, t.produtos?.nome
+      ].some(v => v?.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchStatus = statusFilter === 'todas' || t.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [trips, searchTerm, statusFilter]);
+
+  const handleDelete = async () => {
+    if (!deletingTrip) return;
+    setDeleteLoading(true);
+    try {
+      await tripsService.delete(deletingTrip.id);
+      success('Sucesso!', 'Viagem excluída com sucesso');
+      handleRefetch();
+      setDeletingTrip(null);
+    } catch (err) {
+      error('Erro', err.message || 'Falha ao excluir viagem');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const totalCadastradas = trips.filter(t => t.status === 'cadastrada').length;
+  const totalFinalizadas = trips.filter(t => t.status === 'finalizada').length;
+  const totalFrete = trips.filter(t => t.status === 'finalizada').reduce((sum, t) => sum + Number(t.valor_total_frete || 0), 0);
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-zinc-500">Carregando dados...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* KPIs */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-sm text-zinc-500">Em Andamento</p>
+            <p className="text-2xl font-bold text-amber-600">{totalCadastradas}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-sm text-zinc-500">Finalizadas</p>
+            <p className="text-2xl font-bold text-green-600">{totalFinalizadas}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-sm text-zinc-500">Total Frete (Finalizadas)</p>
+            <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalFrete)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Formulário */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Nova Viagem</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {clients.length === 0 || suppliers.length === 0 || products.length === 0 ? (
+            <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+              <p className="font-semibold">Pré-requisitos para criar uma viagem:</p>
+              <ul className="mt-2 list-inside list-disc space-y-1">
+                {suppliers.length === 0 && <li>Cadastre pelo menos um <strong>fornecedor</strong></li>}
+                {clients.length === 0 && <li>Cadastre pelo menos um <strong>cliente</strong></li>}
+                {products.length === 0 && <li>Cadastre pelo menos um <strong>produto</strong></li>}
+                {trucks.length === 0 && <li>Cadastre pelo menos um <strong>caminhão</strong></li>}
+                {drivers.length === 0 && <li>Cadastre pelo menos um <strong>motorista</strong></li>}
+              </ul>
+            </div>
+          ) : (
+            <TripForm
+              trucks={trucks}
+              drivers={drivers}
+              clients={clients}
+              suppliers={suppliers}
+              products={products}
+              onSuccess={handleRefetch}
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Lista de Viagens */}
+      <div>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+            Viagens ({filteredTrips.length} de {trips.length})
+          </h2>
+          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+            <Filter className="mr-2 h-4 w-4" />
+            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+          </Button>
+        </div>
+
+        {showFilters && (
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Input icon={Search} placeholder="Buscar por fornecedor, cliente, motorista, placa ou produto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                <Select label="Status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="todas">Todas</option>
+                  <option value="cadastrada">Cadastradas</option>
+                  <option value="finalizada">Finalizadas</option>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {trips.length === 0 ? (
+          <Card>
+            <CardContent className="py-12">
+              <EmptyState icon={Route} title="Nenhuma viagem cadastrada" description="Cadastre a primeira viagem para começar o controle de fretes" />
+            </CardContent>
+          </Card>
+        ) : filteredTrips.length === 0 ? (
+          <Card>
+            <CardContent className="py-12">
+              <EmptyState icon={Search} title="Nenhum resultado encontrado" description="Tente ajustar os filtros" />
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {filteredTrips.map(trip => (
+              <Card key={trip.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <Badge variant={trip.status === 'finalizada' ? 'success' : 'warning'}>
+                          {trip.status === 'finalizada' ? 'Finalizada' : 'Cadastrada'}
+                        </Badge>
+                        <span className="text-xs text-zinc-400">
+                          <Calendar className="mr-1 inline h-3 w-3" />
+                          {formatDate(trip.data_viagem || trip.created_at)}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-2 text-sm">
+                        <MapPin className="h-4 w-4 text-amber-500" />
+                        <span className="font-medium">{trip.fornecedores?.nome}</span>
+                        <ArrowRight className="h-4 w-4 text-zinc-400" />
+                        <MapPin className="h-4 w-4 text-blue-500" />
+                        <span className="font-medium">{trip.clientes?.nome}</span>
+                      </div>
+
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-zinc-500">
+                        <span className="flex items-center gap-1">
+                          <Truck className="h-3 w-3" />
+                          {trip.caminhoes?.placa}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          {trip.motoristas?.nome}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Package className="h-3 w-3" />
+                          {trip.produtos?.nome} - {trip.quantidade_sacas} sacas
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          Frete: {formatCurrency(trip.valor_total_frete)}
+                        </span>
+                      </div>
+
+                      {trip.forma_pagamento && (
+                        <p className="mt-1 text-xs text-zinc-400">
+                          Pago via: {FORMAS_PAGAMENTO.find(f => f.value === trip.forma_pagamento)?.label || trip.forma_pagamento}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="ml-4 flex flex-col gap-2">
+                      {trip.status === 'cadastrada' && (
+                        <>
+                          <Button variant="success" size="sm" onClick={() => setFinalizingTrip(trip)}>
+                            <CheckCircle className="mr-2 h-4 w-4" /> Finalizar
+                          </Button>
+                          <Button variant="danger" size="sm" onClick={() => setDeletingTrip(trip)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {finalizingTrip && (
+        <FinalizeModal trip={finalizingTrip} isOpen={!!finalizingTrip} onClose={() => setFinalizingTrip(null)} onSuccess={handleRefetch} />
+      )}
+
+      <ConfirmDialog
+        isOpen={!!deletingTrip}
+        onClose={() => setDeletingTrip(null)}
+        onConfirm={handleDelete}
+        title="Excluir Viagem"
+        description="Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={deleteLoading}
+      />
+    </div>
+  );
+}

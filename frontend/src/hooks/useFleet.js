@@ -3,12 +3,16 @@ import { trucksService } from '../services/trucks';
 import { driversService } from '../services/drivers';
 import { fuelService } from '../services/fuel';
 import { maintenanceService } from '../services/maintenance';
+import { clientsService } from '../services/clients';
+import { suppliersService } from '../services/suppliers';
 
 export function useFleet() {
   const [trucks, setTrucks] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [fuelRecords, setFuelRecords] = useState([]);
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,17 +21,21 @@ export function useFleet() {
       setLoading(true);
       setError(null);
 
-      const [trucksRes, driversRes, fuelRes, maintenanceRes] = await Promise.all([
+      const [trucksRes, driversRes, fuelRes, maintenanceRes, clientsRes, suppliersRes] = await Promise.all([
         trucksService.getAll(),
         driversService.getAll(),
         fuelService.getAll(),
-        maintenanceService.getAll()
+        maintenanceService.getAll(),
+        clientsService.getAll(),
+        suppliersService.getAll()
       ]);
 
       setTrucks(trucksRes.data || []);
       setDrivers(driversRes.data || []);
       setFuelRecords(fuelRes.data || []);
       setMaintenanceRecords(maintenanceRes.data || []);
+      setClients(clientsRes.data || []);
+      setSuppliers(suppliersRes.data || []);
     } catch (err) {
       setError(err.message);
       console.error('Failed to fetch fleet data:', err);
@@ -45,6 +53,8 @@ export function useFleet() {
     drivers,
     fuelRecords,
     maintenanceRecords,
+    clients,
+    suppliers,
     loading,
     error,
     refetch: fetchData

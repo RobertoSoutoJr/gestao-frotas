@@ -4,6 +4,11 @@ const truckRoutes = require('./truck.routes');
 const driverRoutes = require('./driver.routes');
 const fuelRoutes = require('./fuel.routes');
 const maintenanceRoutes = require('./maintenance.routes');
+const clientRoutes = require('./client.routes');
+const supplierRoutes = require('./supplier.routes');
+const productRoutes = require('./product.routes');
+const tripRoutes = require('./trip.routes');
+const stockRoutes = require('./stock.routes');
 const { protect } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -21,5 +26,10 @@ router.use('/caminhoes', protect, truckRoutes);
 router.use('/motoristas', protect, driverRoutes);
 router.use('/abastecimentos', protect, fuelRoutes);
 router.use('/manutencoes', protect, maintenanceRoutes);
+router.use('/clientes', protect, clientRoutes);
+router.use('/fornecedores', protect, supplierRoutes);
+router.use('/produtos', protect, productRoutes);
+router.use('/viagens', protect, tripRoutes);
+router.use('/estoque', protect, stockRoutes);
 
 module.exports = router;
