@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { Button } from '../components/ui/Button';
-import { Truck, Mail, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Fuel, Mail, ArrowLeft, RefreshCw } from 'lucide-react';
 
 export function VerifyEmailPage({ email, onBack }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -73,28 +73,28 @@ export function VerifyEmailPage({ email, onBack }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#050506]">
+    <div className="min-h-screen flex bg-[var(--color-bg)]">
       <div className="linear-bg" />
       <div className="linear-grid" />
 
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[#5E6AD2] opacity-[0.08] blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[var(--color-accent)] opacity-[0.08] blur-[120px] pointer-events-none" />
         <div className="relative z-10 flex flex-col px-16 max-w-xl">
           <div className="flex items-center gap-3 mb-12">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5E6AD2]/15 border border-[#5E6AD2]/25">
-              <Truck className="h-6 w-6 text-[#5E6AD2]" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/25">
+              <Fuel className="h-6 w-6 text-[var(--color-accent)]" />
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
-              <span className="text-[#EDEDEF]">Frota</span>
-              <span className="text-[#5E6AD2]">Pro</span>
+              <span className="text-[var(--color-text)]">Fuel</span>
+              <span className="text-[var(--color-accent)]">Track</span>
             </h1>
           </div>
-          <h2 className="text-4xl font-bold leading-tight mb-6 text-[#EDEDEF]">
+          <h2 className="text-4xl font-bold leading-tight mb-6 text-[var(--color-text)]">
             Verificação<br />
-            <span className="text-[#5E6AD2]">de email.</span>
+            <span className="text-[var(--color-accent)]">de email.</span>
           </h2>
-          <p className="text-lg text-[#8A8F98] leading-relaxed">
+          <p className="text-lg text-[var(--color-text-secondary)] leading-relaxed">
             Enviamos um código de 6 dígitos para o seu email. Digite-o para ativar sua conta.
           </p>
         </div>
@@ -104,25 +104,25 @@ export function VerifyEmailPage({ email, onBack }) {
       <div className="flex-1 flex items-center justify-center px-8 py-12 relative z-10">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#5E6AD2]/15 border border-[#5E6AD2]/25">
-              <Truck className="h-4 w-4 text-[#5E6AD2]" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/25">
+              <Fuel className="h-4 w-4 text-[var(--color-accent)]" />
             </div>
             <span className="text-2xl font-bold">
-              <span className="text-[#EDEDEF]">Frota</span>
-              <span className="text-[#5E6AD2]">Pro</span>
+              <span className="text-[var(--color-text)]">Fuel</span>
+              <span className="text-[var(--color-accent)]">Track</span>
             </span>
           </div>
 
-          <div className="bg-[#0a0a0c] rounded-2xl border border-white/[0.08] p-8 shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
+          <div className="bg-[var(--color-bg-elevated)] rounded-2xl border border-[var(--color-border-hover)] p-8 shadow-[0_24px_64px_var(--color-shadow)]">
             <div className="text-center mb-8">
-              <div className="mx-auto w-14 h-14 rounded-xl bg-[#5E6AD2]/15 border border-[#5E6AD2]/25 flex items-center justify-center mb-4">
-                <Mail className="h-6 w-6 text-[#5E6AD2]" />
+              <div className="mx-auto w-14 h-14 rounded-xl bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/25 flex items-center justify-center mb-4">
+                <Mail className="h-6 w-6 text-[var(--color-accent)]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#EDEDEF]">
+              <h2 className="text-xl font-semibold text-[var(--color-text)]">
                 Verificar email
               </h2>
-              <p className="text-sm text-[#8A8F98] mt-1">Código enviado para</p>
-              <p className="text-sm font-medium text-[#5E6AD2] mt-0.5">{email}</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-1">Código enviado para</p>
+              <p className="text-sm font-medium text-[var(--color-accent)] mt-0.5">{email}</p>
             </div>
 
             {/* Code Inputs */}
@@ -137,7 +137,7 @@ export function VerifyEmailPage({ email, onBack }) {
                   value={digit}
                   onChange={e => handleChange(index, e.target.value)}
                   onKeyDown={e => handleKeyDown(index, e)}
-                  className="w-11 h-13 text-center font-mono text-xl font-semibold rounded-lg border border-white/10 bg-[#0F0F12] text-gray-100 focus:border-[#5E6AD2] focus:ring-2 focus:ring-[#5E6AD2]/20 outline-none transition-all"
+                  className="w-11 text-center font-mono text-xl font-semibold rounded-lg border border-[var(--color-border)] bg-[var(--color-input-bg)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/20 outline-none transition-all"
                   style={{ height: '52px' }}
                 />
               ))}
@@ -149,16 +149,16 @@ export function VerifyEmailPage({ email, onBack }) {
 
             <div className="mt-6 text-center space-y-3">
               {countdown > 0 ? (
-                <p className="text-sm text-[#8A8F98]">
-                  Reenviar em <span className="text-[#EDEDEF] font-medium">{countdown}s</span>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  Reenviar em <span className="text-[var(--color-text)] font-medium tabular-nums">{countdown}s</span>
                 </p>
               ) : (
-                <button onClick={handleResend} disabled={resending} className="text-sm text-[#5E6AD2] hover:text-[#6872D9] flex items-center gap-1.5 mx-auto transition-colors font-medium">
+                <button onClick={handleResend} disabled={resending} className="text-sm text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] flex items-center gap-1.5 mx-auto transition-colors font-medium cursor-pointer">
                   <RefreshCw className={`h-3.5 w-3.5 ${resending ? 'animate-spin' : ''}`} />
                   Reenviar código
                 </button>
               )}
-              <button onClick={onBack} className="text-sm text-[#8A8F98] hover:text-[#EDEDEF] flex items-center gap-1 mx-auto transition-colors">
+              <button onClick={onBack} className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] flex items-center gap-1 mx-auto transition-colors cursor-pointer">
                 <ArrowLeft className="h-4 w-4" /> Voltar
               </button>
             </div>

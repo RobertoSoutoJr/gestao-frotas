@@ -230,15 +230,15 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#8A8F98]">
+                <p className="text-sm font-medium text-[var(--color-text-secondary)]">
                   Total Gasto
                 </p>
-                <p className="mt-1.5 text-2xl font-bold text-[#EDEDEF]">
+                <p className="mt-1.5 text-2xl font-bold text-[var(--color-text)]">
                   {formatCurrency(overallStats.totalSpent)}
                 </p>
               </div>
-              <div className="rounded-xl bg-[#5E6AD2]/10 p-3">
-                <DollarSign className="h-5 w-5 text-[#5E6AD2]" />
+              <div className="rounded-xl bg-[var(--color-accent)]/10 p-3">
+                <DollarSign className="h-5 w-5 text-[var(--color-accent)]" />
               </div>
             </div>
           </CardContent>
@@ -248,10 +248,10 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#8A8F98]">
+                <p className="text-sm font-medium text-[var(--color-text-secondary)]">
                   Combustível
                 </p>
-                <p className="mt-1.5 text-2xl font-bold text-[#EDEDEF]">
+                <p className="mt-1.5 text-2xl font-bold text-[var(--color-text)]">
                   {formatCurrency(overallStats.totalFuel)}
                 </p>
               </div>
@@ -266,10 +266,10 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#8A8F98]">
+                <p className="text-sm font-medium text-[var(--color-text-secondary)]">
                   Manutenção
                 </p>
-                <p className="mt-1.5 text-2xl font-bold text-[#EDEDEF]">
+                <p className="mt-1.5 text-2xl font-bold text-[var(--color-text)]">
                   {formatCurrency(overallStats.totalMaintenance)}
                 </p>
               </div>
@@ -284,10 +284,10 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#8A8F98]">
+                <p className="text-sm font-medium text-[var(--color-text-secondary)]">
                   Total de Litros
                 </p>
-                <p className="mt-1.5 text-2xl font-bold text-[#EDEDEF]">
+                <p className="mt-1.5 text-2xl font-bold text-[var(--color-text)]">
                   {formatNumber(overallStats.totalLiters, 0)}
                 </p>
               </div>
@@ -380,17 +380,17 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
       {/* Detalhamento por Caminhão */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-[#EDEDEF]">
+        <h2 className="mb-4 text-lg font-semibold text-[var(--color-text)]">
           Detalhamento por Caminhão
         </h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {stats.map(stat => (
             <Card key={stat.truck.id} className="overflow-hidden">
-              <div className="bg-gradient-to-r from-[#5E6AD2]/20 to-[#8B5CF6]/10 border-b border-white/[0.06] px-6 py-4">
+              <div className="bg-gradient-to-r from-[var(--color-accent)]/20 to-[#8B5CF6]/10 border-b border-[var(--color-border)] px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-[#EDEDEF]">{stat.truck.placa}</h3>
-                    <p className="text-sm text-[#8A8F98]">{stat.truck.modelo}</p>
+                    <h3 className="text-lg font-bold text-[var(--color-text)]">{stat.truck.placa}</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{stat.truck.modelo}</p>
                   </div>
                   <Badge variant="default">
                     {formatNumber(stat.truck.km_atual || 0, 0)} km
@@ -400,7 +400,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
 
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm text-[#8A8F98]">
+                  <span className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                     <FuelIcon className="h-4 w-4" />
                     Combustível ({stat.fuelRecordsCount} registros)
                   </span>
@@ -410,7 +410,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm text-[#8A8F98]">
+                  <span className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                     <Wrench className="h-4 w-4" />
                     Manutenção ({stat.maintenanceCount} registros)
                   </span>
@@ -419,23 +419,23 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                   </span>
                 </div>
 
-                <div className="border-t border-white/[0.06] pt-4">
+                <div className="border-t border-[var(--color-border)] pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-base font-semibold text-[#EDEDEF]">
+                    <span className="text-base font-semibold text-[var(--color-text)]">
                       Total
                     </span>
-                    <span className="text-xl font-bold text-[#5E6AD2]">
+                    <span className="text-xl font-bold text-[var(--color-accent)]">
                       {formatCurrency(stat.totalSpent)}
                     </span>
                   </div>
                 </div>
 
                 {stat.totalLiters > 0 && (
-                  <div className="rounded-xl bg-white/[0.04] border border-white/[0.04] p-3">
-                    <p className="text-xs text-[#8A8F98]">
+                  <div className="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-3">
+                    <p className="text-xs text-[var(--color-text-secondary)]">
                       Consumo Total
                     </p>
-                    <p className="mt-1 text-sm font-medium text-[#EDEDEF]">
+                    <p className="mt-1 text-sm font-medium text-[var(--color-text)]">
                       {formatNumber(stat.totalLiters, 2)} litros
                     </p>
                   </div>

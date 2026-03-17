@@ -1,12 +1,12 @@
 import { cn } from '../../lib/utils';
 
 const variants = {
-  default: 'bg-white/[0.08] text-[#EDEDEF] border-transparent',
-  success: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-  warning: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
-  danger:  'bg-red-500/15 text-red-400 border-red-500/20',
-  info:    'bg-[#5E6AD2]/15 text-[#6872D9] border-[#5E6AD2]/20',
-  outline: 'border-white/10 text-[#8A8F98] bg-transparent',
+  default: 'bg-[var(--color-surface)] text-[var(--color-text)] border-transparent',
+  success: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/20',
+  warning: 'bg-amber-500/15 text-amber-500 border-amber-500/20',
+  danger:  'bg-red-500/15 text-red-500 border-red-500/20',
+  info:    'bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]/20',
+  outline: 'border-[var(--color-border)] text-[var(--color-text-secondary)] bg-transparent',
 };
 
 export function Badge({ children, variant = 'default', className }) {

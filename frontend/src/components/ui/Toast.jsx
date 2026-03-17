@@ -12,7 +12,7 @@ function Toast({ toast, onDismiss }) {
       icon: <XCircle className="h-4 w-4 text-red-400" />,
     },
     default: {
-      border: 'border-[#5E6AD2]/30',
+      border: 'border-[var(--color-accent)]/30',
       icon: null,
     },
   };
@@ -23,25 +23,28 @@ function Toast({ toast, onDismiss }) {
     <div
       className={cn(
         'animate-in slide-in-from-right pointer-events-auto flex w-full max-w-sm items-start gap-3',
-        'border bg-[#0a0a0c] rounded-xl p-4 backdrop-blur-md',
-        'shadow-[0_8px_32px_rgba(0,0,0,0.5)]',
+        'border bg-[var(--color-bg-elevated)] rounded-xl p-4 backdrop-blur-md',
+        'shadow-[0_8px_32px_var(--color-shadow)]',
         style.border
       )}
+      role="alert"
+      aria-live="polite"
     >
       {style.icon && <div className="mt-0.5 shrink-0">{style.icon}</div>}
       <div className="flex-1">
         {toast.title && (
-          <p className="text-sm font-semibold text-[#EDEDEF]">
+          <p className="text-sm font-semibold text-[var(--color-text)]">
             {toast.title}
           </p>
         )}
         {toast.description && (
-          <p className="mt-0.5 text-xs text-[#8A8F98]">{toast.description}</p>
+          <p className="mt-0.5 text-xs text-[var(--color-text-secondary)]">{toast.description}</p>
         )}
       </div>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="shrink-0 text-[#8A8F98] hover:text-[#EDEDEF] transition-colors"
+        className="shrink-0 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors cursor-pointer"
+        aria-label="Fechar notificação"
       >
         <X className="h-4 w-4" />
       </button>

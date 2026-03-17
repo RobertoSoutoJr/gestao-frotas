@@ -1,17 +1,22 @@
 import { cn } from '../../lib/utils';
 
-export function Card({ className, children, ...props }) {
+export function Card({ className, children, onClick, ...props }) {
   return (
     <div
       className={cn(
-        'bg-gradient-to-b from-white/[0.06] to-white/[0.02]',
-        'border border-white/[0.06]',
+        'bg-gradient-to-b from-[var(--color-card-from)] to-[var(--color-card-to)]',
+        'border border-[var(--color-border)]',
         'rounded-2xl',
-        'shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_8px_32px_rgba(0,0,0,0.4)]',
-        'hover:border-white/[0.10] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_12px_40px_rgba(0,0,0,0.5)]',
+        'shadow-[0_0_0_1px_var(--color-border),0_8px_32px_var(--color-shadow)]',
+        'hover:border-[var(--color-border-hover)] hover:shadow-[0_0_0_1px_var(--color-border-hover),0_12px_40px_var(--color-shadow-hover)]',
         'transition-all duration-200',
+        onClick && 'cursor-pointer',
         className
       )}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e); } } : undefined}
       {...props}
     >
       {children}
@@ -34,7 +39,7 @@ export function CardTitle({ className, children, ...props }) {
   return (
     <h3
       className={cn(
-        'text-lg font-semibold text-[#EDEDEF]',
+        'text-lg font-semibold text-[var(--color-text)]',
         className
       )}
       {...props}
@@ -47,7 +52,7 @@ export function CardTitle({ className, children, ...props }) {
 export function CardDescription({ className, children, ...props }) {
   return (
     <p
-      className={cn('text-sm text-[#8A8F98]', className)}
+      className={cn('text-sm text-[var(--color-text-secondary)]', className)}
       {...props}
     >
       {children}

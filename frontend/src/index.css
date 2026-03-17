@@ -1,36 +1,72 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════
-   LINEAR / MODERN DESIGN SYSTEM — FrotaPro
+   FUELTRACK — DESIGN SYSTEM (Light + Dark)
    ═══════════════════════════════════════════════ */
 
 @theme {
   --font-sans: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  --color-bg:        #050506;
-  --color-elevated:  #0a0a0c;
-  --color-surface:   rgba(255,255,255,0.05);
-  --color-surface-hover: rgba(255,255,255,0.08);
-  --color-border:    rgba(255,255,255,0.06);
-  --color-border-hover: rgba(255,255,255,0.10);
-  --color-text:      #EDEDEF;
-  --color-muted:     #8A8F98;
-  --color-subtle:    rgba(255,255,255,0.60);
-  --color-accent:    #5E6AD2;
-  --color-accent-bright: #6872D9;
+  /* Dark theme (default) */
+  --color-bg:             #050506;
+  --color-bg-elevated:    #0a0a0c;
+  --color-surface:        rgba(255,255,255,0.05);
+  --color-surface-hover:  rgba(255,255,255,0.08);
+  --color-border:         rgba(255,255,255,0.06);
+  --color-border-hover:   rgba(255,255,255,0.10);
+  --color-text:           #EDEDEF;
+  --color-text-secondary: #8A8F98;
+  --color-text-muted:     rgba(255,255,255,0.60);
+  --color-accent:         #5E6AD2;
+  --color-accent-hover:   #6872D9;
+  --color-card-from:      rgba(255,255,255,0.06);
+  --color-card-to:        rgba(255,255,255,0.02);
+  --color-input-bg:       #0F0F12;
+  --color-overlay:        rgba(0,0,0,0.60);
+  --color-shadow:         rgba(0,0,0,0.4);
+  --color-shadow-hover:   rgba(0,0,0,0.5);
+}
+
+/* ── Light Theme Variables ── */
+html:not(.dark) {
+  --color-bg:             #F8F9FB;
+  --color-bg-elevated:    #FFFFFF;
+  --color-surface:        rgba(0,0,0,0.03);
+  --color-surface-hover:  rgba(0,0,0,0.06);
+  --color-border:         rgba(0,0,0,0.08);
+  --color-border-hover:   rgba(0,0,0,0.15);
+  --color-text:           #1A1D23;
+  --color-text-secondary: #6B7280;
+  --color-text-muted:     rgba(0,0,0,0.50);
+  --color-accent:         #4F5BD5;
+  --color-accent-hover:   #5E6AD2;
+  --color-card-from:      rgba(255,255,255,0.90);
+  --color-card-to:        rgba(255,255,255,0.70);
+  --color-input-bg:       #FFFFFF;
+  --color-overlay:        rgba(0,0,0,0.30);
+  --color-shadow:         rgba(0,0,0,0.06);
+  --color-shadow-hover:   rgba(0,0,0,0.10);
 }
 
 /* ── Global Base ── */
 * {
   scrollbar-width: thin;
+}
+
+.dark * {
   scrollbar-color: rgba(255,255,255,0.08) #050506;
+}
+
+html:not(.dark) * {
+  scrollbar-color: rgba(0,0,0,0.15) #F8F9FB;
 }
 
 body {
   font-family: "Inter", sans-serif;
-  background-color: #050506;
-  color: #EDEDEF;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ── Ambient Gradient Background ── */
@@ -40,7 +76,14 @@ body {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+}
+
+.dark .linear-bg {
   background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(94,106,210,0.15), transparent);
+}
+
+html:not(.dark) .linear-bg {
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,91,213,0.08), transparent);
 }
 
 .linear-bg::before {
@@ -51,9 +94,16 @@ body {
   width: 600px;
   height: 600px;
   border-radius: 50%;
-  background: rgba(94, 106, 210, 0.08);
   filter: blur(120px);
   animation: float 18s ease-in-out infinite;
+}
+
+.dark .linear-bg::before {
+  background: rgba(94, 106, 210, 0.08);
+}
+
+html:not(.dark) .linear-bg::before {
+  background: rgba(79, 91, 213, 0.05);
 }
 
 .linear-bg::after {
@@ -64,9 +114,16 @@ body {
   width: 500px;
   height: 500px;
   border-radius: 50%;
-  background: rgba(139, 92, 246, 0.06);
   filter: blur(120px);
   animation: float 24s ease-in-out infinite reverse;
+}
+
+.dark .linear-bg::after {
+  background: rgba(139, 92, 246, 0.06);
+}
+
+html:not(.dark) .linear-bg::after {
+  background: rgba(139, 92, 246, 0.04);
 }
 
 /* ── Subtle Grid Overlay ── */
@@ -75,10 +132,19 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background-size: 64px 64px;
+}
+
+.dark .linear-grid {
   background-image:
     linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 64px 64px;
+}
+
+html:not(.dark) .linear-grid {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
 }
 
 /* ── Animations ── */
@@ -127,36 +193,37 @@ body {
   }
 }
 
-/* ── Recharts Dark Theme Override ── */
+/* ── Recharts Theme Override ── */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: rgba(255,255,255,0.06) !important;
+  stroke: var(--color-border) !important;
 }
 
 .recharts-text {
-  fill: #8A8F98 !important;
+  fill: var(--color-text-secondary) !important;
   font-family: "JetBrains Mono", monospace !important;
   font-size: 11px !important;
 }
 
 .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background-color: rgba(10,10,12,0.95) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
+  background-color: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border-hover) !important;
   border-radius: 12px !important;
   font-family: "Inter", sans-serif !important;
+  box-shadow: 0 8px 32px var(--color-shadow) !important;
 }
 
 .recharts-tooltip-item {
-  color: #EDEDEF !important;
+  color: var(--color-text) !important;
 }
 
 .recharts-legend-item-text {
-  color: #8A8F98 !important;
+  color: var(--color-text-secondary) !important;
   font-family: "Inter", sans-serif !important;
 }
 
 /* ── Select Arrow Fix ── */
-select {
+.dark select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238A8F98' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
@@ -167,7 +234,27 @@ select {
   padding-right: 2.5rem;
 }
 
+html:not(.dark) select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 2.5rem;
+}
+
 /* ── Date input color fix ── */
-input[type="date"]::-webkit-calendar-picker-indicator {
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.6);
+}
+
+/* ── Prefers reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

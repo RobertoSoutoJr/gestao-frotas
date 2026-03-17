@@ -8,10 +8,83 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { FuelForm } from '../components/forms/FuelForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter } from 'lucide-react';
+import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown } from 'lucide-react';
 import { formatNumber, formatCurrency } from '../lib/utils';
 import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
+
+function PricePerLiter({ valorTotal, litros }) {
+  if (!valorTotal || !litros || litros === 0) return null;
+  const pricePerLiter = Number(valorTotal) / Number(litros);
+  return (
+    <div>
+      <p className="text-xs text-[var(--color-text-secondary)]">R$/Litro</p>
+      <p className="flex items-center gap-1 font-semibold text-[var(--color-accent)] tabular-nums">
+        R$ {pricePerLiter.toFixed(3)}
+      </p>
+    </div>
+  );
+}
+
+function FuelSummaryCards({ records }) {
+  const summary = useMemo(() => {
+    if (!records.length) return null;
+
+    const totalLiters = records.reduce((s, r) => s + (Number(r.litros) || 0), 0);
+    const totalCost = records.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+    const avgPricePerLiter = totalLiters > 0 ? totalCost / totalLiters : 0;
+
+    const prices = records
+      .filter(r => r.litros > 0 && r.valor_total > 0)
+      .map(r => Number(r.valor_total) / Number(r.litros));
+
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+
+    return { totalLiters, totalCost, avgPricePerLiter, maxPrice, minPrice, count: records.length };
+  }, [records]);
+
+  if (!summary) return null;
+
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
+      <Card className="!rounded-xl">
+        <CardContent className="p-4 !pt-4">
+          <p className="text-xs text-[var(--color-text-secondary)] mb-1">Total Litros</p>
+          <p className="text-lg font-bold text-[var(--color-text)] tabular-nums">{formatNumber(summary.totalLiters)} L</p>
+        </CardContent>
+      </Card>
+      <Card className="!rounded-xl">
+        <CardContent className="p-4 !pt-4">
+          <p className="text-xs text-[var(--color-text-secondary)] mb-1">Total Gasto</p>
+          <p className="text-lg font-bold text-[var(--color-text)] tabular-nums">{formatCurrency(summary.totalCost)}</p>
+        </CardContent>
+      </Card>
+      <Card className="!rounded-xl">
+        <CardContent className="p-4 !pt-4">
+          <p className="text-xs text-[var(--color-text-secondary)] mb-1">Média R$/L</p>
+          <p className="text-lg font-bold text-[var(--color-accent)] tabular-nums">R$ {summary.avgPricePerLiter.toFixed(3)}</p>
+        </CardContent>
+      </Card>
+      <Card className="!rounded-xl">
+        <CardContent className="p-4 !pt-4">
+          <p className="text-xs text-[var(--color-text-secondary)] mb-1">Faixa R$/L</p>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-0.5 text-sm font-semibold text-emerald-500">
+              <TrendingDown className="h-3 w-3" />
+              {summary.minPrice.toFixed(2)}
+            </span>
+            <span className="text-[var(--color-text-secondary)]">-</span>
+            <span className="flex items-center gap-0.5 text-sm font-semibold text-red-400">
+              <TrendingUp className="h-3 w-3" />
+              {summary.maxPrice.toFixed(2)}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -24,6 +97,10 @@ function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
     valor_total: fuel.valor_total || '',
     posto: fuel.posto || ''
   });
+
+  const pricePerLiter = formData.litros && formData.valor_total
+    ? (Number(formData.valor_total) / Number(formData.litros)).toFixed(3)
+    : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,6 +210,13 @@ function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
           />
         </div>
 
+        {pricePerLiter && (
+          <div className="rounded-xl bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 px-4 py-3">
+            <p className="text-xs text-[var(--color-text-secondary)]">Preço por litro calculado</p>
+            <p className="text-lg font-bold text-[var(--color-accent)] tabular-nums">R$ {pricePerLiter}</p>
+          </div>
+        )}
+
         <div className="flex gap-3">
           <Button
             type="button"
@@ -169,9 +253,24 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
+  const getTruckName = (caminhaoId) => {
+    const truck = trucks.find(t => t.id === caminhaoId);
+    return truck ? `${truck.placa} - ${truck.modelo}` : 'N/A';
+  };
+
+  const getDriverName = (motoristaId) => {
+    const driver = drivers.find(d => d.id === motoristaId);
+    return driver ? driver.nome : 'N/A';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR').format(date);
+  };
+
   const filteredFuelRecords = useMemo(() => {
     let filtered = fuelRecords.filter(record => {
-      // Search filter
       const searchLower = searchTerm.toLowerCase();
       const truckName = getTruckName(record.caminhao_id).toLowerCase();
       const driverName = getDriverName(record.motorista_id).toLowerCase();
@@ -182,10 +281,8 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
         driverName.includes(searchLower) ||
         posto.includes(searchLower);
 
-      // Truck filter
       const matchesTruck = !filterTruck || record.caminhao_id === Number(filterTruck);
 
-      // Period filter
       let matchesPeriod = true;
       if (filterPeriod !== 'all') {
         const recordDate = new Date(record.created_at);
@@ -195,25 +292,26 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
           case 'today':
             matchesPeriod = recordDate.toDateString() === now.toDateString();
             break;
-          case 'week':
+          case 'week': {
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             matchesPeriod = recordDate >= weekAgo;
             break;
+          }
           case 'month':
             matchesPeriod = recordDate.getMonth() === now.getMonth() &&
                           recordDate.getFullYear() === now.getFullYear();
             break;
-          case '3months':
+          case '3months': {
             const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
             matchesPeriod = recordDate >= threeMonthsAgo;
             break;
+          }
         }
       }
 
       return matchesSearch && matchesTruck && matchesPeriod;
     });
 
-    // Sort by date (most recent first)
     return filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }, [fuelRecords, searchTerm, filterTruck, filterPeriod]);
 
@@ -256,22 +354,6 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
     }
   };
 
-  const getTruckName = (caminhaoId) => {
-    const truck = trucks.find(t => t.id === caminhaoId);
-    return truck ? `${truck.placa} - ${truck.modelo}` : 'N/A';
-  };
-
-  const getDriverName = (motoristaId) => {
-    const driver = drivers.find(d => d.id === motoristaId);
-    return driver ? driver.nome : 'N/A';
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR').format(date);
-  };
-
   return (
     <div className="space-y-8">
       <Card>
@@ -293,7 +375,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
 
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-[#EDEDEF]">
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">
             Histórico ({filteredFuelRecords.length} de {fuelRecords.length})
           </h2>
           <Button
@@ -344,10 +426,13 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
           </Card>
         )}
 
+        {/* Summary Cards */}
+        <FuelSummaryCards records={filteredFuelRecords} />
+
         {loading ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-[#8A8F98]">Carregando...</p>
+              <p className="text-[var(--color-text-secondary)]">Carregando...</p>
             </CardContent>
           </Card>
         ) : fuelRecords.length === 0 ? (
@@ -378,47 +463,48 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#5E6AD2]/10">
-                          <Fuel className="h-5 w-5 text-[#5E6AD2]" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-accent)]/10">
+                          <Fuel className="h-5 w-5 text-[var(--color-accent)]" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-[#8A8F98]" />
-                            <span className="font-semibold text-[#EDEDEF]">
+                            <Truck className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                            <span className="font-semibold text-[var(--color-text)]">
                               {getTruckName(fuel.caminhao_id)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-[#8A8F98]">
+                          <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                             <User className="h-3 w-3" />
                             <span>{getDriverName(fuel.motorista_id)}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                         <div>
-                          <p className="text-xs text-[#8A8F98]">KM Registro</p>
-                          <p className="font-medium text-[#EDEDEF]">
+                          <p className="text-xs text-[var(--color-text-secondary)]">KM Registro</p>
+                          <p className="font-medium text-[var(--color-text)] tabular-nums">
                             {formatNumber(fuel.km_registro, 0)} km
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#8A8F98]">Litros</p>
-                          <p className="flex items-center gap-1 font-medium text-[#EDEDEF]">
-                            <Droplet className="h-3 w-3 text-[#5E6AD2]" />
+                          <p className="text-xs text-[var(--color-text-secondary)]">Litros</p>
+                          <p className="flex items-center gap-1 font-medium text-[var(--color-text)] tabular-nums">
+                            <Droplet className="h-3 w-3 text-[var(--color-accent)]" />
                             {formatNumber(fuel.litros)} L
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#8A8F98]">Valor Total</p>
-                          <p className="flex items-center gap-1 font-medium text-[#EDEDEF]">
-                            <DollarSign className="h-3 w-3 text-emerald-400" />
+                          <p className="text-xs text-[var(--color-text-secondary)]">Valor Total</p>
+                          <p className="flex items-center gap-1 font-medium text-[var(--color-text)] tabular-nums">
+                            <DollarSign className="h-3 w-3 text-emerald-500" />
                             {formatCurrency(fuel.valor_total)}
                           </p>
                         </div>
+                        <PricePerLiter valorTotal={fuel.valor_total} litros={fuel.litros} />
                         <div>
-                          <p className="text-xs text-[#8A8F98]">Data</p>
-                          <p className="flex items-center gap-1 text-sm text-[#EDEDEF]">
+                          <p className="text-xs text-[var(--color-text-secondary)]">Data</p>
+                          <p className="flex items-center gap-1 text-sm text-[var(--color-text)] tabular-nums">
                             <Calendar className="h-3 w-3" />
                             {formatDate(fuel.created_at)}
                           </p>
@@ -437,6 +523,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
                         variant="outline"
                         size="sm"
                         onClick={() => setEditingFuel(fuel)}
+                        title="Editar"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -444,6 +531,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
                         variant="danger"
                         size="sm"
                         onClick={() => setDeletingFuel(fuel)}
+                        title="Excluir"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

@@ -1,4 +1,5 @@
 import { cn } from '../../lib/utils';
+import { Fuel } from 'lucide-react';
 
 export function Spinner({ size = 'md', className }) {
   const sizes = {
@@ -10,7 +11,7 @@ export function Spinner({ size = 'md', className }) {
   return (
     <div
       className={cn(
-        'animate-spin rounded-full border-white/10 border-t-[#5E6AD2]',
+        'animate-spin rounded-full border-[var(--color-border)] border-t-[var(--color-accent)]',
         sizes[size],
         className
       )}
@@ -20,11 +21,14 @@ export function Spinner({ size = 'md', className }) {
 
 export function LoadingScreen() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#050506]">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--color-bg)]">
       <div className="linear-bg" />
       <div className="relative z-10 flex flex-col items-center gap-5">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-[#5E6AD2]" />
-        <p className="text-sm font-medium text-[#8A8F98]">Carregando...</p>
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/25">
+          <Fuel className="h-6 w-6 text-[var(--color-accent)] animate-pulse" />
+        </div>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-accent)]" />
+        <p className="text-sm font-medium text-[var(--color-text-secondary)]">Carregando FuelTrack...</p>
       </div>
     </div>
   );

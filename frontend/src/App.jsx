@@ -32,25 +32,23 @@ function AuthenticatedContent() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050506]">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)]">
         <div className="linear-bg" />
-        <div className="relative z-10 text-center bg-[#0a0a0c] border border-white/[0.08] rounded-2xl p-8">
+        <div className="relative z-10 text-center bg-[var(--color-bg-elevated)] border border-[var(--color-border-hover)] rounded-2xl p-8">
           <h2 className="text-xl font-semibold text-red-400">
             Erro ao carregar dados
           </h2>
-          <p className="mt-2 text-sm text-[#8A8F98]">{error}</p>
+          <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050506]">
-      {/* Background Effects */}
+    <div className="min-h-screen bg-[var(--color-bg)] transition-colors duration-300">
       <div className="linear-bg" />
       <div className="linear-grid" />
 
-      {/* App Content */}
       <Header />
       <TabNavigation activeTab={activeTab} onChange={setActiveTab} />
 
@@ -60,6 +58,7 @@ function AuthenticatedContent() {
             trucks={trucks}
             fuelRecords={fuelRecords}
             maintenanceRecords={maintenanceRecords}
+            onNavigate={setActiveTab}
           />
         )}
         {activeTab === 'trucks' && (

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { driversService } from '../../services/drivers';
+import { useToast } from '../../hooks/useToast';
 
 export function DriverForm({ onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
@@ -17,11 +19,12 @@ export function DriverForm({ onSuccess }) {
 
     try {
       await driversService.create(formData);
+      success('Sucesso!', 'Motorista cadastrado com sucesso');
       setFormData({ nome: '', cpf: '', telefone: '' });
       onSuccess?.();
-    } catch (error) {
-      console.error('Failed to create driver:', error);
-      alert(error.message || 'Falha ao cadastrar motorista');
+    } catch (err) {
+      console.error('Failed to create driver:', err);
+      showError('Erro', err.message || 'Falha ao cadastrar motorista');
     } finally {
       setLoading(false);
     }

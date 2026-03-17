@@ -12,7 +12,7 @@ const tabs = [
 
 export function TabNavigation({ activeTab, onChange }) {
   return (
-    <nav className="relative z-10 border-b border-white/[0.06] bg-[#050506]/80 backdrop-blur-xl">
+    <nav className="relative z-10 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-xl transition-colors duration-200">
       <div className="container mx-auto px-4">
         <div className="flex overflow-x-auto">
           {tabs.map(tab => {
@@ -24,10 +24,10 @@ export function TabNavigation({ activeTab, onChange }) {
                 key={tab.id}
                 onClick={() => onChange(tab.id)}
                 className={cn(
-                  'flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-all duration-200',
+                  'flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer',
                   isActive
-                    ? 'border-[#5E6AD2] text-[#EDEDEF] bg-white/[0.03]'
-                    : 'border-transparent text-[#8A8F98] hover:text-[#EDEDEF]'
+                    ? 'border-[var(--color-accent)] text-[var(--color-text)] bg-[var(--color-surface)]'
+                    : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
                 )}
               >
                 <Icon className="h-4 w-4" />

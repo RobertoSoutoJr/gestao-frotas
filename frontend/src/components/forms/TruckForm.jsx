@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { trucksService } from '../../services/trucks';
+import { useToast } from '../../hooks/useToast';
 
 export function TruckForm({ onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     placa: '',
     modelo: '',
@@ -26,11 +28,12 @@ export function TruckForm({ onSuccess }) {
       };
 
       await trucksService.create(data);
+      success('Sucesso!', 'Caminhão cadastrado com sucesso');
       setFormData({ placa: '', modelo: '', ano: '', km_atual: '', capacidade_silo_ton: '' });
       onSuccess?.();
-    } catch (error) {
-      console.error('Failed to create truck:', error);
-      alert(error.message || 'Falha ao cadastrar caminhão');
+    } catch (err) {
+      console.error('Failed to create truck:', err);
+      showError('Erro', err.message || 'Falha ao cadastrar caminhão');
     } finally {
       setLoading(false);
     }

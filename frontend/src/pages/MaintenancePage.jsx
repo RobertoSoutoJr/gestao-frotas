@@ -32,7 +32,7 @@ const TYPE_COLORS = {
   Freios:     'bg-yellow-500/15 text-yellow-400',
   Suspensão:  'bg-purple-500/15 text-purple-400',
   Elétrica:   'bg-cyan-500/15 text-cyan-400',
-  Outros:     'bg-white/[0.08] text-[#8A8F98]'
+  Outros:     'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]'
 };
 
 function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess }) {
@@ -192,6 +192,17 @@ export function MaintenancePage({ trucks, onRefetch }) {
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
+  const getTruckName = (caminhaoId) => {
+    const truck = trucks.find(t => t.id === caminhaoId);
+    return truck ? `${truck.placa} - ${truck.modelo}` : 'N/A';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR').format(date);
+  };
+
   const filteredMaintenanceRecords = useMemo(() => {
     let filtered = maintenanceRecords.filter(record => {
       // Search filter
@@ -282,17 +293,6 @@ export function MaintenancePage({ trucks, onRefetch }) {
     }
   };
 
-  const getTruckName = (caminhaoId) => {
-    const truck = trucks.find(t => t.id === caminhaoId);
-    return truck ? `${truck.placa} - ${truck.modelo}` : 'N/A';
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR').format(date);
-  };
-
   return (
     <div className="space-y-8">
       <Card>
@@ -314,7 +314,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
 
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-[#EDEDEF]">
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">
             Histórico ({filteredMaintenanceRecords.length} de {maintenanceRecords.length})
           </h2>
           <Button
@@ -380,7 +380,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
         {loading ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-[#8A8F98]">Carregando...</p>
+              <p className="text-[var(--color-text-secondary)]">Carregando...</p>
             </CardContent>
           </Card>
         ) : maintenanceRecords.length === 0 ? (
@@ -416,8 +416,8 @@ export function MaintenancePage({ trucks, onRefetch }) {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-[#8A8F98]" />
-                            <span className="font-semibold text-[#EDEDEF]">
+                            <Truck className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                            <span className="font-semibold text-[var(--color-text)]">
                               {getTruckName(maintenance.caminhao_id)}
                             </span>
                           </div>
@@ -429,29 +429,29 @@ export function MaintenancePage({ trucks, onRefetch }) {
                         </div>
                       </div>
 
-                      <div className="rounded-lg bg-white/[0.03] border border-white/[0.04] p-3">
-                        <p className="text-sm text-[#8A8F98]">
+                      <div className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-3">
+                        <p className="text-sm text-[var(--color-text-secondary)]">
                           {maintenance.descricao}
                         </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                         <div>
-                          <p className="text-xs text-[#8A8F98]">KM Manutenção</p>
-                          <p className="font-medium text-[#EDEDEF]">
+                          <p className="text-xs text-[var(--color-text-secondary)]">KM Manutenção</p>
+                          <p className="font-medium text-[var(--color-text)]">
                             {formatNumber(maintenance.km_manutencao, 0)} km
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#8A8F98]">Valor Total</p>
-                          <p className="flex items-center gap-1 font-medium text-[#EDEDEF]">
+                          <p className="text-xs text-[var(--color-text-secondary)]">Valor Total</p>
+                          <p className="flex items-center gap-1 font-medium text-[var(--color-text)]">
                             <DollarSign className="h-3 w-3 text-emerald-400" />
                             {formatCurrency(maintenance.valor_total)}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#8A8F98]">Data</p>
-                          <p className="flex items-center gap-1 text-sm text-[#EDEDEF]">
+                          <p className="text-xs text-[var(--color-text-secondary)]">Data</p>
+                          <p className="flex items-center gap-1 text-sm text-[var(--color-text)]">
                             <Calendar className="h-3 w-3" />
                             {formatDate(maintenance.data_manutencao)}
                           </p>
