@@ -22,7 +22,7 @@ import { useToast } from './hooks/useToast';
 
 function AuthenticatedContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, loading, error, refetch } = useFleet();
+  const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, trips, stockRecords, loading, error, refetch } = useFleet();
   const { toasts, success, dismiss } = useToast();
 
   const handleRefetch = () => {
@@ -60,6 +60,11 @@ function AuthenticatedContent() {
         {activeTab === 'dashboard' && (
           <DashboardPage
             trucks={trucks}
+            drivers={drivers}
+            clients={clients}
+            suppliers={suppliers}
+            trips={trips}
+            stockRecords={stockRecords}
             fuelRecords={fuelRecords}
             maintenanceRecords={maintenanceRecords}
             onNavigate={setActiveTab}

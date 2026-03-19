@@ -5,6 +5,8 @@ import { fuelService } from '../services/fuel';
 import { maintenanceService } from '../services/maintenance';
 import { clientsService } from '../services/clients';
 import { suppliersService } from '../services/suppliers';
+import { tripsService } from '../services/trips';
+import { stockService } from '../services/stock';
 
 export function useFleet() {
   const [trucks, setTrucks] = useState([]);
@@ -13,6 +15,8 @@ export function useFleet() {
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [clients, setClients] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [trips, setTrips] = useState([]);
+  const [stockRecords, setStockRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -21,13 +25,15 @@ export function useFleet() {
       setLoading(true);
       setError(null);
 
-      const [trucksRes, driversRes, fuelRes, maintenanceRes, clientsRes, suppliersRes] = await Promise.all([
+      const [trucksRes, driversRes, fuelRes, maintenanceRes, clientsRes, suppliersRes, tripsRes, stockRes] = await Promise.all([
         trucksService.getAll(),
         driversService.getAll(),
         fuelService.getAll(),
         maintenanceService.getAll(),
         clientsService.getAll(),
-        suppliersService.getAll()
+        suppliersService.getAll(),
+        tripsService.getAll(),
+        stockService.getAll()
       ]);
 
       setTrucks(trucksRes.data || []);
@@ -36,6 +42,8 @@ export function useFleet() {
       setMaintenanceRecords(maintenanceRes.data || []);
       setClients(clientsRes.data || []);
       setSuppliers(suppliersRes.data || []);
+      setTrips(tripsRes.data || []);
+      setStockRecords(stockRes.data || []);
     } catch (err) {
       setError(err.message);
       console.error('Failed to fetch fleet data:', err);
@@ -55,6 +63,8 @@ export function useFleet() {
     maintenanceRecords,
     clients,
     suppliers,
+    trips,
+    stockRecords,
     loading,
     error,
     refetch: fetchData

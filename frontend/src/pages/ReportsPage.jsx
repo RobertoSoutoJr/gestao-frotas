@@ -8,18 +8,24 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X } from 'lucide-react';
 import { formatCurrency, formatNumber, formatDate } from '../lib/utils';
+import { useTheme } from '../contexts/ThemeContext';
 
 const COLORS = ['#5E6AD2', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
-const tooltipStyle = {
-  backgroundColor: 'rgba(10,10,12,0.95)',
-  border: '1px solid rgba(255,255,255,0.10)',
-  borderRadius: '12px',
-  fontFamily: '"Inter", sans-serif',
-  color: '#EDEDEF',
-};
-
 export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
+  const { isDark } = useTheme();
+
+  const tooltipStyle = {
+    backgroundColor: isDark ? 'rgba(10,10,12,0.95)' : 'rgba(255,255,255,0.98)',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
+    borderRadius: '12px',
+    fontFamily: '"Inter", sans-serif',
+    color: isDark ? '#EDEDEF' : '#1A1D23',
+    boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.08)',
+  };
+
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const axisColor = isDark ? '#8A8F98' : '#6B7280';
   const [selectedTruck, setSelectedTruck] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -309,9 +315,9 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="name" stroke="#8A8F98" style={{ fontSize: '11px' }} />
-                <YAxis stroke="#8A8F98" style={{ fontSize: '11px' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="name" stroke={axisColor} style={{ fontSize: '11px' }} />
+                <YAxis stroke={axisColor} style={{ fontSize: '11px' }} />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   formatter={(value) => formatCurrency(value)}
@@ -361,9 +367,9 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="mes" stroke="#8A8F98" style={{ fontSize: '11px' }} />
-                  <YAxis stroke="#8A8F98" style={{ fontSize: '11px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="mes" stroke={axisColor} style={{ fontSize: '11px' }} />
+                  <YAxis stroke={axisColor} style={{ fontSize: '11px' }} />
                   <Tooltip
                     contentStyle={tooltipStyle}
                     formatter={(value) => formatCurrency(value)}

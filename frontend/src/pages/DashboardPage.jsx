@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
-import { Truck, Users, Gauge, DollarSign, Fuel, Wrench, ArrowRight } from 'lucide-react';
+import { Truck, Users, Gauge, DollarSign, Fuel, Wrench, ArrowRight, Building2, Factory, Route, Warehouse, Package, AlertCircle } from 'lucide-react';
 import { formatCurrency, formatNumber } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -50,9 +50,11 @@ const CHART_COLORS = {
   secondary: '#8B5CF6',
   green:     '#10B981',
   orange:    '#F59E0B',
+  red:       '#EF4444',
+  pink:      '#EC4899',
 };
 
-export function DashboardPage({ trucks, fuelRecords, maintenanceRecords, onNavigate }) {
+export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stockRecords, fuelRecords, maintenanceRecords, onNavigate }) {
   const { isDark } = useTheme();
 
   const tooltipStyle = {
@@ -85,14 +87,36 @@ export function DashboardPage({ trucks, fuelRecords, maintenanceRecords, onNavig
     const totalMaintenanceCost = currentMonthMaintenance.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
     const totalKm = currentMonthFuel.reduce((s, r) => s + (Number(r.km_registro) || 0), 0);
 
+    // Trips stats
+    const activeTrips = (trips || []).filter(t => t.status === 'cadastrada').length;
+    const completedTrips = (trips || []).filter(t => t.status === 'finalizada').length;
+    const totalFreight = (trips || []).reduce((s, t) => s + (Number(t.valor_total_frete) || 0), 0);
+
+    // Stock stats
+    const totalStockValue = (stockRecords || []).reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+    const pendingPayments = (stockRecords || []).filter(r => !r.pago);
+    const pendingAmount = pendingPayments.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+    const totalSacas = (stockRecords || []).reduce((s, r) => s + (Number(r.quantidade_sacas) || 0), 0);
+
     return {
       activeTrucks: trucks.filter(t => t.placa).length,
+      totalDrivers: (drivers || []).length,
+      totalClients: (clients || []).length,
+      totalSuppliers: (suppliers || []).length,
       totalCost: totalFuelCost + totalMaintenanceCost,
       totalKm,
       fuelCost: totalFuelCost,
-      maintenanceCost: totalMaintenanceCost
+      maintenanceCost: totalMaintenanceCost,
+      activeTrips,
+      completedTrips,
+      totalTrips: (trips || []).length,
+      totalFreight,
+      totalStockValue,
+      pendingAmount,
+      pendingPaymentsCount: pendingPayments.length,
+      totalSacas,
     };
-  }, [trucks, fuelRecords, maintenanceRecords]);
+  }, [trucks, drivers, clients, suppliers, trips, stockRecords, fuelRecords, maintenanceRecords]);
 
   const monthlySpendingData = useMemo(() => {
     const months = [];
@@ -130,8 +154,6 @@ export function DashboardPage({ trucks, fuelRecords, maintenanceRecords, onNavig
     { name: 'Manutenção', value: stats.maintenanceCost, color: CHART_COLORS.secondary }
   ];
 
-  const pieLabel = isDark ? '#EDEDEF' : '#1A1D23';
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -144,7 +166,26 @@ export function DashboardPage({ trucks, fuelRecords, maintenanceRecords, onNavig
         </p>
       </div>
 
-      {/* Stats Grid - All cards navigate */}
+      {/* Pending Payments Alert */}
+      {stats.pendingPaymentsCount > 0 && (
+        <div
+          className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 cursor-pointer hover:bg-red-500/15 transition-colors"
+          onClick={() => onNavigate('stock')}
+        >
+          <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-red-400">
+              {stats.pendingPaymentsCount} pagamento{stats.pendingPaymentsCount > 1 ? 's' : ''} pendente{stats.pendingPaymentsCount > 1 ? 's' : ''} no estoque
+            </p>
+            <p className="text-xs text-red-400/70">
+              Total: {formatCurrency(stats.pendingAmount)}
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-red-400" />
+        </div>
+      )}
+
+      {/* Main Stats Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Caminhões Ativos"
@@ -156,10 +197,10 @@ export function DashboardPage({ trucks, fuelRecords, maintenanceRecords, onNavig
         />
         <StatCard
           title="Motoristas"
-          value={trucks.length > 0 ? Math.ceil(stats.activeTrucks * 1.5) : 0}
+          value={stats.totalDrivers}
           icon={Users}
           color={CHART_COLORS.secondary}
-          subtitle="Equipe disponível"
+          subtitle="Equipe cadastrada"
           onClick={() => onNavigate('drivers')}
         />
         <StatCard
@@ -179,6 +220,89 @@ export function DashboardPage({ trucks, fuelRecords, maintenanceRecords, onNavig
           onClick={() => onNavigate('fuel')}
         />
       </div>
+
+      {/* Operations Stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Clientes"
+          value={stats.totalClients}
+          icon={Building2}
+          color="#06B6D4"
+          subtitle="Cadastrados"
+          onClick={() => onNavigate('clients')}
+        />
+        <StatCard
+          title="Fornecedores"
+          value={stats.totalSuppliers}
+          icon={Factory}
+          color="#F97316"
+          subtitle="Cadastrados"
+          onClick={() => onNavigate('suppliers')}
+        />
+        <StatCard
+          title="Viagens"
+          value={stats.totalTrips}
+          icon={Route}
+          color={CHART_COLORS.green}
+          subtitle={`${stats.activeTrips} em andamento · ${stats.completedTrips} finalizadas`}
+          onClick={() => onNavigate('trips')}
+        />
+        <StatCard
+          title="Estoque"
+          value={`${formatNumber(stats.totalSacas, 0)} sacas`}
+          icon={Warehouse}
+          color={CHART_COLORS.red}
+          subtitle={`${formatCurrency(stats.totalStockValue)} investido`}
+          onClick={() => onNavigate('stock')}
+        />
+      </div>
+
+      {/* Trips & Freight Summary */}
+      {stats.totalTrips > 0 && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card className="cursor-pointer hover:-translate-y-0.5 transition-all duration-200" onClick={() => onNavigate('trips')}>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15">
+                  <Route className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--color-text-secondary)]">Total Frete</p>
+                  <p className="text-lg font-bold text-[var(--color-text)]">{formatCurrency(stats.totalFreight)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:-translate-y-0.5 transition-all duration-200" onClick={() => onNavigate('stock')}>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/15">
+                  <Package className="h-5 w-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--color-text-secondary)]">Valor em Estoque</p>
+                  <p className="text-lg font-bold text-[var(--color-text)]">{formatCurrency(stats.totalStockValue)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:-translate-y-0.5 transition-all duration-200" onClick={() => onNavigate('stock')}>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: stats.pendingAmount > 0 ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)' }}>
+                  <DollarSign className="h-5 w-5" style={{ color: stats.pendingAmount > 0 ? '#EF4444' : '#10B981' }} />
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--color-text-secondary)]">Contas a Pagar</p>
+                  <p className="text-lg font-bold" style={{ color: stats.pendingAmount > 0 ? '#EF4444' : 'var(--color-text)' }}>
+                    {formatCurrency(stats.pendingAmount)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
