@@ -13,7 +13,8 @@ const createTripSchema = z.object({
     .max(10.00, 'Frete máximo é R$10,00 por saca'),
   distancia_km: z.number().nonnegative().optional().nullable(),
   data_viagem: z.string().optional().nullable(),
-  observacoes: z.string().max(1000).optional().nullable()
+  observacoes: z.string().max(1000).optional().nullable(),
+  estoque_id: z.number().int().positive().optional().nullable()
 });
 
 const updateTripSchema = createTripSchema.partial();

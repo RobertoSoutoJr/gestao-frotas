@@ -74,6 +74,12 @@ class TripService {
   }
 
   async finalize(id, formaPagamento, userId) {
+    // Get trip to check for linked stock
+    const trip = await this.getById(id, userId);
+    if (trip.status !== 'cadastrada') {
+      throw new AppError('Apenas viagens cadastradas podem ser finalizadas.', 400);
+    }
+
     const { data, error } = await supabase
       .from('viagens')
       .update({
@@ -89,6 +95,26 @@ class TripService {
       .single();
 
     if (error) throw new AppError('Falha ao finalizar viagem. Verifique se a viagem está cadastrada.', 500, error);
+
+    // Subtract from stock if linked
+    if (trip.estoque_id) {
+      const { data: stock, error: stockErr } = await supabase
+        .from('estoque')
+        .select('quantidade_sacas_restante')
+        .eq('id', trip.estoque_id)
+        .eq('user_id', userId)
+        .single();
+
+      if (!stockErr && stock) {
+        const novoRestante = Math.max(0, Number(stock.quantidade_sacas_restante) - Number(trip.quantidade_sacas));
+        await supabase
+          .from('estoque')
+          .update({ quantidade_sacas_restante: novoRestante, updated_at: new Date().toISOString() })
+          .eq('id', trip.estoque_id)
+          .eq('user_id', userId);
+      }
+    }
+
     return data;
   }
 

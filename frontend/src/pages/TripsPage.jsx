@@ -15,6 +15,7 @@ import { formatCurrency, formatDate } from '../lib/utils';
 import { tripsService } from '../services/trips';
 import { clientsService } from '../services/clients';
 import { suppliersService } from '../services/suppliers';
+import { stockService } from '../services/stock';
 import { useToast } from '../hooks/useToast';
 
 const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
@@ -29,10 +30,11 @@ const FORMAS_PAGAMENTO = [
   { value: 'a_prazo', label: 'A Prazo' }
 ];
 
-function TripForm({ trucks, drivers, clients, suppliers, onSuccess }) {
+function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [produtoTipo, setProdutoTipo] = useState('');
   const [produtoCustom, setProdutoCustom] = useState('');
+  const [selectedEstoqueId, setSelectedEstoqueId] = useState('');
   const [formData, setFormData] = useState({
     fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '',
     quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: ''
@@ -40,6 +42,37 @@ function TripForm({ trucks, drivers, clients, suppliers, onSuccess }) {
 
   const selectedSupplier = suppliers.find(s => s.id === Number(formData.fornecedor_id));
   const selectedClient = clients.find(c => c.id === Number(formData.cliente_id));
+
+  // Filter stock by selected supplier (only entries with remaining quantity)
+  const availableStock = useMemo(() => {
+    if (!formData.fornecedor_id) return [];
+    return (stockItems || []).filter(s =>
+      s.fornecedor_id === Number(formData.fornecedor_id) &&
+      Number(s.quantidade_sacas_restante) > 0
+    );
+  }, [stockItems, formData.fornecedor_id]);
+
+  // When stock is selected, auto-fill product and price
+  const handleStockSelect = (estoqueId) => {
+    setSelectedEstoqueId(estoqueId);
+    if (estoqueId) {
+      const stock = stockItems.find(s => s.id === Number(estoqueId));
+      if (stock) {
+        const produto = stock.produto || '';
+        if (['Milho', 'Sorgo'].includes(produto)) {
+          setProdutoTipo(produto);
+          setProdutoCustom('');
+        } else if (produto) {
+          setProdutoTipo('Outros');
+          setProdutoCustom(produto);
+        }
+        setFormData(prev => ({
+          ...prev,
+          preco_produto_saca: stock.preco_sugerido_saca || stock.preco_pago_saca || prev.preco_produto_saca
+        }));
+      }
+    }
+  };
 
   const produto = produtoTipo === 'Outros' ? produtoCustom : produtoTipo;
   const qtdSacas = Number(formData.quantidade_sacas) || 0;
@@ -64,11 +97,13 @@ function TripForm({ trucks, drivers, clients, suppliers, onSuccess }) {
         quantidade_sacas: qtdSacas,
         preco_produto_saca: precoSaca,
         preco_frete_saca: precoFrete,
-        observacoes: formData.observacoes || null
+        observacoes: formData.observacoes || null,
+        estoque_id: selectedEstoqueId ? Number(selectedEstoqueId) : null
       });
       setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '' });
       setProdutoTipo('');
       setProdutoCustom('');
+      setSelectedEstoqueId('');
       onSuccess?.();
     } catch (error) {
       alert(error.message || 'Falha ao cadastrar viagem');
@@ -105,6 +140,26 @@ function TripForm({ trucks, drivers, clients, suppliers, onSuccess }) {
           </div>
         )}
       </div>
+
+      {/* Estoque Vinculado (opcional) */}
+      {availableStock.length > 0 && (
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Vincular ao Estoque (Opcional)</h3>
+          <Select value={selectedEstoqueId} onChange={(e) => handleStockSelect(e.target.value)} label="Entrada de Estoque">
+            <option value="">Sem vínculo com estoque</option>
+            {availableStock.map(s => (
+              <option key={s.id} value={s.id}>
+                {s.produto} - {s.localizacao || 'Sem local'} | Restante: {Number(s.quantidade_sacas_restante).toLocaleString('pt-BR')} sacas | Preço sugerido: R$ {Number(s.preco_sugerido_saca).toFixed(2)}
+              </option>
+            ))}
+          </Select>
+          {selectedEstoqueId && (
+            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+              Ao finalizar esta viagem, {qtdSacas || 0} sacas serão subtraídas do estoque selecionado.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Veículo e Motorista */}
       <div>
@@ -245,6 +300,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const [trips, setTrips] = useState([]);
   const [clients, setClients] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [stockItems, setStockItems] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [finalizingTrip, setFinalizingTrip] = useState(null);
   const [deletingTrip, setDeletingTrip] = useState(null);
@@ -257,14 +313,16 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const fetchData = async () => {
     try {
       setLoadingData(true);
-      const [tripsRes, clientsRes, suppliersRes] = await Promise.all([
+      const [tripsRes, clientsRes, suppliersRes, stockRes] = await Promise.all([
         tripsService.getAll(),
         clientsService.getAll(),
-        suppliersService.getAll()
+        suppliersService.getAll(),
+        stockService.getAll()
       ]);
       setTrips(tripsRes.data || []);
       setClients(clientsRes.data || []);
       setSuppliers(suppliersRes.data || []);
+      setStockItems(stockRes.data || []);
     } catch (err) {
       error('Erro', 'Falha ao carregar dados');
     } finally {
@@ -435,6 +493,11 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                         </span>
                       </div>
 
+                      {trip.estoque_id && (
+                        <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+                          Vinculada ao estoque #{trip.estoque_id}
+                        </p>
+                      )}
                       {trip.forma_pagamento && (
                         <p className="mt-1 text-xs text-zinc-400">
                           Pago via: {FORMAS_PAGAMENTO.find(f => f.value === trip.forma_pagamento)?.label || trip.forma_pagamento}
@@ -473,7 +536,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
             </ul>
           </div>
         ) : (
-          <TripForm trucks={trucks} drivers={drivers} clients={clients} suppliers={suppliers} onSuccess={handleCreateSuccess} />
+          <TripForm trucks={trucks} drivers={drivers} clients={clients} suppliers={suppliers} stockItems={stockItems} onSuccess={handleCreateSuccess} />
         )}
       </Modal>
 
