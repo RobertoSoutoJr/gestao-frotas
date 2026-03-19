@@ -78,70 +78,6 @@ function SiloIcon({ percent, size = 120 }) {
   );
 }
 
-// ============ SILO DASHBOARD ============
-function SiloDashboard({ stock }) {
-  const activeStock = stock.filter(item => item.quantidade_sacas_restante > 0);
-
-  if (activeStock.length === 0) {
-    return (
-      <Card>
-        <CardContent className="py-12">
-          <EmptyState icon={Warehouse} title="Nenhum estoque disponível" description="Todos os estoques foram utilizados" />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {activeStock.map(item => {
-        const percent = (item.quantidade_sacas_restante / item.quantidade_sacas) * 100;
-        return (
-          <Card key={item.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="flex flex-col items-center p-6">
-              <SiloIcon percent={percent} />
-              <div className="mt-4 w-full space-y-2 text-center">
-                <h3 className="text-base font-bold text-[var(--color-text)]">{item.produto}</h3>
-                <p className="text-sm text-[var(--color-text-secondary)]">
-                  <Factory className="mr-1 inline h-3 w-3" />
-                  {item.fornecedores?.nome}
-                </p>
-                {item.localizacao && (
-                  <p className="text-sm text-[var(--color-text-secondary)]">
-                    <MapPin className="mr-1 inline h-3 w-3" />
-                    {item.localizacao}
-                  </p>
-                )}
-                <div className="grid grid-cols-2 gap-2 pt-2 text-xs">
-                  <div className="rounded-lg bg-[var(--color-surface)] p-2">
-                    <p className="text-[var(--color-text-secondary)]">Comprado</p>
-                    <p className="font-semibold text-[var(--color-text)]">{Number(item.quantidade_sacas).toLocaleString('pt-BR')} sc</p>
-                  </div>
-                  <div className="rounded-lg bg-[var(--color-surface)] p-2">
-                    <p className="text-[var(--color-text-secondary)]">Restante</p>
-                    <p className="font-semibold text-[var(--color-text)]">{Number(item.quantidade_sacas_restante).toLocaleString('pt-BR')} sc</p>
-                  </div>
-                  <div className="rounded-lg bg-[var(--color-surface)] p-2">
-                    <p className="text-[var(--color-text-secondary)]">Preço/sc</p>
-                    <p className="font-semibold text-[var(--color-text)]">{formatCurrency(item.preco_pago_saca)}</p>
-                  </div>
-                  <div className="rounded-lg bg-[var(--color-surface)] p-2">
-                    <p className="text-[var(--color-text-secondary)]">Total</p>
-                    <p className="font-semibold text-[var(--color-text)]">{formatCurrency(item.valor_total)}</p>
-                  </div>
-                </div>
-                <Badge variant={item.pago ? 'success' : 'danger'} className="mt-2">
-                  {item.pago ? 'Pago' : `Pendente ${formatCurrency(Number(item.valor_total) - Number(item.valor_pago || 0))}`}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
 // ============ STOCK FORM ============
 function StockForm({ suppliers, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -548,7 +484,6 @@ export function StockPage({ onRefetch }) {
   const [sortOption, setSortOption] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [activeView, setActiveView] = useState('list'); // 'list' | 'silos'
 
   const fetchData = async () => {
     try {
@@ -693,165 +628,139 @@ export function StockPage({ onRefetch }) {
         )}
       </div>
 
-      {/* View Toggle + Actions */}
+      {/* Actions */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-1 rounded-lg bg-[var(--color-surface)] p-1">
-          <button onClick={() => setActiveView('list')}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${activeView === 'list' ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>
-            Lista
-          </button>
-          <button onClick={() => setActiveView('silos')}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${activeView === 'silos' ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>
-            Painel de Silos
-          </button>
-        </div>
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">
+          Estoque ({filteredStock.length} de {stock.length})
+        </h2>
         <div className="flex gap-2">
-          {activeView === 'list' && (
-            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
-              <Filter className="mr-2 h-4 w-4" />
-              {showFilters ? 'Ocultar' : 'Filtros'}
-            </Button>
-          )}
+          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+            <Filter className="mr-2 h-4 w-4" />
+            {showFilters ? 'Ocultar' : 'Filtros'}
+          </Button>
           <Button variant="primary" size="sm" onClick={() => setShowCreateForm(true)}>
             <Plus className="mr-2 h-4 w-4" /> Nova Entrada
           </Button>
         </div>
       </div>
 
-      {/* Silo View */}
-      {activeView === 'silos' && <SiloDashboard stock={stock} />}
+      {showFilters && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Input icon={Search} placeholder="Buscar por produto, fornecedor, NF ou local..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <Select label="Status" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)}>
+                {FILTER_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </Select>
+              <Select label="Ordenar por" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
+                {SORT_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* List View */}
-      {activeView === 'list' && (
-        <>
-          {showFilters && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <Input icon={Search} placeholder="Buscar por produto, fornecedor, NF ou local..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                  <Select label="Status" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)}>
-                    {FILTER_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-                  </Select>
-                  <Select label="Ordenar por" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
-                    {SORT_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+      {stock.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <EmptyState icon={Warehouse} title="Estoque vazio" description="Adicione a primeira entrada de estoque" />
+          </CardContent>
+        </Card>
+      ) : filteredStock.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <EmptyState icon={Search} title="Nenhum resultado" description="Tente ajustar os filtros" />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {filteredStock.map(item => {
+            const saldo = Number(item.valor_total) - Number(item.valor_pago || 0);
+            const percentPago = Number(item.valor_total) > 0 ? (Number(item.valor_pago || 0) / Number(item.valor_total)) * 100 : 0;
+            const percentEstoque = Number(item.quantidade_sacas) > 0 ? (Number(item.quantidade_sacas_restante) / Number(item.quantidade_sacas)) * 100 : 0;
 
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--color-text)]">
-              Estoque ({filteredStock.length} de {stock.length})
-            </h2>
-          </div>
+            return (
+              <Card key={item.id} className={`hover:shadow-md transition-shadow ${item.pago ? 'border-l-4 border-l-green-400' : saldo < Number(item.valor_total) && Number(item.valor_pago || 0) > 0 ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-red-400'}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    {/* Silo Icon */}
+                    <div className="hidden shrink-0 sm:block">
+                      <SiloIcon percent={percentEstoque} size={70} />
+                    </div>
 
-          {stock.length === 0 ? (
-            <Card>
-              <CardContent className="py-12">
-                <EmptyState icon={Warehouse} title="Estoque vazio" description="Adicione a primeira entrada de estoque" />
-              </CardContent>
-            </Card>
-          ) : filteredStock.length === 0 ? (
-            <Card>
-              <CardContent className="py-12">
-                <EmptyState icon={Search} title="Nenhum resultado" description="Tente ajustar os filtros" />
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {filteredStock.map(item => {
-                const saldo = Number(item.valor_total) - Number(item.valor_pago || 0);
-                const percentPago = Number(item.valor_total) > 0 ? (Number(item.valor_pago || 0) / Number(item.valor_total)) * 100 : 0;
-                const percentEstoque = Number(item.quantidade_sacas) > 0 ? (Number(item.quantidade_sacas_restante) / Number(item.quantidade_sacas)) * 100 : 0;
+                    <div className="flex-1 space-y-3">
+                      {/* Header */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={item.pago ? 'success' : percentPago > 0 ? 'warning' : 'danger'}>
+                          {item.pago ? 'Pago' : percentPago > 0 ? `Parcial (${Math.round(percentPago)}%)` : 'Pendente'}
+                        </Badge>
+                        {item.nota_fiscal && <span className="text-xs text-zinc-400">NF: {item.nota_fiscal}</span>}
+                        <span className="text-xs text-zinc-400">{formatDate(item.data_entrada || item.created_at)}</span>
+                        <DueDateBadge date={item.data_vencimento} />
+                      </div>
 
-                return (
-                  <Card key={item.id} className={`hover:shadow-md transition-shadow ${item.pago ? 'border-l-4 border-l-green-400' : saldo < Number(item.valor_total) && Number(item.valor_pago || 0) > 0 ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-red-400'}`}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-3">
-                          {/* Header */}
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant={item.pago ? 'success' : percentPago > 0 ? 'warning' : 'danger'}>
-                              {item.pago ? 'Pago' : percentPago > 0 ? `Parcial (${Math.round(percentPago)}%)` : 'Pendente'}
-                            </Badge>
-                            {item.nota_fiscal && <span className="text-xs text-zinc-400">NF: {item.nota_fiscal}</span>}
-                            <span className="text-xs text-zinc-400">{formatDate(item.data_entrada || item.created_at)}</span>
-                            <DueDateBadge date={item.data_vencimento} />
-                          </div>
-
-                          {/* Product & Supplier */}
-                          <div>
-                            <h3 className="text-base font-semibold text-[var(--color-text)]">{item.produto}</h3>
-                            <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
-                              <span className="flex items-center gap-1">
-                                <Factory className="h-3 w-3" /> {item.fornecedores?.nome}
-                              </span>
-                              {item.localizacao && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" /> {item.localizacao}
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <Package className="h-3 w-3" />
-                                {Number(item.quantidade_sacas_restante).toLocaleString('pt-BR')}/{Number(item.quantidade_sacas).toLocaleString('pt-BR')} sc
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <DollarSign className="h-3 w-3" /> {formatCurrency(item.preco_pago_saca)}/sc
-                              </span>
-                              {item.forma_pagamento && (
-                                <span className="flex items-center gap-1">
-                                  <CreditCard className="h-3 w-3" /> {item.forma_pagamento}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Stock bar */}
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
-                              <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${percentEstoque}%` }} />
-                            </div>
-                            <span className="text-xs font-medium text-[var(--color-text-secondary)]">{Math.round(percentEstoque)}% estoque</span>
-                          </div>
-
-                          {/* Financial */}
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="font-semibold text-[var(--color-text)]">Total: {formatCurrency(item.valor_total)}</span>
-                            {!item.pago && (
-                              <>
-                                <span className="text-green-600">Pago: {formatCurrency(item.valor_pago || 0)}</span>
-                                <span className="font-medium text-red-600">Saldo: {formatCurrency(saldo)}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex flex-col gap-2">
-                          {!item.pago && (
-                            <Button variant="success" size="sm" onClick={() => setPayingItem(item)}>
-                              <DollarSign className="mr-1 h-4 w-4" /> Pagar
-                            </Button>
+                      {/* Product & Supplier */}
+                      <div>
+                        <h3 className="text-base font-semibold text-[var(--color-text)]">{item.produto}</h3>
+                        <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
+                          <span className="flex items-center gap-1">
+                            <Factory className="h-3 w-3" /> {item.fornecedores?.nome}
+                          </span>
+                          {item.localizacao && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" /> {item.localizacao}
+                            </span>
                           )}
-                          <Button variant="outline" size="sm" onClick={() => setTogglingItem(item)}>
-                            {item.pago ? <><Undo2 className="mr-1 h-4 w-4" /> Reverter</> : <><CheckCircle className="mr-1 h-4 w-4" /> Quitar</>}
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => setEditingItem(item)}>
-                            <Edit2 className="mr-1 h-4 w-4" /> Editar
-                          </Button>
-                          <Button variant="danger" size="sm" onClick={() => setDeletingItem(item)}>
-                            <Trash2 className="mr-1 h-4 w-4" /> Excluir
-                          </Button>
+                          <span className="flex items-center gap-1">
+                            <Package className="h-3 w-3" />
+                            {Number(item.quantidade_sacas_restante).toLocaleString('pt-BR')}/{Number(item.quantidade_sacas).toLocaleString('pt-BR')} sc
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" /> {formatCurrency(item.preco_pago_saca)}/sc
+                          </span>
+                          {item.forma_pagamento && (
+                            <span className="flex items-center gap-1">
+                              <CreditCard className="h-3 w-3" /> {item.forma_pagamento}
+                            </span>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </>
+
+                      {/* Financial */}
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="font-semibold text-[var(--color-text)]">Total: {formatCurrency(item.valor_total)}</span>
+                        {!item.pago && (
+                          <>
+                            <span className="text-green-600">Pago: {formatCurrency(item.valor_pago || 0)}</span>
+                            <span className="font-medium text-red-600">Saldo: {formatCurrency(saldo)}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex shrink-0 flex-col gap-2">
+                      {!item.pago && (
+                        <Button variant="success" size="sm" onClick={() => setPayingItem(item)}>
+                          <DollarSign className="mr-1 h-4 w-4" /> Pagar
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" onClick={() => setTogglingItem(item)}>
+                        {item.pago ? <><Undo2 className="mr-1 h-4 w-4" /> Reverter</> : <><CheckCircle className="mr-1 h-4 w-4" /> Quitar</>}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setEditingItem(item)}>
+                        <Edit2 className="mr-1 h-4 w-4" /> Editar
+                      </Button>
+                      <Button variant="danger" size="sm" onClick={() => setDeletingItem(item)}>
+                        <Trash2 className="mr-1 h-4 w-4" /> Excluir
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       )}
 
       {/* Modal: Nova Entrada */}
