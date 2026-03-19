@@ -1,7 +1,7 @@
 const { z } = require('zod');
 
 const createStockSchema = z.object({
-  produto_id: z.number().int().positive('Produto é obrigatório'),
+  produto: z.string().min(1, 'Produto é obrigatório').max(100),
   fornecedor_id: z.number().int().positive('Fornecedor é obrigatório'),
   quantidade_sacas: z.number().positive('Quantidade de sacas deve ser positiva'),
   preco_pago_saca: z.number().positive('Preço pago por saca deve ser positivo'),

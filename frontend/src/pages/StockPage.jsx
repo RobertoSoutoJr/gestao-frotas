@@ -9,18 +9,21 @@ import { Select } from '../components/ui/Select';
 import { Badge } from '../components/ui/Badge';
 import {
   Warehouse, Package, Factory, DollarSign, CheckCircle, Clock,
-  Edit2, Trash2, Search, Filter, TrendingUp, AlertCircle
+  Edit2, Trash2, Search, Filter, TrendingUp, AlertCircle, Plus
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { stockService } from '../services/stock';
-import { productsService } from '../services/products';
 import { suppliersService } from '../services/suppliers';
 import { useToast } from '../hooks/useToast';
 
-function StockForm({ products, suppliers, onSuccess }) {
+const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
+
+function StockForm({ suppliers, onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const [produtoTipo, setProdutoTipo] = useState('');
+  const [produtoCustom, setProdutoCustom] = useState('');
   const [formData, setFormData] = useState({
-    produto_id: '', fornecedor_id: '', quantidade_sacas: '',
+    fornecedor_id: '', quantidade_sacas: '',
     preco_pago_saca: '', pago: false, nota_fiscal: '', observacoes: ''
   });
 
@@ -30,12 +33,15 @@ function StockForm({ products, suppliers, onSuccess }) {
   const valorTotal = qtdSacas * precoSaca;
   const precoSugerido = precoSaca > 0 ? Number((precoSaca * 1.15).toFixed(2)) : 0;
 
+  const produto = produtoTipo === 'Outros' ? produtoCustom : produtoTipo;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!produto) { alert('Selecione ou informe o produto'); return; }
     setLoading(true);
     try {
       await stockService.create({
-        produto_id: Number(formData.produto_id),
+        produto,
         fornecedor_id: Number(formData.fornecedor_id),
         quantidade_sacas: qtdSacas,
         preco_pago_saca: precoSaca,
@@ -43,7 +49,9 @@ function StockForm({ products, suppliers, onSuccess }) {
         nota_fiscal: formData.nota_fiscal || null,
         observacoes: formData.observacoes || null
       });
-      setFormData({ produto_id: '', fornecedor_id: '', quantidade_sacas: '', preco_pago_saca: '', pago: false, nota_fiscal: '', observacoes: '' });
+      setFormData({ fornecedor_id: '', quantidade_sacas: '', preco_pago_saca: '', pago: false, nota_fiscal: '', observacoes: '' });
+      setProdutoTipo('');
+      setProdutoCustom('');
       onSuccess?.();
     } catch (error) {
       alert(error.message || 'Falha ao adicionar ao estoque');
@@ -61,13 +69,14 @@ function StockForm({ products, suppliers, onSuccess }) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Produto e Fornecedor</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Select name="produto_id" label="Produto" value={formData.produto_id} onChange={handleChange} required>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Select label="Produto" value={produtoTipo} onChange={(e) => setProdutoTipo(e.target.value)} required>
             <option value="">Selecione o produto</option>
-            {products.filter(p => p.ativo).map(p => (
-              <option key={p.id} value={p.id}>{p.nome} - {formatCurrency(p.preco_saca)}/saca</option>
-            ))}
+            {PRODUTOS_OPCOES.map(p => <option key={p} value={p}>{p}</option>)}
           </Select>
+          {produtoTipo === 'Outros' && (
+            <Input label="Nome do Produto" placeholder="Digite o nome do produto" value={produtoCustom} onChange={(e) => setProdutoCustom(e.target.value)} required />
+          )}
           <Select name="fornecedor_id" label="Fornecedor" value={formData.fornecedor_id} onChange={handleChange} required>
             <option value="">Selecione o fornecedor</option>
             {suppliers.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
@@ -131,11 +140,14 @@ function StockForm({ products, suppliers, onSuccess }) {
   );
 }
 
-function EditStockModal({ item, products, suppliers, isOpen, onClose, onSuccess }) {
+function EditStockModal({ item, suppliers, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
+  const initTipo = ['Milho', 'Sorgo'].includes(item.produto) ? item.produto : (item.produto ? 'Outros' : '');
+  const initCustom = initTipo === 'Outros' ? (item.produto || '') : '';
+  const [produtoTipo, setProdutoTipo] = useState(initTipo);
+  const [produtoCustom, setProdutoCustom] = useState(initCustom);
   const [formData, setFormData] = useState({
-    produto_id: item.produto_id || '',
     fornecedor_id: item.fornecedor_id || '',
     quantidade_sacas: item.quantidade_sacas || '',
     preco_pago_saca: item.preco_pago_saca || '',
@@ -145,11 +157,13 @@ function EditStockModal({ item, products, suppliers, isOpen, onClose, onSuccess 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const produto = produtoTipo === 'Outros' ? produtoCustom : produtoTipo;
+    if (!produto) { alert('Selecione ou informe o produto'); return; }
     setLoading(true);
     try {
       await stockService.update(item.id, {
         ...formData,
-        produto_id: Number(formData.produto_id),
+        produto,
         fornecedor_id: Number(formData.fornecedor_id),
         quantidade_sacas: Number(formData.quantidade_sacas),
         preco_pago_saca: Number(formData.preco_pago_saca)
@@ -172,10 +186,13 @@ function EditStockModal({ item, products, suppliers, isOpen, onClose, onSuccess 
     <Modal isOpen={isOpen} onClose={onClose} title="Editar Registro de Estoque" size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Select name="produto_id" label="Produto" value={formData.produto_id} onChange={handleChange} required>
+          <Select label="Produto" value={produtoTipo} onChange={(e) => setProdutoTipo(e.target.value)} required>
             <option value="">Selecione</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+            {PRODUTOS_OPCOES.map(p => <option key={p} value={p}>{p}</option>)}
           </Select>
+          {produtoTipo === 'Outros' && (
+            <Input label="Nome do Produto" value={produtoCustom} onChange={(e) => setProdutoCustom(e.target.value)} required />
+          )}
           <Select name="fornecedor_id" label="Fornecedor" value={formData.fornecedor_id} onChange={handleChange} required>
             <option value="">Selecione</option>
             {suppliers.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
@@ -197,7 +214,6 @@ function EditStockModal({ item, products, suppliers, isOpen, onClose, onSuccess 
 export function StockPage({ onRefetch }) {
   const { success, error } = useToast();
   const [stock, setStock] = useState([]);
-  const [products, setProducts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
@@ -208,17 +224,16 @@ export function StockPage({ onRefetch }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('todos');
   const [showFilters, setShowFilters] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const fetchData = async () => {
     try {
       setLoadingData(true);
-      const [stockRes, productsRes, suppliersRes] = await Promise.all([
+      const [stockRes, suppliersRes] = await Promise.all([
         stockService.getAll(),
-        productsService.getAll(),
         suppliersService.getAll()
       ]);
       setStock(stockRes.data || []);
-      setProducts(productsRes.data || []);
       setSuppliers(suppliersRes.data || []);
     } catch (err) {
       error('Erro', 'Falha ao carregar dados');
@@ -234,10 +249,15 @@ export function StockPage({ onRefetch }) {
     onRefetch?.();
   };
 
+  const handleCreateSuccess = () => {
+    handleRefetch();
+    setShowCreateForm(false);
+  };
+
   const filteredStock = useMemo(() => {
     return stock.filter(item => {
       const matchSearch = searchTerm === '' || [
-        item.produtos?.nome, item.fornecedores?.nome, item.nota_fiscal
+        item.produto, item.fornecedores?.nome, item.nota_fiscal
       ].some(v => v?.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchPayment = paymentFilter === 'todos' ||
         (paymentFilter === 'pago' && item.pago) ||
@@ -334,36 +354,22 @@ export function StockPage({ onRefetch }) {
         </div>
       )}
 
-      {/* Formulário */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Nova Entrada de Estoque</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {products.length === 0 || suppliers.length === 0 ? (
-            <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
-              <p className="font-semibold">Pré-requisitos:</p>
-              <ul className="mt-2 list-inside list-disc space-y-1">
-                {suppliers.length === 0 && <li>Cadastre pelo menos um <strong>fornecedor</strong></li>}
-                {products.length === 0 && <li>Cadastre pelo menos um <strong>produto</strong></li>}
-              </ul>
-            </div>
-          ) : (
-            <StockForm products={products} suppliers={suppliers} onSuccess={handleRefetch} />
-          )}
-        </CardContent>
-      </Card>
-
       {/* Lista */}
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">
             Estoque ({filteredStock.length} de {stock.length})
           </h2>
-          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
-            <Filter className="mr-2 h-4 w-4" />
-            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+              <Filter className="mr-2 h-4 w-4" />
+              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => setShowCreateForm(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Entrada
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
@@ -413,7 +419,7 @@ export function StockPage({ onRefetch }) {
                       </div>
 
                       <h3 className="mt-2 font-semibold text-zinc-900 dark:text-zinc-50">
-                        {item.produtos?.nome}
+                        {item.produto}
                       </h3>
 
                       <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-zinc-500">
@@ -461,8 +467,19 @@ export function StockPage({ onRefetch }) {
         )}
       </div>
 
+      {/* Modal: Nova Entrada de Estoque */}
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Nova Entrada de Estoque" size="lg">
+        {suppliers.length === 0 ? (
+          <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+            <p>Cadastre pelo menos um <strong>fornecedor</strong> antes.</p>
+          </div>
+        ) : (
+          <StockForm suppliers={suppliers} onSuccess={handleCreateSuccess} />
+        )}
+      </Modal>
+
       {editingItem && (
-        <EditStockModal item={editingItem} products={products} suppliers={suppliers} isOpen={!!editingItem} onClose={() => setEditingItem(null)} onSuccess={handleRefetch} />
+        <EditStockModal item={editingItem} suppliers={suppliers} isOpen={!!editingItem} onClose={() => setEditingItem(null)} onSuccess={handleRefetch} />
       )}
 
       <ConfirmDialog

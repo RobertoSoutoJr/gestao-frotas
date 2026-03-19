@@ -15,8 +15,9 @@ import { formatCurrency, formatDate } from '../lib/utils';
 import { tripsService } from '../services/trips';
 import { clientsService } from '../services/clients';
 import { suppliersService } from '../services/suppliers';
-import { productsService } from '../services/products';
 import { useToast } from '../hooks/useToast';
+
+const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
 
 const FORMAS_PAGAMENTO = [
   { value: 'dinheiro', label: 'Dinheiro' },
@@ -28,19 +29,21 @@ const FORMAS_PAGAMENTO = [
   { value: 'a_prazo', label: 'A Prazo' }
 ];
 
-function TripForm({ trucks, drivers, clients, suppliers, products, onSuccess }) {
+function TripForm({ trucks, drivers, clients, suppliers, onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const [produtoTipo, setProdutoTipo] = useState('');
+  const [produtoCustom, setProdutoCustom] = useState('');
   const [formData, setFormData] = useState({
     fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '',
-    produto_id: '', quantidade_sacas: '', preco_frete_saca: '', observacoes: ''
+    quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: ''
   });
 
-  const selectedProduct = products.find(p => p.id === Number(formData.produto_id));
   const selectedSupplier = suppliers.find(s => s.id === Number(formData.fornecedor_id));
   const selectedClient = clients.find(c => c.id === Number(formData.cliente_id));
 
+  const produto = produtoTipo === 'Outros' ? produtoCustom : produtoTipo;
   const qtdSacas = Number(formData.quantidade_sacas) || 0;
-  const precoSaca = selectedProduct?.preco_saca || 0;
+  const precoSaca = Number(formData.preco_produto_saca) || 0;
   const precoFrete = Number(formData.preco_frete_saca) || 0;
   const pesoTotal = qtdSacas * 60;
   const valorProduto = qtdSacas * precoSaca;
@@ -49,6 +52,7 @@ function TripForm({ trucks, drivers, clients, suppliers, products, onSuccess }) 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!produto) { alert('Selecione ou informe o produto'); return; }
     setLoading(true);
     try {
       await tripsService.create({
@@ -56,13 +60,15 @@ function TripForm({ trucks, drivers, clients, suppliers, products, onSuccess }) 
         cliente_id: Number(formData.cliente_id),
         caminhao_id: Number(formData.caminhao_id),
         motorista_id: Number(formData.motorista_id),
-        produto_id: Number(formData.produto_id),
+        produto,
         quantidade_sacas: qtdSacas,
         preco_produto_saca: precoSaca,
         preco_frete_saca: precoFrete,
         observacoes: formData.observacoes || null
       });
-      setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', produto_id: '', quantidade_sacas: '', preco_frete_saca: '', observacoes: '' });
+      setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '' });
+      setProdutoTipo('');
+      setProdutoCustom('');
       onSuccess?.();
     } catch (error) {
       alert(error.message || 'Falha ao cadastrar viagem');
@@ -118,20 +124,22 @@ function TripForm({ trucks, drivers, clients, suppliers, products, onSuccess }) 
       {/* Produto e Valores */}
       <div>
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Produto e Valores</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Select name="produto_id" label="Produto" value={formData.produto_id} onChange={handleChange} required>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Select label="Produto" value={produtoTipo} onChange={(e) => setProdutoTipo(e.target.value)} required>
             <option value="">Selecione o produto</option>
-            {products.filter(p => p.ativo).map(p => (
-              <option key={p.id} value={p.id}>{p.nome} - {formatCurrency(p.preco_saca)}/saca</option>
-            ))}
+            {PRODUTOS_OPCOES.map(p => <option key={p} value={p}>{p}</option>)}
           </Select>
+          {produtoTipo === 'Outros' && (
+            <Input label="Nome do Produto" placeholder="Digite o nome do produto" value={produtoCustom} onChange={(e) => setProdutoCustom(e.target.value)} required />
+          )}
           <Input name="quantidade_sacas" label="Quantidade (Sacas)" type="number" placeholder="0" min="1" step="0.01" value={formData.quantidade_sacas} onChange={handleChange} required />
+          <Input name="preco_produto_saca" label="Preço Produto/Saca (R$)" type="number" placeholder="0,00" min="0.01" step="0.01" value={formData.preco_produto_saca} onChange={handleChange} required />
           <Input name="preco_frete_saca" label="Frete por Saca (R$)" type="number" placeholder="0,00" min="0.50" max="10.00" step="0.01" value={formData.preco_frete_saca} onChange={handleChange} required helperText="R$0,50 a R$10,00" />
         </div>
       </div>
 
       {/* Resumo Financeiro */}
-      {qtdSacas > 0 && precoFrete > 0 && selectedProduct && (
+      {qtdSacas > 0 && precoFrete > 0 && produto && (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Resumo Financeiro</h3>
           <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
@@ -191,7 +199,7 @@ function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-zinc-500">Produto</p>
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">{trip.produtos?.nome}</p>
+              <p className="font-medium text-zinc-900 dark:text-zinc-50">{trip.produto}</p>
             </div>
             <div>
               <p className="text-zinc-500">Quantidade</p>
@@ -237,7 +245,6 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const [trips, setTrips] = useState([]);
   const [clients, setClients] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
-  const [products, setProducts] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [finalizingTrip, setFinalizingTrip] = useState(null);
   const [deletingTrip, setDeletingTrip] = useState(null);
@@ -245,20 +252,19 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todas');
   const [showFilters, setShowFilters] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const fetchData = async () => {
     try {
       setLoadingData(true);
-      const [tripsRes, clientsRes, suppliersRes, productsRes] = await Promise.all([
+      const [tripsRes, clientsRes, suppliersRes] = await Promise.all([
         tripsService.getAll(),
         clientsService.getAll(),
-        suppliersService.getAll(),
-        productsService.getAll()
+        suppliersService.getAll()
       ]);
       setTrips(tripsRes.data || []);
       setClients(clientsRes.data || []);
       setSuppliers(suppliersRes.data || []);
-      setProducts(productsRes.data || []);
     } catch (err) {
       error('Erro', 'Falha ao carregar dados');
     } finally {
@@ -273,11 +279,16 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
     onRefetch?.();
   };
 
+  const handleCreateSuccess = () => {
+    handleRefetch();
+    setShowCreateForm(false);
+  };
+
   const filteredTrips = useMemo(() => {
     return trips.filter(t => {
       const matchSearch = searchTerm === '' || [
         t.fornecedores?.nome, t.clientes?.nome, t.motoristas?.nome,
-        t.caminhoes?.placa, t.produtos?.nome
+        t.caminhoes?.placa, t.produto || ''
       ].some(v => v?.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchStatus = statusFilter === 'todas' || t.status === statusFilter;
       return matchSearch && matchStatus;
@@ -335,46 +346,22 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
         </Card>
       </div>
 
-      {/* Formulário */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Nova Viagem</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {clients.length === 0 || suppliers.length === 0 || products.length === 0 ? (
-            <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
-              <p className="font-semibold">Pré-requisitos para criar uma viagem:</p>
-              <ul className="mt-2 list-inside list-disc space-y-1">
-                {suppliers.length === 0 && <li>Cadastre pelo menos um <strong>fornecedor</strong></li>}
-                {clients.length === 0 && <li>Cadastre pelo menos um <strong>cliente</strong></li>}
-                {products.length === 0 && <li>Cadastre pelo menos um <strong>produto</strong></li>}
-                {trucks.length === 0 && <li>Cadastre pelo menos um <strong>caminhão</strong></li>}
-                {drivers.length === 0 && <li>Cadastre pelo menos um <strong>motorista</strong></li>}
-              </ul>
-            </div>
-          ) : (
-            <TripForm
-              trucks={trucks}
-              drivers={drivers}
-              clients={clients}
-              suppliers={suppliers}
-              products={products}
-              onSuccess={handleRefetch}
-            />
-          )}
-        </CardContent>
-      </Card>
-
       {/* Lista de Viagens */}
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">
             Viagens ({filteredTrips.length} de {trips.length})
           </h2>
-          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
-            <Filter className="mr-2 h-4 w-4" />
-            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+              <Filter className="mr-2 h-4 w-4" />
+              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => setShowCreateForm(true)}>
+              <Route className="mr-2 h-4 w-4" />
+              Cadastrar Viagem
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
@@ -440,7 +427,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                         </span>
                         <span className="flex items-center gap-1">
                           <Package className="h-3 w-3" />
-                          {trip.produtos?.nome} - {trip.quantidade_sacas} sacas
+                          {trip.produto} - {trip.quantidade_sacas} sacas
                         </span>
                         <span className="flex items-center gap-1">
                           <DollarSign className="h-3 w-3" />
@@ -474,6 +461,21 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
           </div>
         )}
       </div>
+
+      {/* Modal: Cadastrar Viagem */}
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Nova Viagem" size="xl">
+        {clients.length === 0 || suppliers.length === 0 ? (
+          <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+            <p className="font-semibold">Pré-requisitos:</p>
+            <ul className="mt-2 list-inside list-disc space-y-1">
+              {suppliers.length === 0 && <li>Cadastre pelo menos um <strong>fornecedor</strong></li>}
+              {clients.length === 0 && <li>Cadastre pelo menos um <strong>cliente</strong></li>}
+            </ul>
+          </div>
+        ) : (
+          <TripForm trucks={trucks} drivers={drivers} clients={clients} suppliers={suppliers} onSuccess={handleCreateSuccess} />
+        )}
+      </Modal>
 
       {finalizingTrip && (
         <FinalizeModal trip={finalizingTrip} isOpen={!!finalizingTrip} onClose={() => setFinalizingTrip(null)} onSuccess={handleRefetch} />

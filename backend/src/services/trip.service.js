@@ -5,7 +5,7 @@ class TripService {
   async getAll(userId) {
     const { data, error } = await supabase
       .from('viagens')
-      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome), produtos(id, nome, preco_saca)')
+      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -16,7 +16,7 @@ class TripService {
   async getById(id, userId) {
     const { data, error } = await supabase
       .from('viagens')
-      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome), produtos(id, nome, preco_saca)')
+      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)')
       .eq('id', id)
       .eq('user_id', userId)
       .single();
@@ -40,7 +40,7 @@ class TripService {
         status: 'cadastrada',
         user_id: userId
       }])
-      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome), produtos(id, nome, preco_saca)')
+      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)')
       .single();
 
     if (error) throw new AppError('Falha ao criar viagem', 500, error);
@@ -66,7 +66,7 @@ class TripService {
       .eq('id', id)
       .eq('user_id', userId)
       .eq('status', 'cadastrada')
-      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome), produtos(id, nome, preco_saca)')
+      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)')
       .single();
 
     if (error) throw new AppError('Falha ao atualizar viagem. Viagens finalizadas não podem ser editadas.', 500, error);
@@ -85,7 +85,7 @@ class TripService {
       .eq('id', id)
       .eq('user_id', userId)
       .eq('status', 'cadastrada')
-      .select('*, fornecedores(id, nome), clientes(id, nome), caminhoes(id, placa, modelo), motoristas(id, nome), produtos(id, nome)')
+      .select('*, fornecedores(id, nome), clientes(id, nome), caminhoes(id, placa, modelo), motoristas(id, nome)')
       .single();
 
     if (error) throw new AppError('Falha ao finalizar viagem. Verifique se a viagem está cadastrada.', 500, error);

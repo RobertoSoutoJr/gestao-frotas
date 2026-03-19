@@ -5,7 +5,7 @@ const createTripSchema = z.object({
   cliente_id: z.number().int().positive('Cliente é obrigatório'),
   caminhao_id: z.number().int().positive('Caminhão é obrigatório'),
   motorista_id: z.number().int().positive('Motorista é obrigatório'),
-  produto_id: z.number().int().positive('Produto é obrigatório'),
+  produto: z.string().min(1, 'Produto é obrigatório').max(100),
   quantidade_sacas: z.number().positive('Quantidade de sacas deve ser positiva'),
   preco_produto_saca: z.number().positive('Preço do produto por saca deve ser positivo'),
   preco_frete_saca: z.number()

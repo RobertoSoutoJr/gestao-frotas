@@ -5,7 +5,7 @@ class StockService {
   async getAll(userId) {
     const { data, error } = await supabase
       .from('estoque')
-      .select('*, produtos(id, nome, preco_saca), fornecedores(id, nome)')
+      .select('*, fornecedores(id, nome)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -16,7 +16,7 @@ class StockService {
   async getById(id, userId) {
     const { data, error } = await supabase
       .from('estoque')
-      .select('*, produtos(id, nome, preco_saca), fornecedores(id, nome)')
+      .select('*, fornecedores(id, nome)')
       .eq('id', id)
       .eq('user_id', userId)
       .single();
@@ -41,7 +41,7 @@ class StockService {
         preco_sugerido_saca,
         user_id: userId
       }])
-      .select('*, produtos(id, nome, preco_saca), fornecedores(id, nome)')
+      .select('*, fornecedores(id, nome)')
       .single();
 
     if (error) throw new AppError('Falha ao criar registro de estoque', 500, error);
@@ -65,7 +65,7 @@ class StockService {
       .update(updateData)
       .eq('id', id)
       .eq('user_id', userId)
-      .select('*, produtos(id, nome, preco_saca), fornecedores(id, nome)')
+      .select('*, fornecedores(id, nome)')
       .single();
 
     if (error) throw new AppError('Falha ao atualizar estoque', 500, error);
@@ -82,7 +82,7 @@ class StockService {
       })
       .eq('id', id)
       .eq('user_id', userId)
-      .select('*, produtos(id, nome, preco_saca), fornecedores(id, nome)')
+      .select('*, fornecedores(id, nome)')
       .single();
 
     if (error) throw new AppError('Falha ao marcar como pago', 500, error);
