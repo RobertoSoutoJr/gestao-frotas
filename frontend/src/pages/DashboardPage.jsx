@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
-import { Truck, Users, Gauge, DollarSign, Fuel, Wrench, ArrowRight, Building2, Factory, Route, Warehouse, Package, AlertCircle } from 'lucide-react';
+import { Modal } from '../components/ui/Modal';
+import { Truck, Users, Gauge, DollarSign, Fuel, Wrench, ArrowRight, Building2, Factory, Route, Warehouse, Package, AlertCircle, Settings, Eye, EyeOff } from 'lucide-react';
 import { formatCurrency, formatNumber } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -54,8 +55,87 @@ const CHART_COLORS = {
   pink:      '#EC4899',
 };
 
+const DASHBOARD_SECTIONS = [
+  { id: 'main_stats', label: 'Estatísticas Principais', description: 'Caminhões, motoristas, gastos e KM' },
+  { id: 'operations', label: 'Operações', description: 'Clientes, fornecedores, viagens e estoque' },
+  { id: 'alerts', label: 'Alertas', description: 'Pagamentos pendentes e vencidos' },
+  { id: 'freight_summary', label: 'Resumo de Frete', description: 'Total frete, valor estoque, contas a pagar' },
+  { id: 'spending_chart', label: 'Gráfico de Gastos', description: 'Evolução dos custos nos últimos meses' },
+  { id: 'cost_distribution', label: 'Distribuição de Custos', description: 'Combustível vs Manutenção' },
+  { id: 'top_trucks', label: 'Top 5 Veículos', description: 'Veículos com maior custo operacional' }
+];
+
+const PERIOD_OPTIONS = [
+  { value: 'daily', label: 'Hoje' },
+  { value: 'weekly', label: 'Semanal' },
+  { value: 'monthly', label: 'Mensal' },
+  { value: 'yearly', label: 'Anual' }
+];
+
+const defaultPrefs = {
+  sections: {
+    main_stats: true,
+    operations: true,
+    alerts: true,
+    freight_summary: true,
+    spending_chart: true,
+    cost_distribution: true,
+    top_trucks: true
+  },
+  period: 'monthly'
+};
+
 export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stockRecords, fuelRecords, maintenanceRecords, onNavigate }) {
   const { isDark } = useTheme();
+
+  const [prefs, setPrefs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dashboard_prefs');
+      return saved ? { ...defaultPrefs, ...JSON.parse(saved) } : defaultPrefs;
+    } catch { return defaultPrefs; }
+  });
+  const [showCustomize, setShowCustomize] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('dashboard_prefs', JSON.stringify(prefs));
+  }, [prefs]);
+
+  const toggleSection = (id) => {
+    setPrefs(prev => ({
+      ...prev,
+      sections: { ...prev.sections, [id]: !prev.sections[id] }
+    }));
+  };
+
+  const setPeriod = (period) => {
+    setPrefs(prev => ({ ...prev, period }));
+  };
+
+  const isVisible = (id) => prefs.sections[id] !== false;
+
+  const periodLabel = PERIOD_OPTIONS.find(p => p.value === prefs.period)?.label || 'Mensal';
+
+  const filterByPeriod = (records, dateField = 'created_at') => {
+    const now = new Date();
+    return records.filter(r => {
+      const d = new Date(r[dateField] || r.created_at);
+      switch (prefs.period) {
+        case 'daily':
+          return d.toDateString() === now.toDateString();
+        case 'weekly': {
+          const weekAgo = new Date(now);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return d >= weekAgo;
+        }
+        case 'monthly':
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        case 'yearly':
+          return d.getFullYear() === now.getFullYear();
+        default:
+          return true;
+      }
+    });
+  };
 
   const tooltipStyle = {
     backgroundColor: isDark ? 'rgba(10,10,12,0.95)' : 'rgba(255,255,255,0.98)',
@@ -70,22 +150,12 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
   const axisColor = isDark ? '#8A8F98' : '#6B7280';
 
   const stats = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    const periodFuel = filterByPeriod(fuelRecords, 'created_at');
+    const periodMaintenance = filterByPeriod(maintenanceRecords, 'data_manutencao');
 
-    const currentMonthFuel = fuelRecords.filter(r => {
-      const d = new Date(r.created_at);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
-    const currentMonthMaintenance = maintenanceRecords.filter(r => {
-      const d = new Date(r.data_manutencao || r.created_at);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
-
-    const totalFuelCost = currentMonthFuel.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
-    const totalMaintenanceCost = currentMonthMaintenance.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
-    const totalKm = currentMonthFuel.reduce((s, r) => s + (Number(r.km_registro) || 0), 0);
+    const totalFuelCost = periodFuel.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+    const totalMaintenanceCost = periodMaintenance.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+    const totalKm = periodFuel.reduce((s, r) => s + (Number(r.km_registro) || 0), 0);
 
     // Trips stats
     const activeTrips = (trips || []).filter(t => t.status === 'cadastrada').length;
@@ -116,58 +186,213 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
       pendingPaymentsCount: pendingPayments.length,
       totalSacas,
     };
-  }, [trucks, drivers, clients, suppliers, trips, stockRecords, fuelRecords, maintenanceRecords]);
+  }, [trucks, drivers, clients, suppliers, trips, stockRecords, fuelRecords, maintenanceRecords, prefs.period]);
 
-  const monthlySpendingData = useMemo(() => {
-    const months = [];
+  const spendingChartData = useMemo(() => {
     const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const month = date.getMonth();
-      const year = date.getFullYear();
-      const monthName = date.toLocaleDateString('pt-BR', { month: 'short' });
+    const dataPoints = [];
 
-      const fuelCost = fuelRecords
-        .filter(r => { const d = new Date(r.created_at); return d.getMonth() === month && d.getFullYear() === year; })
-        .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
-      const maintenanceCost = maintenanceRecords
-        .filter(r => { const d = new Date(r.data_manutencao || r.created_at); return d.getMonth() === month && d.getFullYear() === year; })
-        .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+    if (prefs.period === 'daily') {
+      // Last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dayStr = date.toDateString();
+        const label = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
-      months.push({ month: monthName.charAt(0).toUpperCase() + monthName.slice(1), combustivel: fuelCost, manutencao: maintenanceCost, total: fuelCost + maintenanceCost });
+        const fuelCost = fuelRecords
+          .filter(r => new Date(r.created_at).toDateString() === dayStr)
+          .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+        const maintenanceCost = maintenanceRecords
+          .filter(r => new Date(r.data_manutencao || r.created_at).toDateString() === dayStr)
+          .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+
+        dataPoints.push({ month: label, combustivel: fuelCost, manutencao: maintenanceCost, total: fuelCost + maintenanceCost });
+      }
+    } else if (prefs.period === 'weekly') {
+      // Last 4 weeks
+      for (let i = 3; i >= 0; i--) {
+        const weekEnd = new Date(now);
+        weekEnd.setDate(weekEnd.getDate() - (i * 7));
+        const weekStart = new Date(weekEnd);
+        weekStart.setDate(weekStart.getDate() - 6);
+        const label = `${weekStart.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`;
+
+        const fuelCost = fuelRecords
+          .filter(r => { const d = new Date(r.created_at); return d >= weekStart && d <= weekEnd; })
+          .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+        const maintenanceCost = maintenanceRecords
+          .filter(r => { const d = new Date(r.data_manutencao || r.created_at); return d >= weekStart && d <= weekEnd; })
+          .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+
+        dataPoints.push({ month: label, combustivel: fuelCost, manutencao: maintenanceCost, total: fuelCost + maintenanceCost });
+      }
+    } else if (prefs.period === 'yearly') {
+      // Last 12 months
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        const monthName = date.toLocaleDateString('pt-BR', { month: 'short' });
+
+        const fuelCost = fuelRecords
+          .filter(r => { const d = new Date(r.created_at); return d.getMonth() === month && d.getFullYear() === year; })
+          .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+        const maintenanceCost = maintenanceRecords
+          .filter(r => { const d = new Date(r.data_manutencao || r.created_at); return d.getMonth() === month && d.getFullYear() === year; })
+          .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+
+        dataPoints.push({ month: monthName.charAt(0).toUpperCase() + monthName.slice(1), combustivel: fuelCost, manutencao: maintenanceCost, total: fuelCost + maintenanceCost });
+      }
+    } else {
+      // Monthly (default) - last 6 months
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        const monthName = date.toLocaleDateString('pt-BR', { month: 'short' });
+
+        const fuelCost = fuelRecords
+          .filter(r => { const d = new Date(r.created_at); return d.getMonth() === month && d.getFullYear() === year; })
+          .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+        const maintenanceCost = maintenanceRecords
+          .filter(r => { const d = new Date(r.data_manutencao || r.created_at); return d.getMonth() === month && d.getFullYear() === year; })
+          .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+
+        dataPoints.push({ month: monthName.charAt(0).toUpperCase() + monthName.slice(1), combustivel: fuelCost, manutencao: maintenanceCost, total: fuelCost + maintenanceCost });
+      }
     }
-    return months;
-  }, [fuelRecords, maintenanceRecords]);
+
+    return dataPoints;
+  }, [fuelRecords, maintenanceRecords, prefs.period]);
+
+  const spendingChartTitle = useMemo(() => {
+    switch (prefs.period) {
+      case 'daily': return 'Gastos — Últimos 7 dias';
+      case 'weekly': return 'Gastos — Últimas 4 semanas';
+      case 'yearly': return 'Gastos — Últimos 12 meses';
+      default: return 'Gastos — Últimos 6 meses';
+    }
+  }, [prefs.period]);
 
   const topTrucksData = useMemo(() => {
+    const periodFuel = filterByPeriod(fuelRecords, 'created_at');
+    const periodMaintenance = filterByPeriod(maintenanceRecords, 'data_manutencao');
+
     const spending = {};
-    fuelRecords.forEach(r => { spending[r.caminhao_id] = (spending[r.caminhao_id] || 0) + (Number(r.valor_total) || 0); });
-    maintenanceRecords.forEach(r => { spending[r.caminhao_id] = (spending[r.caminhao_id] || 0) + (Number(r.valor_total) || 0); });
+    periodFuel.forEach(r => { spending[r.caminhao_id] = (spending[r.caminhao_id] || 0) + (Number(r.valor_total) || 0); });
+    periodMaintenance.forEach(r => { spending[r.caminhao_id] = (spending[r.caminhao_id] || 0) + (Number(r.valor_total) || 0); });
     return Object.entries(spending)
       .map(([id, gasto]) => ({ truck: trucks.find(t => t.id === Number(id))?.placa || `ID:${id}`, gasto }))
       .sort((a, b) => b.gasto - a.gasto)
       .slice(0, 5);
-  }, [trucks, fuelRecords, maintenanceRecords]);
+  }, [trucks, fuelRecords, maintenanceRecords, prefs.period]);
 
   const costDistributionData = [
     { name: 'Combustível', value: stats.fuelCost, color: CHART_COLORS.accent },
     { name: 'Manutenção', value: stats.maintenanceCost, color: CHART_COLORS.secondary }
   ];
 
+  const periodSubtitleMap = {
+    daily: 'Hoje',
+    weekly: 'Esta semana',
+    monthly: 'Este mês',
+    yearly: 'Este ano'
+  };
+  const periodSubtitle = periodSubtitleMap[prefs.period] || 'Este mês';
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-[var(--color-text)]">
-          Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Visão geral da frota e operações do mês atual
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+            Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+            Visão geral da frota e operações — {periodLabel}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCustomize(true)}
+          className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border-hover)] transition-all duration-200"
+        >
+          <Settings className="h-4 w-4" />
+          Personalizar
+        </button>
       </div>
 
+      {/* Customize Modal */}
+      <Modal isOpen={showCustomize} onClose={() => setShowCustomize(false)} title="Personalizar Dashboard" size="sm">
+        <div className="space-y-6">
+          {/* Period Selector */}
+          <div>
+            <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
+              Período de referência
+            </p>
+            <div className="flex gap-2">
+              {PERIOD_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setPeriod(opt.value)}
+                  className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                    prefs.period === opt.value
+                      ? 'bg-[var(--color-accent)] text-white shadow-sm'
+                      : 'bg-[var(--color-bg)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] border border-[var(--color-border)]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Section Toggles */}
+          <div>
+            <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
+              Seções visíveis
+            </p>
+            <div className="space-y-1">
+              {DASHBOARD_SECTIONS.map(section => (
+                <button
+                  key={section.id}
+                  onClick={() => toggleSection(section.id)}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 hover:bg-[var(--color-bg)] transition-colors duration-150"
+                >
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 ${
+                    isVisible(section.id)
+                      ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)]'
+                      : 'bg-[var(--color-bg)] text-[var(--color-text-secondary)]'
+                  }`}>
+                    {isVisible(section.id) ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className={`text-sm font-medium transition-colors duration-200 ${
+                      isVisible(section.id) ? 'text-[var(--color-text)]' : 'text-[var(--color-text-secondary)]'
+                    }`}>
+                      {section.label}
+                    </p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      {section.description}
+                    </p>
+                  </div>
+                  {/* Toggle switch */}
+                  <div className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${
+                    isVisible(section.id) ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-border)]'
+                  }`}>
+                    <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                      isVisible(section.id) ? 'translate-x-[22px]' : 'translate-x-0.5'
+                    }`} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
       {/* Pending Payments Alert */}
-      {stats.pendingPaymentsCount > 0 && (
+      {isVisible('alerts') && stats.pendingPaymentsCount > 0 && (
         <div
           className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 cursor-pointer hover:bg-red-500/15 transition-colors"
           onClick={() => onNavigate('stock')}
@@ -186,79 +411,83 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
       )}
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Caminhões Ativos"
-          value={stats.activeTrucks}
-          icon={Truck}
-          color={CHART_COLORS.accent}
-          subtitle="Total na frota"
-          onClick={() => onNavigate('trucks')}
-        />
-        <StatCard
-          title="Motoristas"
-          value={stats.totalDrivers}
-          icon={Users}
-          color={CHART_COLORS.secondary}
-          subtitle="Equipe cadastrada"
-          onClick={() => onNavigate('drivers')}
-        />
-        <StatCard
-          title="Gasto Mensal"
-          value={formatCurrency(stats.totalCost)}
-          icon={DollarSign}
-          color={CHART_COLORS.green}
-          subtitle={`${formatCurrency(stats.fuelCost)} comb. + ${formatCurrency(stats.maintenanceCost)} man.`}
-          onClick={() => onNavigate('reports')}
-        />
-        <StatCard
-          title="KM Rodado"
-          value={formatNumber(stats.totalKm, 0)}
-          icon={Gauge}
-          color={CHART_COLORS.orange}
-          subtitle="Este mês"
-          onClick={() => onNavigate('fuel')}
-        />
-      </div>
+      {isVisible('main_stats') && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="Caminhões Ativos"
+            value={stats.activeTrucks}
+            icon={Truck}
+            color={CHART_COLORS.accent}
+            subtitle="Total na frota"
+            onClick={() => onNavigate('trucks')}
+          />
+          <StatCard
+            title="Motoristas"
+            value={stats.totalDrivers}
+            icon={Users}
+            color={CHART_COLORS.secondary}
+            subtitle="Equipe cadastrada"
+            onClick={() => onNavigate('drivers')}
+          />
+          <StatCard
+            title={`Gasto — ${periodLabel}`}
+            value={formatCurrency(stats.totalCost)}
+            icon={DollarSign}
+            color={CHART_COLORS.green}
+            subtitle={`${formatCurrency(stats.fuelCost)} comb. + ${formatCurrency(stats.maintenanceCost)} man.`}
+            onClick={() => onNavigate('reports')}
+          />
+          <StatCard
+            title="KM Rodado"
+            value={formatNumber(stats.totalKm, 0)}
+            icon={Gauge}
+            color={CHART_COLORS.orange}
+            subtitle={periodSubtitle}
+            onClick={() => onNavigate('fuel')}
+          />
+        </div>
+      )}
 
       {/* Operations Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Clientes"
-          value={stats.totalClients}
-          icon={Building2}
-          color="#06B6D4"
-          subtitle="Cadastrados"
-          onClick={() => onNavigate('clients')}
-        />
-        <StatCard
-          title="Fornecedores"
-          value={stats.totalSuppliers}
-          icon={Factory}
-          color="#F97316"
-          subtitle="Cadastrados"
-          onClick={() => onNavigate('suppliers')}
-        />
-        <StatCard
-          title="Viagens"
-          value={stats.totalTrips}
-          icon={Route}
-          color={CHART_COLORS.green}
-          subtitle={`${stats.activeTrips} em andamento · ${stats.completedTrips} finalizadas`}
-          onClick={() => onNavigate('trips')}
-        />
-        <StatCard
-          title="Estoque"
-          value={`${formatNumber(stats.totalSacas, 0)} sacas`}
-          icon={Warehouse}
-          color={CHART_COLORS.red}
-          subtitle={`${formatCurrency(stats.totalStockValue)} investido`}
-          onClick={() => onNavigate('stock')}
-        />
-      </div>
+      {isVisible('operations') && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="Clientes"
+            value={stats.totalClients}
+            icon={Building2}
+            color="#06B6D4"
+            subtitle="Cadastrados"
+            onClick={() => onNavigate('clients')}
+          />
+          <StatCard
+            title="Fornecedores"
+            value={stats.totalSuppliers}
+            icon={Factory}
+            color="#F97316"
+            subtitle="Cadastrados"
+            onClick={() => onNavigate('suppliers')}
+          />
+          <StatCard
+            title="Viagens"
+            value={stats.totalTrips}
+            icon={Route}
+            color={CHART_COLORS.green}
+            subtitle={`${stats.activeTrips} em andamento · ${stats.completedTrips} finalizadas`}
+            onClick={() => onNavigate('trips')}
+          />
+          <StatCard
+            title="Estoque"
+            value={`${formatNumber(stats.totalSacas, 0)} sacas`}
+            icon={Warehouse}
+            color={CHART_COLORS.red}
+            subtitle={`${formatCurrency(stats.totalStockValue)} investido`}
+            onClick={() => onNavigate('stock')}
+          />
+        </div>
+      )}
 
       {/* Trips & Freight Summary */}
-      {stats.totalTrips > 0 && (
+      {isVisible('freight_summary') && stats.totalTrips > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Card className="cursor-pointer hover:-translate-y-0.5 transition-all duration-200" onClick={() => onNavigate('trips')}>
             <CardContent className="p-5">
@@ -305,107 +534,115 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
       )}
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Line Chart */}
-        <Card className="transition-all duration-200" onClick={() => onNavigate('reports')}>
+      {(isVisible('spending_chart') || isVisible('cost_distribution')) && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Line Chart */}
+          {isVisible('spending_chart') && (
+            <Card className="transition-all duration-200" onClick={() => onNavigate('reports')}>
+              <CardContent className="p-6">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-[var(--color-text)]">
+                      {spendingChartTitle}
+                    </h3>
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">Evolução dos custos operacionais</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={spendingChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                    <XAxis dataKey="month" stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
+                    <YAxis stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} />
+                    <Legend wrapperStyle={{ paddingTop: '16px', fontFamily: '"Inter"', fontSize: '12px' }} iconType="plainline" />
+                    <Line type="monotone" dataKey="combustivel" name="Combustível" stroke={CHART_COLORS.accent} strokeWidth={2} dot={{ fill: CHART_COLORS.accent, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, stroke: CHART_COLORS.accent, strokeWidth: 2, fill: isDark ? '#0a0a0c' : '#fff' }} />
+                    <Line type="monotone" dataKey="manutencao" name="Manutenção" stroke={CHART_COLORS.secondary} strokeWidth={2} dot={{ fill: CHART_COLORS.secondary, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, stroke: CHART_COLORS.secondary, strokeWidth: 2, fill: isDark ? '#0a0a0c' : '#fff' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Pie Chart */}
+          {isVisible('cost_distribution') && (
+            <Card className="transition-all duration-200">
+              <CardContent className="p-6">
+                <div className="mb-6">
+                  <h3 className="text-base font-semibold text-[var(--color-text)]">
+                    Distribuição de Custos
+                  </h3>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">Combustível vs Manutenção — {periodLabel}</p>
+                </div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie data={costDistributionData} cx="50%" cy="50%" labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={90} fill="#8884d8" dataKey="value" stroke={isDark ? '#0a0a0c' : '#fff'} strokeWidth={2}>
+                      {costDistributionData.map((entry, i) => (
+                        <Cell key={`cell-${i}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <Card className="!rounded-xl !p-0 cursor-pointer" onClick={() => onNavigate('fuel')}>
+                    <div className="flex items-center gap-2.5 p-3">
+                      <Fuel className="h-4 w-4 text-[var(--color-accent)]" />
+                      <div>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Combustível</p>
+                        <p className="text-sm font-semibold text-[var(--color-text)]">{formatCurrency(stats.fuelCost)}</p>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="!rounded-xl !p-0 cursor-pointer" onClick={() => onNavigate('maintenance')}>
+                    <div className="flex items-center gap-2.5 p-3">
+                      <Wrench className="h-4 w-4 text-[#8B5CF6]" />
+                      <div>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Manutenção</p>
+                        <p className="text-sm font-semibold text-[var(--color-text)]">{formatCurrency(stats.maintenanceCost)}</p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Bar Chart */}
+      {isVisible('top_trucks') && (
+        <Card className="transition-all duration-200" onClick={() => onNavigate('trucks')}>
           <CardContent className="p-6">
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-[var(--color-text)]">
-                  Gastos — Últimos 6 meses
+                  Top 5 — Custo por Veículo
                 </h3>
-                <p className="text-xs text-[var(--color-text-secondary)] mt-1">Evolução dos custos operacionais</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">Veículos com maior custo operacional — {periodLabel}</p>
               </div>
-              <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)]" />
             </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={monthlySpendingData}>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={topTrucksData}>
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={1} />
+                    <stop offset="100%" stopColor={CHART_COLORS.secondary} stopOpacity={1} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="month" stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
+                <XAxis dataKey="truck" stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
                 <YAxis stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} />
-                <Legend wrapperStyle={{ paddingTop: '16px', fontFamily: '"Inter"', fontSize: '12px' }} iconType="plainline" />
-                <Line type="monotone" dataKey="combustivel" name="Combustível" stroke={CHART_COLORS.accent} strokeWidth={2} dot={{ fill: CHART_COLORS.accent, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, stroke: CHART_COLORS.accent, strokeWidth: 2, fill: isDark ? '#0a0a0c' : '#fff' }} />
-                <Line type="monotone" dataKey="manutencao" name="Manutenção" stroke={CHART_COLORS.secondary} strokeWidth={2} dot={{ fill: CHART_COLORS.secondary, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, stroke: CHART_COLORS.secondary, strokeWidth: 2, fill: isDark ? '#0a0a0c' : '#fff' }} />
-              </LineChart>
+                <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} cursor={{ fill: isDark ? 'rgba(94,106,210,0.05)' : 'rgba(94,106,210,0.08)' }} />
+                <Bar dataKey="gasto" name="Gasto Total" fill="url(#barGradient)" radius={[4, 4, 0, 0]} maxBarSize={60} />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
-        {/* Pie Chart */}
-        <Card className="transition-all duration-200">
-          <CardContent className="p-6">
-            <div className="mb-6">
-              <h3 className="text-base font-semibold text-[var(--color-text)]">
-                Distribuição de Custos
-              </h3>
-              <p className="text-xs text-[var(--color-text-secondary)] mt-1">Combustível vs Manutenção</p>
-            </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie data={costDistributionData} cx="50%" cy="50%" labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={90} fill="#8884d8" dataKey="value" stroke={isDark ? '#0a0a0c' : '#fff'} strokeWidth={2}>
-                  {costDistributionData.map((entry, i) => (
-                    <Cell key={`cell-${i}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <Card className="!rounded-xl !p-0 cursor-pointer" onClick={() => onNavigate('fuel')}>
-                <div className="flex items-center gap-2.5 p-3">
-                  <Fuel className="h-4 w-4 text-[var(--color-accent)]" />
-                  <div>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Combustível</p>
-                    <p className="text-sm font-semibold text-[var(--color-text)]">{formatCurrency(stats.fuelCost)}</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="!rounded-xl !p-0 cursor-pointer" onClick={() => onNavigate('maintenance')}>
-                <div className="flex items-center gap-2.5 p-3">
-                  <Wrench className="h-4 w-4 text-[#8B5CF6]" />
-                  <div>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Manutenção</p>
-                    <p className="text-sm font-semibold text-[var(--color-text)]">{formatCurrency(stats.maintenanceCost)}</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bar Chart */}
-      <Card className="transition-all duration-200" onClick={() => onNavigate('trucks')}>
-        <CardContent className="p-6">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-semibold text-[var(--color-text)]">
-                Top 5 — Custo por Veículo
-              </h3>
-              <p className="text-xs text-[var(--color-text-secondary)] mt-1">Veículos com maior custo operacional</p>
-            </div>
-            <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)]" />
-          </div>
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={topTrucksData}>
-              <defs>
-                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={1} />
-                  <stop offset="100%" stopColor={CHART_COLORS.secondary} stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-              <XAxis dataKey="truck" stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
-              <YAxis stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} cursor={{ fill: isDark ? 'rgba(94,106,210,0.05)' : 'rgba(94,106,210,0.08)' }} />
-              <Bar dataKey="gasto" name="Gasto Total" fill="url(#barGradient)" radius={[4, 4, 0, 0]} maxBarSize={60} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      )}
     </div>
   );
 }

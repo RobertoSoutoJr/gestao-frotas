@@ -72,6 +72,41 @@ class TruckService {
     return { message: 'Caminhão deletado com sucesso' };
   }
 
+  async uploadFoto(id, file, userId) {
+    // Verify ownership
+    await this.getById(id, userId);
+
+    const ext = file.originalname.split('.').pop() || 'jpg';
+    const fileName = `trucks/${userId}/${id}_${Date.now()}.${ext}`;
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('fotos')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true
+      });
+
+    if (uploadError) throw new AppError('Falha ao fazer upload da foto', 500, uploadError);
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('fotos')
+      .getPublicUrl(fileName);
+
+    // Update truck with photo URL
+    const { data, error } = await supabase
+      .from('caminhoes')
+      .update({ foto_url: urlData.publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw new AppError('Falha ao atualizar caminhão com foto', 500, error);
+    return data;
+  }
+
   async updateMileage(id, newMileage, userId) {
     const truck = await this.getById(id, userId);
 

@@ -28,3 +28,11 @@ exports.delete = asyncHandler(async (req, res) => {
   const result = await truckService.delete(req.params.id, req.userId);
   res.json({ success: true, ...result });
 });
+
+exports.uploadFoto = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Nenhuma imagem enviada' });
+  }
+  const truck = await truckService.uploadFoto(req.params.id, req.file, req.userId);
+  res.json({ success: true, data: truck });
+});

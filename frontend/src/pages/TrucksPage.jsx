@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -10,7 +10,7 @@ import { FuelForm } from '../components/forms/FuelForm';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench } from 'lucide-react';
+import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench, Camera } from 'lucide-react';
 import { formatNumber } from '../lib/utils';
 import { trucksService } from '../services/trucks';
 import { useToast } from '../hooks/useToast';
@@ -18,6 +18,9 @@ import { useToast } from '../hooks/useToast';
 function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
+  const [fotoFile, setFotoFile] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState(truck.foto_url || null);
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     placa: truck.placa || '',
     modelo: truck.modelo || '',
@@ -25,6 +28,20 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
     km_atual: truck.km_atual || '',
     capacidade_silo_ton: truck.capacidade_silo_ton || ''
   });
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        error('Erro', 'A imagem deve ter no máximo 5MB');
+        return;
+      }
+      setFotoFile(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => setFotoPreview(ev.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,6 +56,16 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
       };
 
       await trucksService.update(truck.id, data);
+
+      // Upload photo if changed
+      if (fotoFile) {
+        try {
+          await trucksService.uploadFoto(truck.id, fotoFile);
+        } catch (err) {
+          console.error('Photo upload failed:', err);
+        }
+      }
+
       success('Sucesso!', 'Caminhão atualizado com sucesso');
       onSuccess?.();
       onClose();
@@ -60,39 +87,40 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Editar Caminhão">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Photo Upload */}
+        <div className="flex justify-center">
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="group relative flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:border-blue-500 dark:hover:bg-zinc-700"
+          >
+            {fotoPreview ? (
+              <>
+                <img src={fotoPreview} alt="Foto" className="h-full w-full object-cover" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                  <Camera className="h-6 w-6 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-1 text-zinc-400 group-hover:text-blue-500">
+                <Camera className="h-8 w-8" />
+                <span className="text-xs">Adicionar foto</span>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Input
-            name="placa"
-            label="Placa"
-            placeholder="ABC-1234"
-            value={formData.placa}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            name="modelo"
-            label="Modelo"
-            placeholder="Scania R450"
-            value={formData.modelo}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            name="ano"
-            label="Ano"
-            type="number"
-            placeholder="2023"
-            value={formData.ano}
-            onChange={handleChange}
-          />
-          <Input
-            name="km_atual"
-            label="Quilometragem Atual (km)"
-            type="number"
-            placeholder="50000"
-            value={formData.km_atual}
-            onChange={handleChange}
-          />
+          <Input name="placa" label="Placa" placeholder="ABC-1234" value={formData.placa} onChange={handleChange} required />
+          <Input name="modelo" label="Modelo" placeholder="Scania R450" value={formData.modelo} onChange={handleChange} required />
+          <Input name="ano" label="Ano" type="number" placeholder="2023" value={formData.ano} onChange={handleChange} />
+          <Input name="km_atual" label="Quilometragem Atual (km)" type="number" placeholder="50000" value={formData.km_atual} onChange={handleChange} />
           <Input
             name="capacidade_silo_ton"
             label="Capacidade do Silo (ton)"
@@ -105,21 +133,10 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
           />
         </div>
         <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="flex-1"
-            disabled={loading}
-          >
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            loading={loading}
-            className="flex-1"
-          >
+          <Button type="submit" variant="primary" loading={loading} className="flex-1">
             Salvar Alterações
           </Button>
         </div>
@@ -208,19 +225,11 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
             Frota ({filteredAndSortedTrucks.length} de {trucks.length})
           </h2>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
               <Filter className="mr-2 h-4 w-4" />
               {showFilters ? 'Ocultar Filtros' : 'Filtros'}
             </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowCreateForm(true)}
-            >
+            <Button variant="primary" size="sm" onClick={() => setShowCreateForm(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Cadastrar Caminhão
             </Button>
@@ -281,7 +290,17 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredAndSortedTrucks.map(truck => (
-              <Card key={truck.id} className="hover:shadow-md transition-shadow">
+              <Card key={truck.id} className="hover:shadow-md transition-shadow overflow-hidden">
+                {/* Truck Photo */}
+                {truck.foto_url ? (
+                  <div className="h-40 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                    <img src={truck.foto_url} alt={truck.placa} className="h-full w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="flex h-28 w-full items-center justify-center bg-zinc-100 dark:bg-zinc-800/50">
+                    <Truck className="h-12 w-12 text-zinc-300 dark:text-zinc-600" />
+                  </div>
+                )}
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>

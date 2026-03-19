@@ -10,11 +10,12 @@ import { Badge } from '../components/ui/Badge';
 import {
   Warehouse, Package, Factory, DollarSign, CheckCircle, Clock,
   Edit2, Trash2, Search, Filter, TrendingUp, AlertCircle, Plus,
-  MapPin, CreditCard, ArrowUpDown, Undo2, Receipt, ChevronDown, ChevronUp, X
+  MapPin, CreditCard, ArrowUpDown, Undo2, Receipt, ChevronDown, ChevronUp, X, Route
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { stockService } from '../services/stock';
 import { suppliersService } from '../services/suppliers';
+import { tripsService } from '../services/trips';
 import { useToast } from '../hooks/useToast';
 
 const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
@@ -484,16 +485,20 @@ export function StockPage({ onRefetch }) {
   const [sortOption, setSortOption] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [expandedItem, setExpandedItem] = useState(null);
+  const [trips, setTrips] = useState([]);
 
   const fetchData = async () => {
     try {
       setLoadingData(true);
-      const [stockRes, suppliersRes] = await Promise.all([
+      const [stockRes, suppliersRes, tripsRes] = await Promise.all([
         stockService.getAll(),
-        suppliersService.getAll()
+        suppliersService.getAll(),
+        tripsService.getAll()
       ]);
       setStock(stockRes.data || []);
       setSuppliers(suppliersRes.data || []);
+      setTrips(tripsRes.data || []);
     } catch (err) {
       error('Erro', 'Falha ao carregar dados');
     } finally {
@@ -595,8 +600,8 @@ export function StockPage({ onRefetch }) {
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-zinc-500">Total em Estoque</p>
-            <p className="text-xl font-bold text-[var(--color-text)]">{totalSacas.toLocaleString('pt-BR')} sc</p>
-            <p className="text-xs text-zinc-400">Restante: {totalSacasRestante.toLocaleString('pt-BR')} sc</p>
+            <p className="text-xl font-bold text-[var(--color-text)]">{totalSacasRestante.toLocaleString('pt-BR')} sc</p>
+            <p className="text-xs text-zinc-400">Comprado: {totalSacas.toLocaleString('pt-BR')} sc</p>
           </CardContent>
         </Card>
         <Card>
@@ -683,58 +688,66 @@ export function StockPage({ onRefetch }) {
               <Card key={item.id} className={`hover:shadow-md transition-shadow ${item.pago ? 'border-l-4 border-l-green-400' : saldo < Number(item.valor_total) && Number(item.valor_pago || 0) > 0 ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-red-400'}`}>
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
-                    {/* Silo Icon */}
-                    <div className="hidden shrink-0 sm:block">
-                      <SiloIcon percent={percentEstoque} size={70} />
-                    </div>
-
-                    <div className="flex-1 space-y-3">
-                      {/* Header */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={item.pago ? 'success' : percentPago > 0 ? 'warning' : 'danger'}>
-                          {item.pago ? 'Pago' : percentPago > 0 ? `Parcial (${Math.round(percentPago)}%)` : 'Pendente'}
-                        </Badge>
-                        {item.nota_fiscal && <span className="text-xs text-zinc-400">NF: {item.nota_fiscal}</span>}
-                        <span className="text-xs text-zinc-400">{formatDate(item.data_entrada || item.created_at)}</span>
-                        <DueDateBadge date={item.data_vencimento} />
+                    <div className="flex flex-1 cursor-pointer items-start gap-4" onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}>
+                      {/* Silo Icon */}
+                      <div className="hidden shrink-0 sm:block">
+                        <SiloIcon percent={percentEstoque} size={70} />
                       </div>
 
-                      {/* Product & Supplier */}
-                      <div>
-                        <h3 className="text-base font-semibold text-[var(--color-text)]">{item.produto}</h3>
-                        <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
-                          <span className="flex items-center gap-1">
-                            <Factory className="h-3 w-3" /> {item.fornecedores?.nome}
-                          </span>
-                          {item.localizacao && (
+                      <div className="flex-1 space-y-3">
+                        {/* Header */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant={item.pago ? 'success' : percentPago > 0 ? 'warning' : 'danger'}>
+                            {item.pago ? 'Pago' : percentPago > 0 ? `Parcial (${Math.round(percentPago)}%)` : 'Pendente'}
+                          </Badge>
+                          {item.nota_fiscal && <span className="text-xs text-zinc-400">NF: {item.nota_fiscal}</span>}
+                          <span className="text-xs text-zinc-400">{formatDate(item.data_entrada || item.created_at)}</span>
+                          <DueDateBadge date={item.data_vencimento} />
+                        </div>
+
+                        {/* Product & Supplier */}
+                        <div>
+                          <h3 className="text-base font-semibold text-[var(--color-text)]">{item.produto}</h3>
+                          <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
                             <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" /> {item.localizacao}
+                              <Factory className="h-3 w-3" /> {item.fornecedores?.nome}
                             </span>
-                          )}
-                          <span className="flex items-center gap-1">
-                            <Package className="h-3 w-3" />
-                            {Number(item.quantidade_sacas_restante).toLocaleString('pt-BR')}/{Number(item.quantidade_sacas).toLocaleString('pt-BR')} sc
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" /> {formatCurrency(item.preco_pago_saca)}/sc
-                          </span>
-                          {item.forma_pagamento && (
+                            {item.localizacao && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" /> {item.localizacao}
+                              </span>
+                            )}
                             <span className="flex items-center gap-1">
-                              <CreditCard className="h-3 w-3" /> {item.forma_pagamento}
+                              <Package className="h-3 w-3" />
+                              {Number(item.quantidade_sacas_restante).toLocaleString('pt-BR')}/{Number(item.quantidade_sacas).toLocaleString('pt-BR')} sc
                             </span>
+                            <span className="flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" /> {formatCurrency(item.preco_pago_saca)}/sc
+                            </span>
+                            {item.forma_pagamento && (
+                              <span className="flex items-center gap-1">
+                                <CreditCard className="h-3 w-3" /> {item.forma_pagamento}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Financial */}
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="font-semibold text-[var(--color-text)]">Total: {formatCurrency(item.valor_total)}</span>
+                          {!item.pago && (
+                            <>
+                              <span className="text-green-600">Pago: {formatCurrency(item.valor_pago || 0)}</span>
+                              <span className="font-medium text-red-600">Saldo: {formatCurrency(saldo)}</span>
+                            </>
                           )}
                         </div>
-                      </div>
 
-                      {/* Financial */}
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="font-semibold text-[var(--color-text)]">Total: {formatCurrency(item.valor_total)}</span>
-                        {!item.pago && (
-                          <>
-                            <span className="text-green-600">Pago: {formatCurrency(item.valor_pago || 0)}</span>
-                            <span className="font-medium text-red-600">Saldo: {formatCurrency(saldo)}</span>
-                          </>
-                        )}
+                        {/* Expand indicator */}
+                        <div className="flex items-center gap-1 text-xs text-[var(--color-accent)]">
+                          {expandedItem === item.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                          <span>{expandedItem === item.id ? 'Recolher' : 'Ver saídas'}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -756,6 +769,49 @@ export function StockPage({ onRefetch }) {
                       </Button>
                     </div>
                   </div>
+
+                  {/* Expanded trips section */}
+                  {expandedItem === item.id && (
+                    <div className="border-t border-zinc-200 dark:border-zinc-700 px-6 pb-4 pt-3">
+                      <h4 className="text-sm font-semibold text-[var(--color-text)] mb-2 flex items-center gap-2">
+                        <Route className="h-4 w-4" />
+                        Saídas (Viagens)
+                      </h4>
+                      {(() => {
+                        const itemTrips = trips.filter(t => t.estoque_id === item.id);
+                        if (itemTrips.length === 0) return (
+                          <p className="text-sm text-zinc-400">Nenhuma saída registrada para este estoque</p>
+                        );
+                        return (
+                          <div className="space-y-2">
+                            {itemTrips.map(t => (
+                              <div key={t.id} className="flex items-center justify-between rounded-lg bg-[var(--color-surface)] p-3 text-sm">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-[var(--color-text)]">{t.clientes?.nome || 'Cliente'}</span>
+                                    <Badge variant={t.status === 'finalizada' ? 'success' : 'warning'}>
+                                      {t.status === 'finalizada' ? 'Finalizada' : 'Em andamento'}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+                                    {t.caminhoes?.placa} · {t.motoristas?.nome} · {formatDate(t.created_at)}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold text-[var(--color-text)]">{Number(t.quantidade_sacas).toLocaleString('pt-BR')} sc</p>
+                                  <p className="text-xs text-[var(--color-text-secondary)]">{formatCurrency(t.valor_total_frete)} frete</p>
+                                </div>
+                              </div>
+                            ))}
+                            <div className="flex justify-between text-xs font-medium pt-1 border-t border-zinc-100 dark:border-zinc-700">
+                              <span className="text-[var(--color-text-secondary)]">Total saídas:</span>
+                              <span className="text-[var(--color-text)]">{itemTrips.reduce((s, t) => s + Number(t.quantidade_sacas), 0).toLocaleString('pt-BR')} sc</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
