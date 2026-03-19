@@ -8,6 +8,10 @@ router.get('/:id', stockController.getById);
 router.post('/', stockController.create);
 router.put('/:id', stockController.update);
 router.patch('/:id/pagar', stockController.markAsPaid);
+router.patch('/:id/toggle-pago', stockController.togglePaid);
+router.post('/:id/pagamento', stockController.makePartialPayment);
+router.get('/:id/pagamentos', stockController.getPaymentHistory);
+router.get('/:id/cheques', stockController.getCheques);
 router.delete('/:id', stockController.delete);
 
 module.exports = router;
