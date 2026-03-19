@@ -5,11 +5,11 @@ import { Select } from '../ui/Select';
 import { fuelService } from '../../services/fuel';
 import { useToast } from '../../hooks/useToast';
 
-export function FuelForm({ trucks, drivers, onSuccess }) {
+export function FuelForm({ trucks, drivers, onSuccess, preselectedTruckId }) {
   const [loading, setLoading] = useState(false);
   const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
-    caminhao_id: '',
+    caminhao_id: preselectedTruckId ? String(preselectedTruckId) : '',
     motorista_id: '',
     km_registro: '',
     litros: '',
@@ -70,6 +70,7 @@ export function FuelForm({ trucks, drivers, onSuccess }) {
           value={formData.caminhao_id}
           onChange={handleChange}
           required
+          disabled={!!preselectedTruckId}
         >
           <option value="">Selecione um caminhão</option>
           {trucks.map(truck => (

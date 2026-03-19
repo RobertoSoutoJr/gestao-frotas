@@ -16,11 +16,11 @@ const MAINTENANCE_TYPES = [
   'Outros'
 ];
 
-export function MaintenanceForm({ trucks, onSuccess }) {
+export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
   const [loading, setLoading] = useState(false);
   const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
-    caminhao_id: '',
+    caminhao_id: preselectedTruckId ? String(preselectedTruckId) : '',
     descricao: '',
     tipo_manutencao: 'Preventiva',
     valor_total: '',
@@ -77,6 +77,7 @@ export function MaintenanceForm({ trucks, onSuccess }) {
           value={formData.caminhao_id}
           onChange={handleChange}
           required
+          disabled={!!preselectedTruckId}
         >
           <option value="">Selecione um caminhão</option>
           {trucks.map(truck => (

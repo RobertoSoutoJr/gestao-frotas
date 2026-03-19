@@ -71,7 +71,7 @@ function AuthenticatedContent() {
           />
         )}
         {activeTab === 'trucks' && (
-          <TrucksPage trucks={trucks} onRefetch={handleRefetch} />
+          <TrucksPage trucks={trucks} drivers={drivers} onRefetch={handleRefetch} />
         )}
         {activeTab === 'drivers' && (
           <DriversPage drivers={drivers} onRefetch={handleRefetch} />

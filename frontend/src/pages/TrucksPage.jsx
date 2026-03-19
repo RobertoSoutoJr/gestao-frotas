@@ -6,9 +6,11 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { TruckForm } from '../components/forms/TruckForm';
+import { FuelForm } from '../components/forms/FuelForm';
+import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Truck, Gauge, Edit2, Trash2, Search, Filter } from 'lucide-react';
+import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench } from 'lucide-react';
 import { formatNumber } from '../lib/utils';
 import { trucksService } from '../services/trucks';
 import { useToast } from '../hooks/useToast';
@@ -126,7 +128,7 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
   );
 }
 
-export function TrucksPage({ trucks, onRefetch }) {
+export function TrucksPage({ trucks, drivers, onRefetch }) {
   const { success, error } = useToast();
   const [editingTruck, setEditingTruck] = useState(null);
   const [deletingTruck, setDeletingTruck] = useState(null);
@@ -134,6 +136,9 @@ export function TrucksPage({ trucks, onRefetch }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('placa');
   const [showFilters, setShowFilters] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [fuelingTruck, setFuelingTruck] = useState(null);
+  const [maintainingTruck, setMaintainingTruck] = useState(null);
 
   const filteredAndSortedTrucks = useMemo(() => {
     let filtered = trucks.filter(truck => {
@@ -145,7 +150,6 @@ export function TrucksPage({ trucks, onRefetch }) {
       );
     });
 
-    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'placa':
@@ -181,30 +185,46 @@ export function TrucksPage({ trucks, onRefetch }) {
     }
   };
 
+  const handleFuelSuccess = () => {
+    onRefetch?.();
+    setFuelingTruck(null);
+  };
+
+  const handleMaintenanceSuccess = () => {
+    onRefetch?.();
+    setMaintainingTruck(null);
+  };
+
+  const handleCreateSuccess = () => {
+    onRefetch?.();
+    setShowCreateForm(false);
+  };
+
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Cadastrar Novo Caminhão</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TruckForm onSuccess={onRefetch} />
-        </CardContent>
-      </Card>
-
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold text-[var(--color-text)]">
             Frota ({filteredAndSortedTrucks.length} de {trucks.length})
           </h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="mr-2 h-4 w-4" />
-            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowCreateForm(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Cadastrar Caminhão
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
@@ -240,6 +260,12 @@ export function TrucksPage({ trucks, onRefetch }) {
                 title="Nenhum caminhão cadastrado"
                 description="Comece adicionando seu primeiro caminhão à frota"
               />
+              <div className="mt-4 flex justify-center">
+                <Button variant="primary" onClick={() => setShowCreateForm(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Cadastrar Caminhão
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : filteredAndSortedTrucks.length === 0 ? (
@@ -289,7 +315,30 @@ export function TrucksPage({ trucks, onRefetch }) {
                     )}
                   </div>
 
-                  <div className="mt-4 flex gap-2">
+                  {/* Action buttons: Fuel & Maintenance */}
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFuelingTruck(truck)}
+                      className="text-amber-500 border-amber-500/30 hover:bg-amber-500/10"
+                    >
+                      <Fuel className="mr-1.5 h-4 w-4" />
+                      Abastecer
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMaintainingTruck(truck)}
+                      className="text-purple-400 border-purple-400/30 hover:bg-purple-400/10"
+                    >
+                      <Wrench className="mr-1.5 h-4 w-4" />
+                      Manutenção
+                    </Button>
+                  </div>
+
+                  {/* Edit & Delete */}
+                  <div className="mt-2 flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -315,6 +364,34 @@ export function TrucksPage({ trucks, onRefetch }) {
           </div>
         )}
       </div>
+
+      {/* Modal: Cadastrar Caminhão */}
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Caminhão">
+        <TruckForm onSuccess={handleCreateSuccess} />
+      </Modal>
+
+      {/* Modal: Abastecer */}
+      {fuelingTruck && (
+        <Modal isOpen={!!fuelingTruck} onClose={() => setFuelingTruck(null)} title={`Abastecer — ${fuelingTruck.placa}`}>
+          <FuelForm
+            trucks={[fuelingTruck]}
+            drivers={drivers || []}
+            onSuccess={handleFuelSuccess}
+            preselectedTruckId={fuelingTruck.id}
+          />
+        </Modal>
+      )}
+
+      {/* Modal: Manutenção */}
+      {maintainingTruck && (
+        <Modal isOpen={!!maintainingTruck} onClose={() => setMaintainingTruck(null)} title={`Manutenção — ${maintainingTruck.placa}`}>
+          <MaintenanceForm
+            trucks={[maintainingTruck]}
+            onSuccess={handleMaintenanceSuccess}
+            preselectedTruckId={maintainingTruck.id}
+          />
+        </Modal>
+      )}
 
       {editingTruck && (
         <EditTruckModal

@@ -7,7 +7,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ClientForm } from '../components/forms/ClientForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Building2, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter } from 'lucide-react';
+import { Building2, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus } from 'lucide-react';
 import { clientsService } from '../services/clients';
 import { useToast } from '../hooks/useToast';
 
@@ -83,6 +83,7 @@ export function ClientsPage({ clients, onRefetch }) {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const filteredClients = useMemo(() => {
     return clients.filter(c => {
@@ -111,26 +112,28 @@ export function ClientsPage({ clients, onRefetch }) {
     }
   };
 
+  const handleCreateSuccess = () => {
+    onRefetch?.();
+    setShowCreateForm(false);
+  };
+
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Cadastrar Novo Cliente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ClientForm onSuccess={onRefetch} />
-        </CardContent>
-      </Card>
-
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">
             Clientes ({filteredClients.length} de {clients.length})
           </h2>
-          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
-            <Filter className="mr-2 h-4 w-4" />
-            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+              <Filter className="mr-2 h-4 w-4" />
+              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => setShowCreateForm(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Cadastrar Cliente
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
@@ -203,6 +206,11 @@ export function ClientsPage({ clients, onRefetch }) {
           </div>
         )}
       </div>
+
+      {/* Modal: Cadastrar Cliente */}
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Cliente" size="lg">
+        <ClientForm onSuccess={handleCreateSuccess} />
+      </Modal>
 
       {editingClient && (
         <EditClientModal client={editingClient} isOpen={!!editingClient} onClose={() => setEditingClient(null)} onSuccess={onRefetch} />

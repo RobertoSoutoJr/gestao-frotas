@@ -8,7 +8,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Wrench, Truck, Calendar, DollarSign, Edit2, Trash2, Search, Filter } from 'lucide-react';
+import { Wrench, Truck, Calendar, DollarSign, Edit2, Trash2, Search, Filter, Plus } from 'lucide-react';
 import { formatNumber, formatCurrency } from '../lib/utils';
 import { maintenanceService } from '../services/maintenance';
 import { useToast } from '../hooks/useToast';
@@ -191,6 +191,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
   const [filterType, setFilterType] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const getTruckName = (caminhaoId) => {
     const truck = trucks.find(t => t.id === caminhaoId);
@@ -274,6 +275,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
   const handleSuccess = () => {
     loadMaintenanceRecords();
     onRefetch?.();
+    setShowCreateForm(false);
   };
 
   const handleDelete = async () => {
@@ -295,36 +297,30 @@ export function MaintenancePage({ trucks, onRefetch }) {
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Registrar Manutenção</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {trucks.length === 0 ? (
-            <EmptyState
-              icon={Wrench}
-              title="Nenhum caminhão disponível"
-              description="Cadastre pelo menos um caminhão antes de adicionar registros de manutenção"
-            />
-          ) : (
-            <MaintenanceForm trucks={trucks} onSuccess={handleSuccess} />
-          )}
-        </CardContent>
-      </Card>
-
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold text-[var(--color-text)]">
-            Histórico ({filteredMaintenanceRecords.length} de {maintenanceRecords.length})
+            Manutenções ({filteredMaintenanceRecords.length} de {maintenanceRecords.length})
           </h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="mr-2 h-4 w-4" />
-            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowCreateForm(true)}
+              disabled={trucks.length === 0}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Registrar Manutenção
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
@@ -482,6 +478,11 @@ export function MaintenancePage({ trucks, onRefetch }) {
           </div>
         )}
       </div>
+
+      {/* Modal: Registrar Manutenção */}
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Manutenção">
+        <MaintenanceForm trucks={trucks} onSuccess={handleSuccess} />
+      </Modal>
 
       {editingMaintenance && (
         <EditMaintenanceModal

@@ -8,7 +8,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { FuelForm } from '../components/forms/FuelForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown } from 'lucide-react';
+import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown, Plus } from 'lucide-react';
 import { formatNumber, formatCurrency } from '../lib/utils';
 import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
@@ -252,6 +252,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
   const [filterTruck, setFilterTruck] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const getTruckName = (caminhaoId) => {
     const truck = trucks.find(t => t.id === caminhaoId);
@@ -335,6 +336,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
   const handleSuccess = () => {
     loadFuelRecords();
     onRefetch?.();
+    setShowCreateForm(false);
   };
 
   const handleDelete = async () => {
@@ -356,36 +358,30 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Registrar Abastecimento</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {trucks.length === 0 || drivers.length === 0 ? (
-            <EmptyState
-              icon={Fuel}
-              title="Dados faltando"
-              description="Você precisa cadastrar pelo menos um caminhão e um motorista antes de adicionar registros de abastecimento"
-            />
-          ) : (
-            <FuelForm trucks={trucks} drivers={drivers} onSuccess={handleSuccess} />
-          )}
-        </CardContent>
-      </Card>
-
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold text-[var(--color-text)]">
-            Histórico ({filteredFuelRecords.length} de {fuelRecords.length})
+            Abastecimentos ({filteredFuelRecords.length} de {fuelRecords.length})
           </h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="mr-2 h-4 w-4" />
-            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowCreateForm(true)}
+              disabled={trucks.length === 0 || drivers.length === 0}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Registrar Abastecimento
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
@@ -543,6 +539,11 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
           </div>
         )}
       </div>
+
+      {/* Modal: Registrar Abastecimento */}
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Abastecimento">
+        <FuelForm trucks={trucks} drivers={drivers} onSuccess={handleSuccess} />
+      </Modal>
 
       {editingFuel && (
         <EditFuelModal
