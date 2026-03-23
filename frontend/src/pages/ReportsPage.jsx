@@ -454,97 +454,46 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
         </div>
       </div>
 
-      {/* Registros Detalhados (quando filtrado por caminhão) */}
-      {selectedTruck !== 'all' && (
-        <div className="space-y-6">
-          {/* Abastecimentos Detalhados */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FuelIcon className="h-5 w-5 text-amber-400" />
-                Abastecimentos Detalhados ({filteredData.filteredFuel.length})
-              </CardTitle>
-              <CardDescription>Registros individuais de abastecimento</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredData.filteredFuel.length === 0 ? (
-                <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhum abastecimento encontrado no período</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-[var(--color-border)]">
-                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
-                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Posto</th>
-                        <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Litros</th>
-                        <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Preço/L</th>
-                        <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Total</th>
-                        <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredData.filteredFuel
-                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                        .map(record => (
+      {/* Registros Detalhados */}
+      <div className="space-y-6">
+        {/* Manutenções Detalhadas (aparece primeiro) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wrench className="h-5 w-5 text-red-400" />
+              Manutenções Detalhadas ({filteredData.filteredMaintenance.length})
+            </CardTitle>
+            <CardDescription>Registros individuais de manutenção</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {filteredData.filteredMaintenance.length === 0 ? (
+              <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhuma manutenção encontrada no período</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)]">
+                      {selectedTruck === 'all' && (
+                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
+                      )}
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Descrição</th>
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Oficina</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Custo</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.filteredMaintenance
+                      .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
+                      .map(record => {
+                      const truckInfo = trucks.find(t => t.id === record.caminhao_id);
+                      return (
                         <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
-                          <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.created_at)}</td>
-                          <td className="px-3 py-2 text-[var(--color-text)]">{record.posto || '-'}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatNumber(record.litros, 2)}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatCurrency(record.preco_litro)}</td>
-                          <td className="px-3 py-2 text-right font-medium text-amber-500">{formatCurrency(record.valor_total)}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_atual ? formatNumber(record.km_atual, 0) : '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t-2 border-[var(--color-border)]">
-                        <td colSpan="2" className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
-                        <td className="px-3 py-2 text-right font-semibold text-[var(--color-text)]">
-                          {formatNumber(filteredData.filteredFuel.reduce((s, r) => s + Number(r.litros || 0), 0), 2)}
-                        </td>
-                        <td className="px-3 py-2"></td>
-                        <td className="px-3 py-2 text-right font-bold text-amber-500">
-                          {formatCurrency(filteredData.filteredFuel.reduce((s, r) => s + Number(r.valor_total || 0), 0))}
-                        </td>
-                        <td className="px-3 py-2"></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Manutenções Detalhadas */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wrench className="h-5 w-5 text-red-400" />
-                Manutenções Detalhadas ({filteredData.filteredMaintenance.length})
-              </CardTitle>
-              <CardDescription>Registros individuais de manutenção</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredData.filteredMaintenance.length === 0 ? (
-                <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhuma manutenção encontrada no período</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-[var(--color-border)]">
-                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
-                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
-                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Descrição</th>
-                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Oficina</th>
-                        <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Custo</th>
-                        <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredData.filteredMaintenance
-                        .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
-                        .map(record => (
-                        <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
+                          {selectedTruck === 'all' && (
+                            <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>
+                          )}
                           <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.data_manutencao)}</td>
                           <td className="px-3 py-2">
                             <Badge variant={record.tipo === 'preventiva' ? 'success' : 'warning'}>
@@ -556,24 +505,91 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                           <td className="px-3 py-2 text-right font-medium text-red-500">{formatCurrency(record.valor_total || record.custo)}</td>
                           <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_atual ? formatNumber(record.km_atual, 0) : '-'}</td>
                         </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t-2 border-[var(--color-border)]">
-                        <td colSpan="4" className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
-                        <td className="px-3 py-2 text-right font-bold text-red-500">
-                          {formatCurrency(filteredData.filteredMaintenance.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0))}
-                        </td>
-                        <td className="px-3 py-2"></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-[var(--color-border)]">
+                      <td colSpan={selectedTruck === 'all' ? 5 : 4} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
+                      <td className="px-3 py-2 text-right font-bold text-red-500">
+                        {formatCurrency(filteredData.filteredMaintenance.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0))}
+                      </td>
+                      <td className="px-3 py-2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Abastecimentos Detalhados */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FuelIcon className="h-5 w-5 text-amber-400" />
+              Abastecimentos Detalhados ({filteredData.filteredFuel.length})
+            </CardTitle>
+            <CardDescription>Registros individuais de abastecimento</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {filteredData.filteredFuel.length === 0 ? (
+              <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhum abastecimento encontrado no período</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)]">
+                      {selectedTruck === 'all' && (
+                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
+                      )}
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Posto</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Litros</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Preço/L</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Total</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.filteredFuel
+                      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                      .map(record => {
+                      const truckInfo = trucks.find(t => t.id === record.caminhao_id);
+                      return (
+                        <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
+                          {selectedTruck === 'all' && (
+                            <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>
+                          )}
+                          <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.created_at)}</td>
+                          <td className="px-3 py-2 text-[var(--color-text)]">{record.posto || '-'}</td>
+                          <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatNumber(record.litros, 2)}</td>
+                          <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatCurrency(record.preco_litro)}</td>
+                          <td className="px-3 py-2 text-right font-medium text-amber-500">{formatCurrency(record.valor_total)}</td>
+                          <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_atual ? formatNumber(record.km_atual, 0) : '-'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-[var(--color-border)]">
+                      <td colSpan={selectedTruck === 'all' ? 3 : 2} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
+                      <td className="px-3 py-2 text-right font-semibold text-[var(--color-text)]">
+                        {formatNumber(filteredData.filteredFuel.reduce((s, r) => s + Number(r.litros || 0), 0), 2)}
+                      </td>
+                      <td className="px-3 py-2"></td>
+                      <td className="px-3 py-2 text-right font-bold text-amber-500">
+                        {formatCurrency(filteredData.filteredFuel.reduce((s, r) => s + Number(r.valor_total || 0), 0))}
+                      </td>
+                      <td className="px-3 py-2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

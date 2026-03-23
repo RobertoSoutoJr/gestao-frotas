@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -10,10 +10,105 @@ import { FuelForm } from '../components/forms/FuelForm';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench, Camera } from 'lucide-react';
-import { formatNumber } from '../lib/utils';
+import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench, Camera, Calendar, DollarSign, ChevronRight } from 'lucide-react';
+import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { trucksService } from '../services/trucks';
+import { fuelService } from '../services/fuel';
+import { maintenanceService } from '../services/maintenance';
 import { useToast } from '../hooks/useToast';
+
+function TruckDetailModal({ truck, isOpen, onClose }) {
+  const [fuelRecords, setFuelRecords] = useState([]);
+  const [maintenanceRecords, setMaintenanceRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isOpen || !truck) return;
+    setLoading(true);
+    Promise.all([
+      fuelService.getAll().then(r => r.data || []).catch(() => []),
+      maintenanceService.getAll().then(r => r.data || []).catch(() => [])
+    ]).then(([fuel, maint]) => {
+      setFuelRecords(fuel.filter(r => r.caminhao_id === truck.id).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10));
+      setMaintenanceRecords(maint.filter(r => r.caminhao_id === truck.id).sort((a, b) => new Date(b.data_manutencao || b.created_at) - new Date(a.data_manutencao || a.created_at)).slice(0, 10));
+      setLoading(false);
+    });
+  }, [isOpen, truck]);
+
+  if (!truck) return null;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={`${truck.placa} — ${truck.modelo}`} size="lg">
+      {loading ? (
+        <p className="py-8 text-center text-[var(--color-text-secondary)]">Carregando...</p>
+      ) : (
+        <div className="space-y-6">
+          {/* Truck info */}
+          <div className="flex items-center gap-4">
+            {truck.foto_url ? (
+              <img src={truck.foto_url} alt={truck.placa} className="h-16 w-16 rounded-xl object-cover" />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                <Truck className="h-8 w-8 text-zinc-400" />
+              </div>
+            )}
+            <div>
+              <p className="text-lg font-bold text-[var(--color-text)]">{truck.placa}</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{truck.modelo} {truck.ano ? `• ${truck.ano}` : ''}</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{formatNumber(truck.km_atual || 0, 0)} km</p>
+            </div>
+          </div>
+
+          {/* Últimos Abastecimentos */}
+          <div>
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--color-text)]">
+              <Fuel className="h-4 w-4 text-amber-400" />
+              Últimos Abastecimentos ({fuelRecords.length})
+            </h3>
+            {fuelRecords.length === 0 ? (
+              <p className="rounded-lg bg-[var(--color-surface)] p-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhum abastecimento registrado</p>
+            ) : (
+              <div className="space-y-2">
+                {fuelRecords.map(r => (
+                  <div key={r.id} className="flex items-center justify-between rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-3">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--color-text)]">{formatNumber(r.litros, 1)} L — {r.posto || 'Sem posto'}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">{formatDate(r.created_at)}</p>
+                    </div>
+                    <p className="font-semibold text-amber-500">{formatCurrency(r.valor_total)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Últimas Manutenções */}
+          <div>
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--color-text)]">
+              <Wrench className="h-4 w-4 text-red-400" />
+              Últimas Manutenções ({maintenanceRecords.length})
+            </h3>
+            {maintenanceRecords.length === 0 ? (
+              <p className="rounded-lg bg-[var(--color-surface)] p-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhuma manutenção registrada</p>
+            ) : (
+              <div className="space-y-2">
+                {maintenanceRecords.map(r => (
+                  <div key={r.id} className="flex items-center justify-between rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-3">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--color-text)]">{r.tipo_manutencao} — {r.descricao}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">{formatDate(r.data_manutencao || r.created_at)}</p>
+                    </div>
+                    <p className="font-semibold text-red-400">{formatCurrency(r.valor_total)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
 
 function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -156,6 +251,7 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [fuelingTruck, setFuelingTruck] = useState(null);
   const [maintainingTruck, setMaintainingTruck] = useState(null);
+  const [detailTruck, setDetailTruck] = useState(null);
 
   const filteredAndSortedTrucks = useMemo(() => {
     let filtered = trucks.filter(truck => {
@@ -291,48 +387,56 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredAndSortedTrucks.map(truck => (
               <Card key={truck.id} className="hover:shadow-md transition-shadow overflow-hidden">
-                {/* Truck Photo */}
-                {truck.foto_url ? (
-                  <div className="h-40 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                    <img src={truck.foto_url} alt={truck.placa} className="h-full w-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="flex h-20 sm:h-28 w-full items-center justify-center bg-zinc-100 dark:bg-zinc-800/50">
-                    <Truck className="h-12 w-12 text-zinc-300 dark:text-zinc-600" />
-                  </div>
-                )}
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-[var(--color-text)]">
-                        {truck.placa}
-                      </h3>
-                      <p className="text-sm text-[var(--color-text-secondary)]">
-                        {truck.modelo}
-                      </p>
+                {/* Clickable area: photo + info */}
+                <div className="cursor-pointer" onClick={() => setDetailTruck(truck)}>
+                  {/* Truck Photo */}
+                  {truck.foto_url ? (
+                    <div className="h-40 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                      <img src={truck.foto_url} alt={truck.placa} className="h-full w-full object-cover" />
                     </div>
-                    {truck.ano && (
-                      <Badge variant="default">{truck.ano}</Badge>
-                    )}
-                  </div>
-
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Gauge className="h-4 w-4 text-[var(--color-text-secondary)]" />
-                      <span className="font-medium text-[var(--color-text)]">
-                        {formatNumber(truck.km_atual || 0, 0)} km
-                      </span>
+                  ) : (
+                    <div className="flex h-20 sm:h-28 w-full items-center justify-center bg-zinc-100 dark:bg-zinc-800/50">
+                      <Truck className="h-12 w-12 text-zinc-300 dark:text-zinc-600" />
+                    </div>
+                  )}
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-[var(--color-text)]">
+                          {truck.placa}
+                        </h3>
+                        <p className="text-sm text-[var(--color-text-secondary)]">
+                          {truck.modelo}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {truck.ano && (
+                          <Badge variant="default">{truck.ano}</Badge>
+                        )}
+                        <ChevronRight className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                      </div>
                     </div>
 
-                    {truck.capacidade_silo_ton && (
+                    <div className="mt-4 space-y-2">
                       <div className="flex items-center gap-2 text-sm">
-                        <Truck className="h-4 w-4 text-[var(--color-text-secondary)]" />
-                        <span className="text-[var(--color-text-secondary)]">
-                          Capacidade: {formatNumber(truck.capacidade_silo_ton)} tons
+                        <Gauge className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                        <span className="font-medium text-[var(--color-text)]">
+                          {formatNumber(truck.km_atual || 0, 0)} km
                         </span>
                       </div>
-                    )}
+
+                      {truck.capacidade_silo_ton && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Truck className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                          <span className="text-[var(--color-text-secondary)]">
+                            Capacidade: {formatNumber(truck.capacidade_silo_ton)} tons
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
+                </div>
+                <CardContent className="px-6 pb-6 pt-2">
 
                   {/* Action buttons: Fuel & Maintenance */}
                   <div className="mt-4 grid grid-cols-2 gap-2">
@@ -411,6 +515,13 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
           />
         </Modal>
       )}
+
+      {/* Modal: Detalhamento */}
+      <TruckDetailModal
+        truck={detailTruck}
+        isOpen={!!detailTruck}
+        onClose={() => setDetailTruck(null)}
+      />
 
       {editingTruck && (
         <EditTruckModal
