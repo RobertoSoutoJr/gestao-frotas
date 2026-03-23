@@ -52,6 +52,17 @@ html:not(.dark) {
 /* ── Global Base ── */
 * {
   scrollbar-width: thin;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@supports (min-height: 100dvh) {
+  html {
+    min-height: 100dvh;
+  }
 }
 
 .dark * {
@@ -75,6 +86,27 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ── Mobile touch optimization ── */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* ── Safe area utility ── */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 /* ── Ambient Gradient Background ── */
@@ -185,6 +217,15 @@ html:not(.dark) .linear-grid {
     animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   @keyframes slide-in-from-right {
     from { transform: translateX(calc(100% + 1rem)); opacity: 0; }
     to   { transform: translateX(0); opacity: 1; }
@@ -264,5 +305,9 @@ html:not(.dark) select {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }

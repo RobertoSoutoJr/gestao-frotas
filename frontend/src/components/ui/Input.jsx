@@ -69,7 +69,7 @@ export function Input({
         <input
           type={type}
           className={cn(
-            'w-full rounded-lg border bg-[var(--color-input-bg)] px-3 py-2.5 text-sm text-[var(--color-text)]',
+            'w-full rounded-lg border bg-[var(--color-input-bg)] px-3 py-2.5 text-base sm:text-sm text-[var(--color-text)] min-h-[44px] sm:min-h-0 touch-manipulation',
             'placeholder:text-[var(--color-text-secondary)]/50',
             'transition-all duration-200',
             'focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 focus:border-[var(--color-accent)]',

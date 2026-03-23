@@ -596,7 +596,7 @@ export function StockPage({ onRefetch }) {
   return (
     <div className="space-y-8">
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-zinc-500">Total em Estoque</p>
@@ -687,11 +687,11 @@ export function StockPage({ onRefetch }) {
             return (
               <Card key={item.id} className={`hover:shadow-md transition-shadow ${item.pago ? 'border-l-4 border-l-green-400' : saldo < Number(item.valor_total) && Number(item.valor_pago || 0) > 0 ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-red-400'}`}>
                 <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex flex-1 cursor-pointer items-start gap-4" onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}>
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    <div className="flex flex-1 cursor-pointer flex-col sm:flex-row items-center sm:items-start gap-4" onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}>
                       {/* Silo Icon */}
-                      <div className="hidden shrink-0 sm:block">
-                        <SiloIcon percent={percentEstoque} size={70} />
+                      <div className="shrink-0">
+                        <SiloIcon percent={percentEstoque} size={56} />
                       </div>
 
                       <div className="flex-1 space-y-3">
@@ -752,7 +752,7 @@ export function StockPage({ onRefetch }) {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex shrink-0 flex-col gap-2">
+                    <div className="flex shrink-0 flex-row flex-wrap gap-2 sm:flex-col">
                       {!item.pago && (
                         <Button variant="success" size="sm" onClick={() => setPayingItem(item)}>
                           <DollarSign className="mr-1 h-4 w-4" /> Pagar
@@ -772,7 +772,7 @@ export function StockPage({ onRefetch }) {
 
                   {/* Expanded trips section */}
                   {expandedItem === item.id && (
-                    <div className="border-t border-zinc-200 dark:border-zinc-700 px-6 pb-4 pt-3">
+                    <div className="overflow-x-auto border-t border-zinc-200 dark:border-zinc-700 px-2 sm:px-6 pb-4 pt-3">
                       <h4 className="text-sm font-semibold text-[var(--color-text)] mb-2 flex items-center gap-2">
                         <Route className="h-4 w-4" />
                         Saídas (Viagens)

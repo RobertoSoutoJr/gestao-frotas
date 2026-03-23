@@ -15,13 +15,13 @@ function StatCard({ title, value, icon: Icon, color, subtitle, onClick }) {
       className="relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-200"
       onClick={onClick}
     >
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between">
-          <div className="space-y-1.5 flex-1">
-            <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+          <div className="space-y-1 sm:space-y-1.5 flex-1">
+            <p className="text-[10px] sm:text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
               {title}
             </p>
-            <p className="text-2xl font-bold text-[var(--color-text)]">
+            <p className="text-lg sm:text-2xl font-bold text-[var(--color-text)]">
               {value}
             </p>
             {subtitle && (
@@ -29,7 +29,7 @@ function StatCard({ title, value, icon: Icon, color, subtitle, onClick }) {
             )}
           </div>
           <div
-            className="flex h-11 w-11 items-center justify-center rounded-xl"
+            className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl"
             style={{ backgroundColor: `${color}18` }}
           >
             <Icon className="h-5 w-5" style={{ color }} />
@@ -304,9 +304,9 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">
             Dashboard
           </h1>
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
@@ -335,7 +335,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
                 <button
                   key={opt.value}
                   onClick={() => setPeriod(opt.value)}
-                  className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 rounded-lg px-2 py-1.5 text-xs sm:px-3 sm:py-2 sm:text-sm font-medium transition-all duration-200 ${
                     prefs.period === opt.value
                       ? 'bg-[var(--color-accent)] text-white shadow-sm'
                       : 'bg-[var(--color-bg)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] border border-[var(--color-border)]'
@@ -412,7 +412,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
 
       {/* Main Stats Grid */}
       {isVisible('main_stats') && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
             title="Caminhões Ativos"
             value={stats.activeTrucks}
@@ -450,7 +450,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
 
       {/* Operations Stats */}
       {isVisible('operations') && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
             title="Clientes"
             value={stats.totalClients}
@@ -539,17 +539,18 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
           {/* Line Chart */}
           {isVisible('spending_chart') && (
             <Card className="transition-all duration-200" onClick={() => onNavigate('reports')}>
-              <CardContent className="p-6">
-                <div className="mb-6 flex items-center justify-between">
+              <CardContent className="p-4 sm:p-6">
+                <div className="mb-4 sm:mb-6 flex items-center justify-between">
                   <div>
-                    <h3 className="text-base font-semibold text-[var(--color-text)]">
+                    <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
                       {spendingChartTitle}
                     </h3>
                     <p className="text-xs text-[var(--color-text-secondary)] mt-1">Evolução dos custos operacionais</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <ResponsiveContainer width="100%" height={280}>
+                <div className="h-[200px] sm:h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={spendingChartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                     <XAxis dataKey="month" stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
@@ -560,6 +561,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
                     <Line type="monotone" dataKey="manutencao" name="Manutenção" stroke={CHART_COLORS.secondary} strokeWidth={2} dot={{ fill: CHART_COLORS.secondary, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, stroke: CHART_COLORS.secondary, strokeWidth: 2, fill: isDark ? '#0a0a0c' : '#fff' }} />
                   </LineChart>
                 </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -567,14 +569,15 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
           {/* Pie Chart */}
           {isVisible('cost_distribution') && (
             <Card className="transition-all duration-200">
-              <CardContent className="p-6">
-                <div className="mb-6">
-                  <h3 className="text-base font-semibold text-[var(--color-text)]">
+              <CardContent className="p-4 sm:p-6">
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
                     Distribuição de Custos
                   </h3>
                   <p className="text-xs text-[var(--color-text-secondary)] mt-1">Combustível vs Manutenção — {periodLabel}</p>
                 </div>
-                <ResponsiveContainer width="100%" height={280}>
+                <div className="h-[200px] sm:h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={costDistributionData} cx="50%" cy="50%" labelLine={false}
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
@@ -586,6 +589,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
                     <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} />
                   </PieChart>
                 </ResponsiveContainer>
+                </div>
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <Card className="!rounded-xl !p-0 cursor-pointer" onClick={() => onNavigate('fuel')}>
                     <div className="flex items-center gap-2.5 p-3">
@@ -625,7 +629,8 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
               </div>
               <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)]" />
             </div>
-            <ResponsiveContainer width="100%" height={320}>
+            <div className="h-[220px] sm:h-[320px]">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topTrucksData}>
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -640,6 +645,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
                 <Bar dataKey="gasto" name="Gasto Total" fill="url(#barGradient)" radius={[4, 4, 0, 0]} maxBarSize={60} />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       )}

@@ -11,8 +11,8 @@ export function Select({ className, error, label, children, ...props }) {
       )}
       <select
         className={cn(
-          'flex h-10 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-input-bg)] px-3 py-2',
-          'text-sm text-[var(--color-text)]',
+          'flex min-h-[44px] sm:min-h-0 sm:h-10 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-input-bg)] px-3 py-2',
+          'text-base sm:text-sm text-[var(--color-text)] touch-manipulation',
           'focus-visible:outline-none focus-visible:border-[var(--color-accent)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/20',
           'disabled:cursor-not-allowed disabled:opacity-40',
           'transition-all duration-200 cursor-pointer',

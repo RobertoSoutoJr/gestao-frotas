@@ -179,7 +179,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
       {/* Produto e Valores */}
       <div>
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Produto e Valores</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Select label="Produto" value={produtoTipo} onChange={(e) => setProdutoTipo(e.target.value)} required>
             <option value="">Selecione o produto</option>
             {PRODUTOS_OPCOES.map(p => <option key={p} value={p}>{p}</option>)}
@@ -383,23 +383,23 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   return (
     <div className="space-y-8">
       {/* KPIs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-sm text-zinc-500">Em Andamento</p>
-            <p className="text-2xl font-bold text-amber-600">{totalCadastradas}</p>
+            <p className="text-xs sm:text-sm text-zinc-500">Em Andamento</p>
+            <p className="text-xl sm:text-2xl font-bold text-amber-600">{totalCadastradas}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-sm text-zinc-500">Finalizadas</p>
-            <p className="text-2xl font-bold text-green-600">{totalFinalizadas}</p>
+            <p className="text-xs sm:text-sm text-zinc-500">Finalizadas</p>
+            <p className="text-xl sm:text-2xl font-bold text-green-600">{totalFinalizadas}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-sm text-zinc-500">Total Frete (Finalizadas)</p>
-            <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalFrete)}</p>
+            <p className="text-xs sm:text-sm text-zinc-500">Total Frete</p>
+            <p className="text-xl sm:text-2xl font-bold text-blue-600">{formatCurrency(totalFrete)}</p>
           </CardContent>
         </Card>
       </div>
@@ -453,10 +453,10 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
           <div className="space-y-3">
             {filteredTrips.map(trip => (
               <Card key={trip.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <Badge variant={trip.status === 'finalizada' ? 'success' : 'warning'}>
                           {trip.status === 'finalizada' ? 'Finalizada' : 'Cadastrada'}
                         </Badge>
@@ -505,7 +505,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                       )}
                     </div>
 
-                    <div className="ml-4 flex flex-col gap-2">
+                    <div className="flex flex-row flex-wrap gap-2 sm:ml-4 sm:flex-col sm:shrink-0">
                       {trip.status === 'cadastrada' && (
                         <>
                           <Button variant="success" size="sm" onClick={() => setFinalizingTrip(trip)}>

@@ -23,16 +23,17 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
   if (!isOpen) return null;
 
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-2xl',
-    lg: 'max-w-4xl',
-    xl: 'max-w-6xl',
+    sm: 'sm:max-w-md',
+    md: 'sm:max-w-2xl',
+    lg: 'sm:max-w-4xl',
+    xl: 'sm:max-w-6xl',
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 animate-fade-in"
       onClick={onClose}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Overlay */}
       <div className="absolute inset-0 bg-[var(--color-overlay)] backdrop-blur-md" />
@@ -42,9 +43,9 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
         className={`relative w-full ${sizeClasses[size]} animate-scale-in`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border-hover)] rounded-2xl shadow-[0_24px_64px_var(--color-shadow)]">
+        <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border-hover)] rounded-t-2xl sm:rounded-2xl shadow-[0_24px_64px_var(--color-shadow)]">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 sm:px-6 py-4">
             <h2 className="text-base font-semibold text-[var(--color-text)]">
               {title}
             </h2>
@@ -52,14 +53,14 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0"
+              className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:h-8 sm:w-8 p-0 flex items-center justify-center"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5 sm:h-4 sm:w-4" />
             </Button>
           </div>
 
           {/* Content */}
-          <div className="max-h-[calc(100vh-12rem)] overflow-y-auto px-6 py-6">
+          <div className="max-h-[calc(100dvh-4rem)] sm:max-h-[calc(100dvh-12rem)] overflow-y-auto overscroll-contain px-4 sm:px-6 py-6">
             {children}
           </div>
         </div>

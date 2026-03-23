@@ -56,7 +56,8 @@ function AuthenticatedContent() {
       <Header />
       <TabNavigation activeTab={activeTab} onChange={setActiveTab} />
 
-      <main className="relative z-10 container mx-auto px-4 py-8">
+      {/* Main content: add bottom padding on mobile for the fixed bottom nav */}
+      <main className="relative z-10 container mx-auto px-4 py-6 md:py-8 pb-24 md:pb-8">
         {activeTab === 'dashboard' && (
           <DashboardPage
             trucks={trucks}
