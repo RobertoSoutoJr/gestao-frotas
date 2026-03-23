@@ -8,5 +8,7 @@ router.get('/:id', maintenanceController.getById);
 router.get('/truck/:truckId', maintenanceController.getByTruck);
 router.get('/truck/:truckId/stats', maintenanceController.getStats);
 router.post('/', maintenanceController.create);
+router.put('/:id', maintenanceController.update);
+router.delete('/:id', maintenanceController.delete);
 
 module.exports = router;

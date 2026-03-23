@@ -64,6 +64,33 @@ class MaintenanceService {
     return data;
   }
 
+  async update(id, updateData, userId) {
+    await this.getById(id, userId);
+    const { data, error } = await supabase
+      .from('manutencoes')
+      .update(updateData)
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    if (error) throw new AppError('Falha ao atualizar manutenção', 500, error);
+    if (updateData.km_manutencao && updateData.km_manutencao > 0) {
+      await truckService.updateMileage(data.caminhao_id, updateData.km_manutencao, userId);
+    }
+    return data;
+  }
+
+  async delete(id, userId) {
+    await this.getById(id, userId);
+    const { error } = await supabase
+      .from('manutencoes')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) throw new AppError('Falha ao excluir manutenção', 500, error);
+    return true;
+  }
+
   async getStatsByTruck(truckId, userId) {
     const records = await this.getByTruck(truckId, userId);
 
