@@ -8,9 +8,10 @@ const createMaintenanceSchema = z.object({
   tipo_manutencao: z.enum(maintenanceTypes, {
     errorMap: () => ({ message: 'Tipo de manutenção inválido' })
   }),
-  valor_total: z.number().positive('Valor total deve ser positivo'),
-  km_manutencao: z.number().nonnegative('Quilometragem não pode ser negativa'),
-  data_manutencao: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido (use AAAA-MM-DD)')
+  valor_total: z.number().nonnegative('Valor total não pode ser negativo'),
+  km_manutencao: z.number().nonnegative('Quilometragem não pode ser negativa').optional().default(0),
+  data_manutencao: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido').optional().nullable(),
+  oficina: z.string().max(200).optional().nullable()
 });
 
 module.exports = { createMaintenanceSchema, maintenanceTypes };
