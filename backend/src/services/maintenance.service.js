@@ -56,8 +56,10 @@ class MaintenanceService {
 
     if (error) throw new AppError('Falha ao criar registro de manutenção', 500, error);
 
-    // Update truck mileage
-    await truckService.updateMileage(maintenanceData.caminhao_id, maintenanceData.km_manutencao, userId);
+    // Update truck mileage only if provided
+    if (maintenanceData.km_manutencao && maintenanceData.km_manutencao > 0) {
+      await truckService.updateMileage(maintenanceData.caminhao_id, maintenanceData.km_manutencao, userId);
+    }
 
     return data;
   }

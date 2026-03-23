@@ -38,8 +38,8 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
         descricao: formData.descricao,
         tipo_manutencao: formData.tipo_manutencao,
         valor_total: Number(formData.valor_total),
-        km_manutencao: Number(formData.km_manutencao),
-        data_manutencao: formData.data_manutencao
+        km_manutencao: formData.km_manutencao ? Number(formData.km_manutencao) : undefined,
+        data_manutencao: formData.data_manutencao || undefined
       };
 
       await maintenanceService.create(data);
