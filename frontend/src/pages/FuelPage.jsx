@@ -9,7 +9,7 @@ import { FuelForm } from '../components/forms/FuelForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown, Plus } from 'lucide-react';
-import { formatNumber, formatCurrency } from '../lib/utils';
+import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
 
@@ -264,12 +264,6 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
     return driver ? driver.nome : 'N/A';
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR').format(date);
-  };
-
   const filteredFuelRecords = useMemo(() => {
     let filtered = fuelRecords.filter(record => {
       const searchLower = searchTerm.toLowerCase();
@@ -452,90 +446,72 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {filteredFuelRecords.map(fuel => (
-              <Card key={fuel.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-accent)]/10">
-                          <Fuel className="h-5 w-5 text-[var(--color-accent)]" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-[var(--color-text-secondary)]" />
-                            <span className="font-semibold text-[var(--color-text)]">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {filteredFuelRecords.map(fuel => {
+              const pricePerL = fuel.litros > 0 ? Number(fuel.valor_total) / Number(fuel.litros) : 0;
+              return (
+                <Card key={fuel.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <div className="space-y-3">
+                      {/* Header */}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-accent)]/10">
+                            <Fuel className="h-5 w-5 text-[var(--color-accent)]" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-[var(--color-text)]">
                               {getTruckName(fuel.caminhao_id)}
-                            </span>
+                            </p>
+                            <p className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)]">
+                              <User className="h-3 w-3" />
+                              {getDriverName(fuel.motorista_id)}
+                            </p>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                            <User className="h-3 w-3" />
-                            <span>{getDriverName(fuel.motorista_id)}</span>
-                          </div>
+                        </div>
+                        <div className="flex shrink-0 gap-1">
+                          <Button variant="outline" size="sm" onClick={() => setEditingFuel(fuel)}>
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="danger" size="sm" onClick={() => setDeletingFuel(fuel)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-                        <div>
-                          <p className="text-xs text-[var(--color-text-secondary)]">KM Registro</p>
-                          <p className="font-medium text-[var(--color-text)] tabular-nums">
-                            {formatNumber(fuel.km_registro, 0)} km
-                          </p>
+                      {/* Details grid */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
+                          <p className="text-[10px] text-[var(--color-text-secondary)]">Litros</p>
+                          <p className="text-sm font-semibold text-[var(--color-text)] tabular-nums">{formatNumber(fuel.litros)} L</p>
                         </div>
-                        <div>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Litros</p>
-                          <p className="flex items-center gap-1 font-medium text-[var(--color-text)] tabular-nums">
-                            <Droplet className="h-3 w-3 text-[var(--color-accent)]" />
-                            {formatNumber(fuel.litros)} L
-                          </p>
+                        <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
+                          <p className="text-[10px] text-[var(--color-text-secondary)]">Valor</p>
+                          <p className="text-sm font-semibold text-[var(--color-text)] tabular-nums">{formatCurrency(fuel.valor_total)}</p>
                         </div>
-                        <div>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Valor Total</p>
-                          <p className="flex items-center gap-1 font-medium text-[var(--color-text)] tabular-nums">
-                            <DollarSign className="h-3 w-3 text-emerald-500" />
-                            {formatCurrency(fuel.valor_total)}
-                          </p>
+                        <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
+                          <p className="text-[10px] text-[var(--color-text-secondary)]">R$/Litro</p>
+                          <p className="text-sm font-semibold text-[var(--color-accent)] tabular-nums">R$ {pricePerL.toFixed(3)}</p>
                         </div>
-                        <PricePerLiter valorTotal={fuel.valor_total} litros={fuel.litros} />
-                        <div>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Data</p>
-                          <p className="flex items-center gap-1 text-sm text-[var(--color-text)] tabular-nums">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(fuel.created_at)}
-                          </p>
+                        <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
+                          <p className="text-[10px] text-[var(--color-text-secondary)]">KM</p>
+                          <p className="text-sm font-semibold text-[var(--color-text)] tabular-nums">{formatNumber(fuel.km_registro, 0)}</p>
                         </div>
                       </div>
 
-                      {fuel.posto && (
-                        <div>
-                          <Badge variant="outline">Posto: {fuel.posto}</Badge>
-                        </div>
-                      )}
+                      {/* Footer */}
+                      <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(fuel.created_at)}
+                        </span>
+                        {fuel.posto && <Badge variant="outline">{fuel.posto}</Badge>}
+                      </div>
                     </div>
-
-                    <div className="ml-4 flex flex-col gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingFuel(fuel)}
-                        title="Editar"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => setDeletingFuel(fuel)}
-                        title="Excluir"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

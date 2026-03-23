@@ -9,7 +9,7 @@ import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Wrench, Truck, Calendar, DollarSign, Edit2, Trash2, Search, Filter, Plus } from 'lucide-react';
-import { formatNumber, formatCurrency } from '../lib/utils';
+import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { maintenanceService } from '../services/maintenance';
 import { useToast } from '../hooks/useToast';
 
@@ -196,12 +196,6 @@ export function MaintenancePage({ trucks, onRefetch }) {
   const getTruckName = (caminhaoId) => {
     const truck = trucks.find(t => t.id === caminhaoId);
     return truck ? `${truck.placa} - ${truck.modelo}` : 'N/A';
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR').format(date);
   };
 
   const filteredMaintenanceRecords = useMemo(() => {
@@ -400,76 +394,57 @@ export function MaintenancePage({ trucks, onRefetch }) {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {filteredMaintenanceRecords.map(maintenance => (
               <Card key={maintenance.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-3">
+                <CardContent className="p-5">
+                  <div className="space-y-3">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10">
                           <Wrench className="h-5 w-5 text-amber-400" />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-[var(--color-text-secondary)]" />
-                            <span className="font-semibold text-[var(--color-text)]">
-                              {getTruckName(maintenance.caminhao_id)}
-                            </span>
-                          </div>
-                          <div className="mt-1">
-                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_COLORS[maintenance.tipo_manutencao] || TYPE_COLORS.Outros}`}>
-                              {maintenance.tipo_manutencao}
-                            </span>
-                          </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-[var(--color-text)]">
+                            {getTruckName(maintenance.caminhao_id)}
+                          </p>
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_COLORS[maintenance.tipo_manutencao] || TYPE_COLORS.Outros}`}>
+                            {maintenance.tipo_manutencao}
+                          </span>
                         </div>
                       </div>
-
-                      <div className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-3">
-                        <p className="text-sm text-[var(--color-text-secondary)]">
-                          {maintenance.descricao}
-                        </p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                        <div>
-                          <p className="text-xs text-[var(--color-text-secondary)]">KM Manutenção</p>
-                          <p className="font-medium text-[var(--color-text)]">
-                            {formatNumber(maintenance.km_manutencao, 0)} km
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Valor Total</p>
-                          <p className="flex items-center gap-1 font-medium text-[var(--color-text)]">
-                            <DollarSign className="h-3 w-3 text-emerald-400" />
-                            {formatCurrency(maintenance.valor_total)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Data</p>
-                          <p className="flex items-center gap-1 text-sm text-[var(--color-text)]">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(maintenance.data_manutencao)}
-                          </p>
-                        </div>
+                      <div className="flex shrink-0 gap-1">
+                        <Button variant="outline" size="sm" onClick={() => setEditingMaintenance(maintenance)}>
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="danger" size="sm" onClick={() => setDeletingMaintenance(maintenance)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
 
-                    <div className="ml-4 flex flex-col gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingMaintenance(maintenance)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => setDeletingMaintenance(maintenance)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    {/* Description */}
+                    <div className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-3">
+                      <p className="text-sm text-[var(--color-text-secondary)] line-clamp-2">
+                        {maintenance.descricao}
+                      </p>
+                    </div>
+
+                    {/* Details */}
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-[var(--color-surface)] p-2">
+                        <p className="text-[10px] text-[var(--color-text-secondary)]">Valor</p>
+                        <p className="text-sm font-semibold text-[var(--color-text)]">{formatCurrency(maintenance.valor_total)}</p>
+                      </div>
+                      <div className="rounded-lg bg-[var(--color-surface)] p-2">
+                        <p className="text-[10px] text-[var(--color-text-secondary)]">KM</p>
+                        <p className="text-sm font-semibold text-[var(--color-text)]">{maintenance.km_manutencao ? formatNumber(maintenance.km_manutencao, 0) : '—'}</p>
+                      </div>
+                      <div className="rounded-lg bg-[var(--color-surface)] p-2">
+                        <p className="text-[10px] text-[var(--color-text-secondary)]">Data</p>
+                        <p className="text-sm font-semibold text-[var(--color-text)]">{formatDate(maintenance.data_manutencao) || '—'}</p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
