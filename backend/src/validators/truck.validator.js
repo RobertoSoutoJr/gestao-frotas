@@ -4,7 +4,8 @@ const createTruckSchema = z.object({
   placa: z.string()
     .min(7, 'Placa deve ter pelo menos 7 caracteres')
     .max(10, 'Placa muito longa')
-    .regex(/^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/, 'Formato de placa inválido'),
+    .transform(v => v.toUpperCase())
+    .pipe(z.string().regex(/^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/, 'Formato de placa inválido (ex: ABC-1234 ou ABC1D23)')),
   modelo: z.string()
     .min(2, 'Nome do modelo muito curto')
     .max(100, 'Nome do modelo muito longo'),
