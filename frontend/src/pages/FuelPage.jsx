@@ -310,6 +310,8 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
     return filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }, [fuelRecords, searchTerm, filterTruck, filterPeriod]);
 
+  const activeFilterCount = [searchTerm, filterTruck, filterPeriod !== 'all' ? filterPeriod : ''].filter(Boolean).length;
+
   const loadFuelRecords = async () => {
     try {
       setLoading(true);
@@ -362,9 +364,15 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
+              className="relative"
             >
               <Filter className="mr-2 h-4 w-4" />
               {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white">
+                  {activeFilterCount}
+                </span>
+              )}
             </Button>
             <Button
               variant="primary"

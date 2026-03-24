@@ -8,8 +8,8 @@ export function Card({ className, children, onClick, ...props }) {
         'border border-[var(--color-border)]',
         'rounded-2xl',
         'shadow-[0_0_0_1px_var(--color-border),0_8px_32px_var(--color-shadow)]',
-        'hover:border-[var(--color-border-hover)] hover:shadow-[0_0_0_1px_var(--color-border-hover),0_12px_40px_var(--color-shadow-hover)]',
         'transition-all duration-200',
+        onClick && 'hover:border-[var(--color-border-hover)] hover:shadow-[0_0_0_1px_var(--color-border-hover),0_12px_40px_var(--color-shadow-hover)]',
         onClick && 'cursor-pointer',
         className
       )}

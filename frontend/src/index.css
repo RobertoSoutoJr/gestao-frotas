@@ -103,6 +103,10 @@ textarea,
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+.pb-safe-bottom {
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+}
+
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);

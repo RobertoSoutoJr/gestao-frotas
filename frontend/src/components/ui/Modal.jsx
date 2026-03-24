@@ -61,7 +61,9 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
 
           {/* Content */}
           <div className="max-h-[calc(100dvh-4rem)] sm:max-h-[calc(100dvh-12rem)] overflow-y-auto overscroll-contain px-4 sm:px-6 py-6">
-            {children}
+            <div className="mx-auto max-w-4xl">
+              {children}
+            </div>
           </div>
         </div>
       </div>

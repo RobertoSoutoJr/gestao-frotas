@@ -332,7 +332,9 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
       );
     },
 
-    spending_chart: () => (
+    spending_chart: () => {
+      const hasData = spendingChartData.some(d => d.combustivel > 0 || d.manutencao > 0);
+      return (
       <Card className="transition-all duration-200" onClick={() => onNavigate('reports')}>
         <CardContent className="p-4 sm:p-6">
           <div className="mb-4 sm:mb-6 flex items-center justify-between">
@@ -342,6 +344,11 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
             </div>
             <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
+          {!hasData ? (
+            <div className="flex h-[200px] sm:h-[280px] items-center justify-center">
+              <p className="text-sm text-[var(--color-text-secondary)]">Sem dados para o período selecionado</p>
+            </div>
+          ) : (
           <div className="h-[200px] sm:h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={spendingChartData}>
@@ -355,17 +362,26 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
               </LineChart>
             </ResponsiveContainer>
           </div>
+          )}
         </CardContent>
       </Card>
-    ),
+      );
+    },
 
-    cost_distribution: () => (
+    cost_distribution: () => {
+      const hasDistData = costDistributionData.some(d => d.value > 0);
+      return (
       <Card className="transition-all duration-200">
         <CardContent className="p-4 sm:p-6">
           <div className="mb-4 sm:mb-6">
             <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text)]">Distribuição de Custos</h3>
             <p className="text-xs text-[var(--color-text-secondary)] mt-1">Combustível vs Manutenção — {periodLabel}</p>
           </div>
+          {!hasDistData ? (
+            <div className="flex h-[200px] sm:h-[280px] items-center justify-center">
+              <p className="text-sm text-[var(--color-text-secondary)]">Sem dados para o período selecionado</p>
+            </div>
+          ) : (
           <div className="h-[200px] sm:h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -380,6 +396,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
               </PieChart>
             </ResponsiveContainer>
           </div>
+          )}
           <div className="mt-4 grid grid-cols-2 gap-3">
             <Card className="!rounded-xl !p-0 cursor-pointer" onClick={() => onNavigate('fuel')}>
               <div className="flex items-center gap-2.5 p-3">
@@ -402,9 +419,23 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
           </div>
         </CardContent>
       </Card>
-    ),
+      );
+    },
 
-    top_trucks: () => (
+    top_trucks: () => {
+      if (topTrucksData.length === 0) {
+        return (
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-base font-semibold text-[var(--color-text)] mb-4">Top 5 — Custo por Veículo</h3>
+              <div className="flex h-[200px] items-center justify-center">
+                <p className="text-sm text-[var(--color-text-secondary)]">Sem dados para o período selecionado</p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      }
+      return (
       <Card className="transition-all duration-200" onClick={() => onNavigate('trucks')}>
         <CardContent className="p-6">
           <div className="mb-6 flex items-center justify-between">
@@ -433,7 +464,8 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
           </div>
         </CardContent>
       </Card>
-    ),
+      );
+    },
   };
 
   // Charts that pair together in a 2-col grid
