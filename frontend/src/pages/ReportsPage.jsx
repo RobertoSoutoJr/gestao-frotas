@@ -5,15 +5,44 @@ import { Button } from '../components/ui/Button';
 import { Select } from '../components/ui/Select';
 import { Input } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
+import { useSectionPrefs, SectionCustomizerButton, SectionCustomizerModal } from '../components/ui/SectionCustomizer';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X, Calendar, MapPin, Truck } from 'lucide-react';
+import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X, Calendar, Truck, Table2, PieChart as PieChartIcon, LineChart as LineChartIcon } from 'lucide-react';
 import { formatCurrency, formatNumber, formatDate } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 
 const COLORS = ['#5E6AD2', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
+const REPORT_SECTIONS = [
+  { id: 'filters', label: 'Filtros', description: 'Filtrar por caminhão e período', icon: Filter },
+  { id: 'summary_cards', label: 'Cards de Resumo', description: 'Total gasto, combustível, manutenção, litros', icon: DollarSign },
+  { id: 'maintenance_table', label: 'Manutenções Detalhadas', description: 'Tabela com todos os registros de manutenção', icon: Wrench },
+  { id: 'fuel_table', label: 'Abastecimentos Detalhados', description: 'Tabela com todos os registros de abastecimento', icon: FuelIcon },
+  { id: 'chart_costs', label: 'Custos por Caminhão', description: 'Gráfico de barras comparativo', icon: BarChart3 },
+  { id: 'chart_distribution', label: 'Distribuição de Gastos', description: 'Gráfico de pizza', icon: PieChartIcon },
+  { id: 'chart_monthly', label: 'Evolução Mensal', description: 'Gráfico de linha temporal', icon: LineChartIcon },
+  { id: 'truck_detail', label: 'Detalhamento por Caminhão', description: 'Cards individuais com resumo de cada veículo', icon: Truck },
+];
+
+const DEFAULT_ORDER = ['filters', 'summary_cards', 'maintenance_table', 'fuel_table', 'chart_costs', 'chart_distribution', 'chart_monthly', 'truck_detail'];
+const DEFAULT_VISIBILITY = {
+  filters: true,
+  summary_cards: true,
+  maintenance_table: true,
+  fuel_table: true,
+  chart_costs: true,
+  chart_distribution: true,
+  chart_monthly: true,
+  truck_detail: true,
+};
+
 export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
   const { isDark } = useTheme();
+  const [showCustomize, setShowCustomize] = useState(false);
+
+  const { prefs, isVisible, getOrder, moveUp, moveDown, toggleVisibility, reset } = useSectionPrefs(
+    'reports_prefs', DEFAULT_ORDER, DEFAULT_VISIBILITY
+  );
 
   const tooltipStyle = {
     backgroundColor: isDark ? 'rgba(10,10,12,0.95)' : 'rgba(255,255,255,0.98)',
@@ -35,34 +64,20 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
     let filteredFuel = fuelRecords;
     let filteredMaintenance = maintenanceRecords;
 
-    // Filtro por caminhão
     if (selectedTruck !== 'all') {
       const truckId = Number(selectedTruck);
       filteredFuel = filteredFuel.filter(r => r.caminhao_id === truckId);
       filteredMaintenance = filteredMaintenance.filter(r => r.caminhao_id === truckId);
     }
 
-    // Filtro por data
     if (startDate) {
-      filteredFuel = filteredFuel.filter(r => {
-        const recordDate = new Date(r.created_at);
-        return recordDate >= new Date(startDate);
-      });
-      filteredMaintenance = filteredMaintenance.filter(r => {
-        const recordDate = new Date(r.data_manutencao);
-        return recordDate >= new Date(startDate);
-      });
+      filteredFuel = filteredFuel.filter(r => new Date(r.created_at) >= new Date(startDate));
+      filteredMaintenance = filteredMaintenance.filter(r => new Date(r.data_manutencao) >= new Date(startDate));
     }
 
     if (endDate) {
-      filteredFuel = filteredFuel.filter(r => {
-        const recordDate = new Date(r.created_at);
-        return recordDate <= new Date(endDate);
-      });
-      filteredMaintenance = filteredMaintenance.filter(r => {
-        const recordDate = new Date(r.data_manutencao);
-        return recordDate <= new Date(endDate);
-      });
+      filteredFuel = filteredFuel.filter(r => new Date(r.created_at) <= new Date(endDate));
+      filteredMaintenance = filteredMaintenance.filter(r => new Date(r.data_manutencao) <= new Date(endDate));
     }
 
     return { filteredFuel, filteredMaintenance };
@@ -124,25 +139,20 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
     }));
   }, [stats]);
 
-  // Dados de evolução mensal
   const monthlyData = useMemo(() => {
     const months = {};
 
     filteredData.filteredFuel.forEach(record => {
       const date = new Date(record.created_at);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (!months[monthKey]) {
-        months[monthKey] = { combustivel: 0, manutencao: 0 };
-      }
+      if (!months[monthKey]) months[monthKey] = { combustivel: 0, manutencao: 0 };
       months[monthKey].combustivel += Number(record.valor_total || 0);
     });
 
     filteredData.filteredMaintenance.forEach(record => {
       const date = new Date(record.data_manutencao);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (!months[monthKey]) {
-        months[monthKey] = { combustivel: 0, manutencao: 0 };
-      }
+      if (!months[monthKey]) months[monthKey] = { combustivel: 0, manutencao: 0 };
       months[monthKey].manutencao += Number(record.valor_total || 0);
     });
 
@@ -175,9 +185,9 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
     );
   }
 
-  return (
-    <div className="space-y-8">
-      {/* Filtros */}
+  // Section renderers
+  const sectionRenderers = {
+    filters: () => (
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -186,9 +196,7 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                 <Filter className="h-4 w-4" />
                 Filtros
               </CardTitle>
-              <CardDescription>
-                Filtre os dados por caminhão e período
-              </CardDescription>
+              <CardDescription>Filtre os dados por caminhão e período</CardDescription>
             </div>
             {hasActiveFilters && (
               <Button variant="outline" size="sm" onClick={clearFilters}>
@@ -200,48 +208,27 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Select
-              label="Caminhão"
-              value={selectedTruck}
-              onChange={(e) => setSelectedTruck(e.target.value)}
-            >
+            <Select label="Caminhão" value={selectedTruck} onChange={(e) => setSelectedTruck(e.target.value)}>
               <option value="all">Todos os Caminhões</option>
               {trucks.map(truck => (
-                <option key={truck.id} value={truck.id}>
-                  {truck.placa} - {truck.modelo}
-                </option>
+                <option key={truck.id} value={truck.id}>{truck.placa} - {truck.modelo}</option>
               ))}
             </Select>
-
-            <Input
-              label="Data Inicial"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-
-            <Input
-              label="Data Final"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
+            <Input label="Data Inicial" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <Input label="Data Final" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </div>
         </CardContent>
       </Card>
+    ),
 
-      {/* Cards de Resumo */}
+    summary_cards: () => (
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Card>
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">
-                  Total Gasto
-                </p>
-                <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">
-                  {formatCurrency(overallStats.totalSpent)}
-                </p>
+                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Gasto</p>
+                <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">{formatCurrency(overallStats.totalSpent)}</p>
               </div>
               <div className="rounded-xl bg-[var(--color-accent)]/10 p-2 sm:p-3">
                 <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-accent)]" />
@@ -249,17 +236,12 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">
-                  Combustível
-                </p>
-                <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">
-                  {formatCurrency(overallStats.totalFuel)}
-                </p>
+                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Combustível</p>
+                <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">{formatCurrency(overallStats.totalFuel)}</p>
               </div>
               <div className="rounded-xl bg-amber-500/10 p-2 sm:p-3">
                 <FuelIcon className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
@@ -267,17 +249,12 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">
-                  Manutenção
-                </p>
-                <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">
-                  {formatCurrency(overallStats.totalMaintenance)}
-                </p>
+                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Manutenção</p>
+                <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">{formatCurrency(overallStats.totalMaintenance)}</p>
               </div>
               <div className="rounded-xl bg-red-500/10 p-2 sm:p-3">
                 <Wrench className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
@@ -285,17 +262,12 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">
-                  Total de Litros
-                </p>
-                <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">
-                  {formatNumber(overallStats.totalLiters, 0)}
-                </p>
+                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Total de Litros</p>
+                <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">{formatNumber(overallStats.totalLiters, 0)}</p>
               </div>
               <div className="rounded-xl bg-emerald-500/10 p-2 sm:p-3">
                 <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
@@ -304,93 +276,211 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           </CardContent>
         </Card>
       </div>
+    ),
 
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Custos por Caminhão</CardTitle>
-            <CardDescription>Comparação de gastos com combustível e manutenção</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] sm:h-[280px]">
+    maintenance_table: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wrench className="h-5 w-5 text-red-400" />
+            Manutenções Detalhadas ({filteredData.filteredMaintenance.length})
+          </CardTitle>
+          <CardDescription>Registros individuais de manutenção</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {filteredData.filteredMaintenance.length === 0 ? (
+            <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhuma manutenção encontrada no período</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)]">
+                    {selectedTruck === 'all' && <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>}
+                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
+                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
+                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Descrição</th>
+                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Oficina</th>
+                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Custo</th>
+                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.filteredMaintenance
+                    .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
+                    .map(record => {
+                    const truckInfo = trucks.find(t => t.id === record.caminhao_id);
+                    return (
+                      <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
+                        {selectedTruck === 'all' && <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>}
+                        <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.data_manutencao)}</td>
+                        <td className="px-3 py-2">
+                          <Badge variant={record.tipo_manutencao === 'Preventiva' ? 'success' : 'warning'}>
+                            {record.tipo_manutencao || '-'}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-2 text-[var(--color-text)]">{record.descricao || '-'}</td>
+                        <td className="px-3 py-2 text-[var(--color-text-secondary)]">{record.oficina || '-'}</td>
+                        <td className="px-3 py-2 text-right font-medium text-red-500">{formatCurrency(record.valor_total || record.custo)}</td>
+                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_manutencao ? formatNumber(record.km_manutencao, 0) : '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-[var(--color-border)]">
+                    <td colSpan={selectedTruck === 'all' ? 5 : 4} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
+                    <td className="px-3 py-2 text-right font-bold text-red-500">
+                      {formatCurrency(filteredData.filteredMaintenance.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0))}
+                    </td>
+                    <td className="px-3 py-2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    ),
+
+    fuel_table: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FuelIcon className="h-5 w-5 text-amber-400" />
+            Abastecimentos Detalhados ({filteredData.filteredFuel.length})
+          </CardTitle>
+          <CardDescription>Registros individuais de abastecimento</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {filteredData.filteredFuel.length === 0 ? (
+            <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhum abastecimento encontrado no período</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)]">
+                    {selectedTruck === 'all' && <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>}
+                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
+                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Posto</th>
+                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Litros</th>
+                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Preço/L</th>
+                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Total</th>
+                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.filteredFuel
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                    .map(record => {
+                    const truckInfo = trucks.find(t => t.id === record.caminhao_id);
+                    return (
+                      <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
+                        {selectedTruck === 'all' && <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>}
+                        <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.created_at)}</td>
+                        <td className="px-3 py-2 text-[var(--color-text)]">{record.posto || '-'}</td>
+                        <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatNumber(record.litros, 2)}</td>
+                        <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatCurrency(record.preco_litro)}</td>
+                        <td className="px-3 py-2 text-right font-medium text-amber-500">{formatCurrency(record.valor_total)}</td>
+                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_atual ? formatNumber(record.km_atual, 0) : '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-[var(--color-border)]">
+                    <td colSpan={selectedTruck === 'all' ? 3 : 2} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
+                    <td className="px-3 py-2 text-right font-semibold text-[var(--color-text)]">
+                      {formatNumber(filteredData.filteredFuel.reduce((s, r) => s + Number(r.litros || 0), 0), 2)}
+                    </td>
+                    <td className="px-3 py-2"></td>
+                    <td className="px-3 py-2 text-right font-bold text-amber-500">
+                      {formatCurrency(filteredData.filteredFuel.reduce((s, r) => s + Number(r.valor_total || 0), 0))}
+                    </td>
+                    <td className="px-3 py-2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    ),
+
+    chart_costs: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle>Custos por Caminhão</CardTitle>
+          <CardDescription>Comparação de gastos com combustível e manutenção</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[200px] sm:h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                 <XAxis dataKey="name" stroke={axisColor} style={{ fontSize: '11px' }} />
                 <YAxis stroke={axisColor} style={{ fontSize: '11px' }} />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  formatter={(value) => formatCurrency(value)}
-                />
+                <Tooltip contentStyle={tooltipStyle} formatter={(value) => formatCurrency(value)} />
                 <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
                 <Bar dataKey="Combustível" fill="#F59E0B" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="Manutenção" fill="#EF4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
+    ),
 
-        <Card>
+    chart_distribution: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle>Distribuição de Gastos</CardTitle>
+          <CardDescription>Total de gastos por caminhão</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie data={pieData} cx="50%" cy="50%" labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80} fill="#8884d8" dataKey="value">
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} formatter={(value) => formatCurrency(value)} />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    ),
+
+    chart_monthly: () => {
+      if (monthlyData.length === 0) return null;
+      return (
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Distribuição de Gastos</CardTitle>
-            <CardDescription>Total de gastos por caminhão</CardDescription>
+            <CardTitle>Evolução Mensal</CardTitle>
+            <CardDescription>Gastos mensais com combustível e manutenção</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="mes" stroke={axisColor} style={{ fontSize: '11px' }} />
+                <YAxis stroke={axisColor} style={{ fontSize: '11px' }} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value) => formatCurrency(value)} />
-              </PieChart>
+                <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
+                <Line type="monotone" dataKey="Combustível" stroke="#F59E0B" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="Manutenção" stroke="#EF4444" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      );
+    },
 
-        {monthlyData.length > 0 && (
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Evolução Mensal</CardTitle>
-              <CardDescription>Gastos mensais com combustível e manutenção</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                  <XAxis dataKey="mes" stroke={axisColor} style={{ fontSize: '11px' }} />
-                  <YAxis stroke={axisColor} style={{ fontSize: '11px' }} />
-                  <Tooltip
-                    contentStyle={tooltipStyle}
-                    formatter={(value) => formatCurrency(value)}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
-                  <Line type="monotone" dataKey="Combustível" stroke="#F59E0B" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="Manutenção" stroke="#EF4444" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Detalhamento por Caminhão */}
+    truck_detail: () => (
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-[var(--color-text)]">
-          Detalhamento por Caminhão
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-[var(--color-text)]">Detalhamento por Caminhão</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {stats.map(stat => (
             <Card key={stat.truck.id} className="overflow-hidden">
@@ -400,52 +490,32 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                     <h3 className="text-lg font-bold text-[var(--color-text)]">{stat.truck.placa}</h3>
                     <p className="text-sm text-[var(--color-text-secondary)]">{stat.truck.modelo}</p>
                   </div>
-                  <Badge variant="default">
-                    {formatNumber(stat.truck.km_atual || 0, 0)} km
-                  </Badge>
+                  <Badge variant="default">{formatNumber(stat.truck.km_atual || 0, 0)} km</Badge>
                 </div>
               </div>
-
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                    <FuelIcon className="h-4 w-4" />
-                    Combustível ({stat.fuelRecordsCount} registros)
+                    <FuelIcon className="h-4 w-4" /> Combustível ({stat.fuelRecordsCount} registros)
                   </span>
-                  <span className="font-semibold text-amber-400">
-                    {formatCurrency(stat.totalFuel)}
-                  </span>
+                  <span className="font-semibold text-amber-400">{formatCurrency(stat.totalFuel)}</span>
                 </div>
-
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                    <Wrench className="h-4 w-4" />
-                    Manutenção ({stat.maintenanceCount} registros)
+                    <Wrench className="h-4 w-4" /> Manutenção ({stat.maintenanceCount} registros)
                   </span>
-                  <span className="font-semibold text-red-400">
-                    {formatCurrency(stat.totalMaintenance)}
-                  </span>
+                  <span className="font-semibold text-red-400">{formatCurrency(stat.totalMaintenance)}</span>
                 </div>
-
                 <div className="border-t border-[var(--color-border)] pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-base font-semibold text-[var(--color-text)]">
-                      Total
-                    </span>
-                    <span className="text-xl font-bold text-[var(--color-accent)]">
-                      {formatCurrency(stat.totalSpent)}
-                    </span>
+                    <span className="text-base font-semibold text-[var(--color-text)]">Total</span>
+                    <span className="text-xl font-bold text-[var(--color-accent)]">{formatCurrency(stat.totalSpent)}</span>
                   </div>
                 </div>
-
                 {stat.totalLiters > 0 && (
                   <div className="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-3">
-                    <p className="text-xs text-[var(--color-text-secondary)]">
-                      Consumo Total
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-[var(--color-text)]">
-                      {formatNumber(stat.totalLiters, 2)} litros
-                    </p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">Consumo Total</p>
+                    <p className="mt-1 text-sm font-medium text-[var(--color-text)]">{formatNumber(stat.totalLiters, 2)} litros</p>
                   </div>
                 )}
               </CardContent>
@@ -453,143 +523,76 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
           ))}
         </div>
       </div>
+    ),
+  };
 
-      {/* Registros Detalhados */}
-      <div className="space-y-6">
-        {/* Manutenções Detalhadas (aparece primeiro) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5 text-red-400" />
-              Manutenções Detalhadas ({filteredData.filteredMaintenance.length})
-            </CardTitle>
-            <CardDescription>Registros individuais de manutenção</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {filteredData.filteredMaintenance.length === 0 ? (
-              <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhuma manutenção encontrada no período</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[var(--color-border)]">
-                      {selectedTruck === 'all' && (
-                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
-                      )}
-                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
-                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
-                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Descrição</th>
-                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Oficina</th>
-                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Custo</th>
-                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredData.filteredMaintenance
-                      .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
-                      .map(record => {
-                      const truckInfo = trucks.find(t => t.id === record.caminhao_id);
-                      return (
-                        <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
-                          {selectedTruck === 'all' && (
-                            <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>
-                          )}
-                          <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.data_manutencao)}</td>
-                          <td className="px-3 py-2">
-                            <Badge variant={record.tipo === 'preventiva' ? 'success' : 'warning'}>
-                              {record.tipo === 'preventiva' ? 'Preventiva' : 'Corretiva'}
-                            </Badge>
-                          </td>
-                          <td className="px-3 py-2 text-[var(--color-text)]">{record.descricao || '-'}</td>
-                          <td className="px-3 py-2 text-[var(--color-text-secondary)]">{record.oficina || '-'}</td>
-                          <td className="px-3 py-2 text-right font-medium text-red-500">{formatCurrency(record.valor_total || record.custo)}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_atual ? formatNumber(record.km_atual, 0) : '-'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-[var(--color-border)]">
-                      <td colSpan={selectedTruck === 'all' ? 5 : 4} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
-                      <td className="px-3 py-2 text-right font-bold text-red-500">
-                        {formatCurrency(filteredData.filteredMaintenance.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0))}
-                      </td>
-                      <td className="px-3 py-2"></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+  // Charts that should be in a grid together
+  const chartIds = ['chart_costs', 'chart_distribution', 'chart_monthly'];
 
-        {/* Abastecimentos Detalhados */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FuelIcon className="h-5 w-5 text-amber-400" />
-              Abastecimentos Detalhados ({filteredData.filteredFuel.length})
-            </CardTitle>
-            <CardDescription>Registros individuais de abastecimento</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {filteredData.filteredFuel.length === 0 ? (
-              <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhum abastecimento encontrado no período</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[var(--color-border)]">
-                      {selectedTruck === 'all' && (
-                        <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
-                      )}
-                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
-                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Posto</th>
-                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Litros</th>
-                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Preço/L</th>
-                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Total</th>
-                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredData.filteredFuel
-                      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                      .map(record => {
-                      const truckInfo = trucks.find(t => t.id === record.caminhao_id);
-                      return (
-                        <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
-                          {selectedTruck === 'all' && (
-                            <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>
-                          )}
-                          <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.created_at)}</td>
-                          <td className="px-3 py-2 text-[var(--color-text)]">{record.posto || '-'}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatNumber(record.litros, 2)}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatCurrency(record.preco_litro)}</td>
-                          <td className="px-3 py-2 text-right font-medium text-amber-500">{formatCurrency(record.valor_total)}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_atual ? formatNumber(record.km_atual, 0) : '-'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-[var(--color-border)]">
-                      <td colSpan={selectedTruck === 'all' ? 3 : 2} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
-                      <td className="px-3 py-2 text-right font-semibold text-[var(--color-text)]">
-                        {formatNumber(filteredData.filteredFuel.reduce((s, r) => s + Number(r.litros || 0), 0), 2)}
-                      </td>
-                      <td className="px-3 py-2"></td>
-                      <td className="px-3 py-2 text-right font-bold text-amber-500">
-                        {formatCurrency(filteredData.filteredFuel.reduce((s, r) => s + Number(r.valor_total || 0), 0))}
-                      </td>
-                      <td className="px-3 py-2"></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+  // Group consecutive chart sections for grid layout
+  const renderOrderedSections = () => {
+    const order = getOrder();
+    const elements = [];
+    let chartBuffer = [];
+
+    const flushCharts = () => {
+      if (chartBuffer.length > 0) {
+        elements.push(
+          <div key={`chart-group-${chartBuffer[0]}`} className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {chartBuffer.map(id => {
+              const renderer = sectionRenderers[id];
+              const content = renderer();
+              return content ? <div key={id}>{content}</div> : null;
+            })}
+          </div>
+        );
+        chartBuffer = [];
+      }
+    };
+
+    for (const id of order) {
+      if (!isVisible(id)) continue;
+
+      if (chartIds.includes(id)) {
+        chartBuffer.push(id);
+      } else {
+        flushCharts();
+        const renderer = sectionRenderers[id];
+        if (renderer) {
+          const content = renderer();
+          if (content) elements.push(<div key={id}>{content}</div>);
+        }
+      }
+    }
+    flushCharts();
+
+    return elements;
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">Relatórios</h1>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Análise detalhada da frota</p>
+        </div>
+        <SectionCustomizerButton onClick={() => setShowCustomize(true)} />
       </div>
+
+      <SectionCustomizerModal
+        isOpen={showCustomize}
+        onClose={() => setShowCustomize(false)}
+        title="Personalizar Relatórios"
+        sections={REPORT_SECTIONS}
+        prefs={prefs}
+        moveUp={moveUp}
+        moveDown={moveDown}
+        toggleVisibility={toggleVisibility}
+        reset={reset}
+      />
+
+      {renderOrderedSections()}
     </div>
   );
 }
