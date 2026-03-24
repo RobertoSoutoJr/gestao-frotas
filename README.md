@@ -1,269 +1,151 @@
-# 🚛 FrotaPro v1.0
+# FuelTrack — Sistema de Gestao de Frotas
 
-> Sistema completo de gestão de frotas com autenticação, dashboard interativo e controle total de operações.
+Projeto academico de gestao de frotas desenvolvido como trabalho de faculdade. Permite controlar caminhoes, motoristas, abastecimentos, manutencoes, viagens, estoque e clientes/fornecedores, com dashboard de acompanhamento e relatorios.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![React](https://img.shields.io/badge/React-19.2-61dafb.svg)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-22-339933.svg)](https://nodejs.org/)
+## Sobre o projeto
 
-## 🎯 Visão Geral
+O FuelTrack nasceu como um trabalho de faculdade com o objetivo de resolver um problema real: o controle operacional de uma pequena frota de caminhoes. O sistema permite que o usuario cadastre seus veiculos, registre abastecimentos e manutencoes, acompanhe viagens e controle estoque de produtos (sacas de milho, sorgo, etc.).
 
-FrotaPro é uma plataforma profissional para gestão completa de frotas de caminhões. Controle caminhões, motoristas, abastecimentos, manutenções e tenha acesso a relatórios detalhados em tempo real.
+Cada usuario tem seus proprios dados isolados (multi-tenancy por `user_id`), entao o sistema ja esta preparado para atender mais de um usuario simultaneamente.
 
-### ✨ Principais Recursos
+**Acesso em producao:** [frotapro.rfrota.com.br](https://frotapro.rfrota.com.br)
 
-- 🔐 **Autenticação completa** - Login, registro e gestão de usuários
-- 👥 **Multi-tenancy** - Cada usuário gerencia apenas seus dados
-- 📊 **Dashboard interativo** - Estatísticas e gráficos em tempo real
-- 🚚 **Gestão de caminhões** - CRUD completo com busca e filtros
-- 👤 **Gestão de motoristas** - Cadastro e controle de equipe
-- ⛽ **Controle de abastecimentos** - Histórico completo com análises
-- 🔧 **Gestão de manutenções** - 8 tipos de manutenção com badges coloridos
-- 📈 **Relatórios avançados** - Gráficos de custos, distribuição e evolução
-- 🔍 **Busca e filtros** - Em todas as páginas com múltiplos critérios
-- 🌓 **Modo escuro** - Toggle suave entre temas claro e escuro
-- ✏️ **Edição inline** - Modais para editar qualquer registro
-- 🗑️ **Exclusão segura** - Confirmação antes de deletar
-- 📱 **Design responsivo** - Funciona perfeitamente em mobile e desktop
-- 🎨 **Interface moderna** - Design profissional sem aparência genérica
+## Stack
 
-## 🏗️ Arquitetura
+**Frontend:** React 19, Vite, Tailwind CSS 4, Recharts, Lucide Icons, Axios
 
-### Backend (Node.js + Express)
+**Backend:** Node.js, Express, Supabase (PostgreSQL), Zod, JWT (jsonwebtoken + bcryptjs)
 
-```
-backend/
-├── src/
-│   ├── config/           # Configurações (Supabase, ambiente)
-│   ├── middlewares/      # Auth JWT, error handling, async wrapper
-│   ├── validators/       # Schemas Zod para validação
-│   ├── services/         # Lógica de negócio
-│   ├── controllers/      # Handlers de requisições
-│   └── routes/           # Definição de rotas REST
-├── migrations/           # Migrações de banco de dados
-└── server.js            # Entry point
-```
+**Infra:** Docker Compose, Nginx, VPS proprio
 
-**Tecnologias:**
-- Express 5.2 - Framework web
-- Supabase - PostgreSQL gerenciado
-- Zod - Validação de schemas
-- bcryptjs - Hash de senhas
-- jsonwebtoken - Autenticação JWT
-- pg - Driver PostgreSQL nativo
+## Funcionalidades
 
-### Frontend (React + Vite)
+- Autenticacao com JWT (login, registro, refresh token)
+- Dashboard com graficos de gastos, distribuicao de custos e ranking de veiculos
+- Cadastro de caminhoes, motoristas, clientes e fornecedores
+- Registro de abastecimentos e manutencoes com filtros e busca
+- Controle de viagens (cadastro, finalizacao com desconto do estoque)
+- Gestao de estoque com pagamentos parciais e cheques
+- Relatorios com tabelas detalhadas e graficos comparativos
+- Personalizacao de layout (reordenar e ocultar secoes no dashboard e relatorios)
+- Tema claro e escuro
+- Layout responsivo (mobile-first com bottom navigation)
+
+## Estrutura do projeto
 
 ```
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── ui/          # Componentes reutilizáveis (Button, Input, Modal)
-│   │   ├── forms/       # Formulários especializados
-│   │   └── layout/      # Header, TabNavigation
-│   ├── pages/           # Páginas principais (Dashboard, Trucks, etc.)
-│   ├── contexts/        # React Context (Auth, Theme)
-│   ├── hooks/           # Custom hooks (useAuth, useTheme, useFleet)
-│   ├── services/        # API clients
-│   └── lib/             # Utilitários (cn, formatters)
-└── index.html
+gestao-frotas/
+├── backend/
+│   ├── src/
+│   │   ├── config/          # Supabase, variaveis de ambiente
+│   │   ├── middlewares/     # Auth JWT, error handler
+│   │   ├── validators/     # Schemas Zod
+│   │   ├── services/       # Logica de negocio
+│   │   ├── controllers/    # Handlers das rotas
+│   │   └── routes/         # Rotas REST
+│   ├── migrations/          # Scripts SQL e JS
+│   └── server.js
+├── frontend/
+│   ├── src/
+│   │   ├── components/     # UI (Button, Modal, Card...), forms, layout
+│   │   ├── pages/          # Dashboard, Trucks, Fuel, Maintenance, Reports...
+│   │   ├── contexts/       # Auth, Theme
+│   │   ├── hooks/          # useAuth, useFleet, useToast
+│   │   ├── services/       # Chamadas API (axios)
+│   │   └── lib/            # Utilitarios (formatters, cn)
+│   └── index.html
+├── docker-compose.prod.yml
+└── README.md
 ```
 
-**Tecnologias:**
-- React 19.2 - UI library
-- Vite 7.3 - Build tool
-- Tailwind CSS 4.1 - Styling
-- Recharts - Gráficos interativos
-- Lucide React - Ícones modernos
-- Axios - Cliente HTTP
+## Como rodar localmente
 
-## 🚀 Início Rápido
-
-### Pré-requisitos
+### Pre-requisitos
 
 - Node.js 18+
-- npm ou yarn
-- Conta no Supabase (gratuita)
+- Conta no Supabase (plano gratuito funciona)
 
-### 1. Clone o repositório
-
-```bash
-git clone https://github.com/RobertoSoutoJr/gestao-frotas.git
-cd gestao-frotas
-```
-
-### 2. Configure o Backend
+### Backend
 
 ```bash
 cd backend
 npm install
 ```
 
-Crie o arquivo `.env`:
+Crie o `.env`:
 
 ```env
-SUPABASE_URL=sua_url_do_supabase
-SUPABASE_KEY=sua_public_key
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_KEY=sua_anon_key
 SUPABASE_SERVICE_KEY=sua_service_role_key
-DATABASE_PASSWORD=sua_senha_postgres
+DATABASE_PASSWORD=sua_senha
+JWT_SECRET=um_segredo_qualquer
 PORT=3001
 NODE_ENV=development
 ```
 
-Execute as migrações:
+Rode as migracoes e inicie:
 
 ```bash
 node migrations/001-create-auth-system.js
-```
-
-Inicie o servidor:
-
-```bash
 npm run dev
-```
-
-### 3. Configure o Frontend
-
-```bash
-cd ../frontend
-npm install
-```
-
-Crie o arquivo `.env`:
-
-```env
-VITE_API_URL=http://localhost:3001
-```
-
-Inicie o app:
-
-```bash
-npm run dev
-```
-
-Acesse: **http://localhost:5173**
-
-## 📖 Uso
-
-### Primeiro Acesso
-
-1. Abra a aplicação no navegador
-2. Clique em **"Criar conta gratuita"**
-3. Preencha seus dados (nome, email, senha)
-4. Faça login com suas credenciais
-
-### Navegação
-
-- **Dashboard** - Visão geral com estatísticas e gráficos
-- **Caminhões** - Cadastre e gerencie sua frota
-- **Motoristas** - Controle sua equipe
-- **Abastecimentos** - Registre e analise consumo
-- **Manutenções** - Histórico completo de manutenções
-- **Relatórios** - Análises detalhadas com filtros
-
-### Funcionalidades CRUD
-
-Todas as entidades suportam:
-- ✅ **Criar** - Formulários validados
-- 📖 **Listar** - Com busca e filtros
-- ✏️ **Editar** - Modais de edição
-- 🗑️ **Excluir** - Com confirmação
-
-## 🔒 Segurança
-
-- Senhas com hash bcrypt (salt rounds: 10)
-- JWT tokens (access + refresh)
-- Multi-tenancy com RLS (Row Level Security)
-- Service Role Key para operações admin
-- Validação de inputs com Zod
-- Proteção contra SQL injection
-- CORS configurado
-
-## 🎨 Design System
-
-### Cores Principais
-
-- **Blue 600** - Primary actions
-- **Indigo 600** - Secondary actions
-- **Green 600** - Success states
-- **Red 600** - Danger/Delete
-- **Zinc scales** - Neutrals
-
-### Componentes UI
-
-- Button (5 variantes)
-- Input (com ícones e máscaras)
-- Select
-- Card
-- Modal
-- ConfirmDialog
-- Badge
-- Toast
-- Spinner
-- EmptyState
-
-## 📊 Banco de Dados
-
-### Tabelas
-
-- `users` - Usuários do sistema
-- `user_sessions` - Sessões JWT
-- `caminhoes` - Frota de caminhões
-- `motoristas` - Equipe de motoristas
-- `abastecimentos` - Registros de abastecimento
-- `manutencoes` - Histórico de manutenções
-
-Todas as tabelas possuem:
-- RLS habilitado
-- Índices otimizados
-- Foreign keys com CASCADE
-- Campo `user_id` para multi-tenancy
-
-## 🛠️ Scripts Disponíveis
-
-### Backend
-
-```bash
-npm run dev     # Inicia servidor em modo desenvolvimento
-npm start       # Inicia servidor em produção
 ```
 
 ### Frontend
 
 ```bash
-npm run dev     # Inicia Vite dev server
-npm run build   # Build para produção
-npm run preview # Preview do build
+cd frontend
+npm install
 ```
 
-## 🤝 Contribuindo
+Crie o `.env`:
 
-1. Fork o projeto
-2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+```env
+VITE_API_URL=http://localhost:3001
+```
 
-## 📝 Licença
+Inicie:
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+```bash
+npm run dev
+```
 
-## 👨‍💻 Desenvolvido com
+Acesse `http://localhost:5173`, crie uma conta e comece a usar.
 
-- ❤️ Paixão por código limpo
-- ☕ Muito café
-- 🤖 Assistência de Claude Code (Anthropic)
+## Deploy (producao)
 
-## 🔗 Links
+O projeto roda em uma VPS com Docker Compose. O fluxo de deploy e:
 
-- [Documentação do Supabase](https://supabase.com/docs)
-- [React Documentation](https://react.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Recharts](https://recharts.org/)
+```bash
+git pull
+cd frontend && npm run build
+cd .. && docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+```
+
+O Nginx serve o frontend estatico e faz proxy reverso do `/api/` para o container do backend na porta 3001.
+
+## Banco de dados
+
+Tabelas principais: `users`, `user_sessions`, `caminhoes`, `motoristas`, `abastecimentos`, `manutencoes`, `viagens`, `estoque`, `estoque_pagamentos`, `estoque_cheques`, `clientes`, `fornecedores`, `produtos`.
+
+Todas as tabelas possuem:
+- Coluna `user_id` com foreign key para isolamento de dados
+- Indices compostos nas FKs mais consultadas
+- CHECK constraints para validacao no banco (status, tipos, valores)
+- RLS habilitado (Row Level Security)
+
+## Limitacoes conhecidas
+
+- Sem paginacao nas listas (pode ficar lento com muitos registros)
+- Navegacao por estado React, sem rotas na URL (refresh volta ao dashboard)
+- Sem upload real de fotos dos caminhoes (apenas placeholder)
+- Sem notificacoes push ou email
+
+## Licenca
+
+MIT
 
 ---
 
-<p align="center">
-  Feito com 💙 por Roberto Souto Jr<br>
-  © 2026 FrotaPro - Gestão Profissional de Frotas
-</p>
+Desenvolvido por Roberto Souto Jr — Projeto academico, 2025/2026
