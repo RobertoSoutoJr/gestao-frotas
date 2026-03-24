@@ -446,73 +446,58 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredFuelRecords.map(fuel => {
-              const pricePerL = fuel.litros > 0 ? Number(fuel.valor_total) / Number(fuel.litros) : 0;
-              return (
-                <Card key={fuel.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                    <div className="space-y-3">
-                      {/* Header */}
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-accent)]/10">
-                            <Fuel className="h-5 w-5 text-[var(--color-accent)]" />
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden sm:table-cell">Motorista</th>
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden md:table-cell">Data</th>
+                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Litros</th>
+                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Valor</th>
+                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)] hidden lg:table-cell">R$/L</th>
+                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)] hidden lg:table-cell">KM</th>
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden xl:table-cell">Posto</th>
+                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFuelRecords.map(fuel => {
+                    const pricePerL = fuel.litros > 0 ? Number(fuel.valor_total) / Number(fuel.litros) : 0;
+                    return (
+                      <tr key={fuel.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)] transition-colors">
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-[var(--color-text)]">{getTruckName(fuel.caminhao_id).split(' - ')[0]}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] sm:hidden">{getDriverName(fuel.motorista_id)}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] md:hidden">{formatDate(fuel.created_at)}</p>
+                        </td>
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden sm:table-cell">{getDriverName(fuel.motorista_id)}</td>
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden md:table-cell">{formatDate(fuel.created_at)}</td>
+                        <td className="px-4 py-3 text-right font-medium text-[var(--color-text)] tabular-nums">{formatNumber(fuel.litros)} L</td>
+                        <td className="px-4 py-3 text-right font-semibold text-amber-500 tabular-nums">{formatCurrency(fuel.valor_total)}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-accent)] tabular-nums hidden lg:table-cell">R$ {pricePerL.toFixed(3)}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] tabular-nums hidden lg:table-cell">{formatNumber(fuel.km_registro, 0)}</td>
+                        <td className="px-4 py-3 hidden xl:table-cell">
+                          {fuel.posto ? <Badge variant="outline">{fuel.posto}</Badge> : <span className="text-[var(--color-text-secondary)]">—</span>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-1">
+                            <Button variant="outline" size="sm" onClick={() => setEditingFuel(fuel)}>
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="danger" size="sm" onClick={() => setDeletingFuel(fuel)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-[var(--color-text)]">
-                              {getTruckName(fuel.caminhao_id)}
-                            </p>
-                            <p className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)]">
-                              <User className="h-3 w-3" />
-                              {getDriverName(fuel.motorista_id)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 gap-1">
-                          <Button variant="outline" size="sm" onClick={() => setEditingFuel(fuel)}>
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="danger" size="sm" onClick={() => setDeletingFuel(fuel)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Details grid */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
-                          <p className="text-[10px] text-[var(--color-text-secondary)]">Litros</p>
-                          <p className="text-sm font-semibold text-[var(--color-text)] tabular-nums">{formatNumber(fuel.litros)} L</p>
-                        </div>
-                        <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
-                          <p className="text-[10px] text-[var(--color-text-secondary)]">Valor</p>
-                          <p className="text-sm font-semibold text-[var(--color-text)] tabular-nums">{formatCurrency(fuel.valor_total)}</p>
-                        </div>
-                        <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
-                          <p className="text-[10px] text-[var(--color-text-secondary)]">R$/Litro</p>
-                          <p className="text-sm font-semibold text-[var(--color-accent)] tabular-nums">R$ {pricePerL.toFixed(3)}</p>
-                        </div>
-                        <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
-                          <p className="text-[10px] text-[var(--color-text-secondary)]">KM</p>
-                          <p className="text-sm font-semibold text-[var(--color-text)] tabular-nums">{formatNumber(fuel.km_registro, 0)}</p>
-                        </div>
-                      </div>
-
-                      {/* Footer */}
-                      <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(fuel.created_at)}
-                        </span>
-                        {fuel.posto && <Badge variant="outline">{fuel.posto}</Badge>}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
       </div>
 

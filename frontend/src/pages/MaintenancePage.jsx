@@ -394,63 +394,55 @@ export function MaintenancePage({ trucks, onRefetch }) {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredMaintenanceRecords.map(maintenance => (
-              <Card key={maintenance.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-5">
-                  <div className="space-y-3">
-                    {/* Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10">
-                          <Wrench className="h-5 w-5 text-amber-400" />
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden sm:table-cell">Descrição</th>
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden md:table-cell">Data</th>
+                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Valor</th>
+                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)] hidden lg:table-cell">KM</th>
+                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMaintenanceRecords.map(maintenance => (
+                    <tr key={maintenance.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)] transition-colors">
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-[var(--color-text)]">{getTruckName(maintenance.caminhao_id).split(' - ')[0]}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] sm:hidden line-clamp-1">{maintenance.descricao}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] md:hidden">{formatDate(maintenance.data_manutencao) || '—'}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${TYPE_COLORS[maintenance.tipo_manutencao] || TYPE_COLORS.Outros}`}>
+                          {maintenance.tipo_manutencao}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden sm:table-cell max-w-[200px] xl:max-w-[300px]">
+                        <p className="truncate">{maintenance.descricao || '—'}</p>
+                      </td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden md:table-cell whitespace-nowrap">{formatDate(maintenance.data_manutencao) || '—'}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-red-400 tabular-nums whitespace-nowrap">{formatCurrency(maintenance.valor_total)}</td>
+                      <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] tabular-nums hidden lg:table-cell">{maintenance.km_manutencao ? formatNumber(maintenance.km_manutencao, 0) : '—'}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="outline" size="sm" onClick={() => setEditingMaintenance(maintenance)}>
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="danger" size="sm" onClick={() => setDeletingMaintenance(maintenance)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-[var(--color-text)]">
-                            {getTruckName(maintenance.caminhao_id)}
-                          </p>
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_COLORS[maintenance.tipo_manutencao] || TYPE_COLORS.Outros}`}>
-                            {maintenance.tipo_manutencao}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 gap-1">
-                        <Button variant="outline" size="sm" onClick={() => setEditingMaintenance(maintenance)}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="danger" size="sm" onClick={() => setDeletingMaintenance(maintenance)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    <div className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-3">
-                      <p className="text-sm text-[var(--color-text-secondary)] line-clamp-2">
-                        {maintenance.descricao}
-                      </p>
-                    </div>
-
-                    {/* Details */}
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="rounded-lg bg-[var(--color-surface)] p-2">
-                        <p className="text-[10px] text-[var(--color-text-secondary)]">Valor</p>
-                        <p className="text-sm font-semibold text-[var(--color-text)]">{formatCurrency(maintenance.valor_total)}</p>
-                      </div>
-                      <div className="rounded-lg bg-[var(--color-surface)] p-2">
-                        <p className="text-[10px] text-[var(--color-text-secondary)]">KM</p>
-                        <p className="text-sm font-semibold text-[var(--color-text)]">{maintenance.km_manutencao ? formatNumber(maintenance.km_manutencao, 0) : '—'}</p>
-                      </div>
-                      <div className="rounded-lg bg-[var(--color-surface)] p-2">
-                        <p className="text-[10px] text-[var(--color-text-secondary)]">Data</p>
-                        <p className="text-sm font-semibold text-[var(--color-text)]">{formatDate(maintenance.data_manutencao) || '—'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
       </div>
 
