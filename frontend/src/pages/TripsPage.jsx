@@ -31,6 +31,7 @@ const FORMAS_PAGAMENTO = [
 ];
 
 function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }) {
+  const { error: showError } = useToast();
   const [loading, setLoading] = useState(false);
   const [produtoTipo, setProdutoTipo] = useState('');
   const [produtoCustom, setProdutoCustom] = useState('');
@@ -85,7 +86,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!produto) { alert('Selecione ou informe o produto'); return; }
+    if (!produto) { showError('Validação', 'Selecione ou informe o produto'); return; }
     setLoading(true);
     try {
       await tripsService.create({
@@ -106,7 +107,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
       setSelectedEstoqueId('');
       onSuccess?.();
     } catch (error) {
-      alert(error.message || 'Falha ao cadastrar viagem');
+      showError('Erro', error.message || 'Falha ao cadastrar viagem');
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Rota: Fornecedor -> Cliente */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Rota da Viagem</h3>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Rota da Viagem</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Select name="fornecedor_id" label="Fornecedor (Carregamento)" value={formData.fornecedor_id} onChange={handleChange} required>
             <option value="">Selecione o fornecedor</option>
@@ -132,7 +133,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
           </Select>
         </div>
         {selectedSupplier && selectedClient && (
-          <div className="mt-3 flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
             <MapPin className="h-4 w-4" />
             {selectedSupplier.cidade || selectedSupplier.nome}
             <ArrowRight className="h-4 w-4" />
@@ -144,7 +145,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
       {/* Estoque Vinculado (opcional) */}
       {availableStock.length > 0 && (
         <div>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Vincular ao Estoque (Opcional)</h3>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Vincular ao Estoque (Opcional)</h3>
           <Select value={selectedEstoqueId} onChange={(e) => handleStockSelect(e.target.value)} label="Entrada de Estoque">
             <option value="">Sem vínculo com estoque</option>
             {availableStock.map(s => (
@@ -154,7 +155,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
             ))}
           </Select>
           {selectedEstoqueId && (
-            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+            <p className="mt-2 text-xs text-amber-400">
               Ao finalizar esta viagem, {qtdSacas || 0} sacas serão subtraídas do estoque selecionado.
             </p>
           )}
@@ -163,7 +164,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
 
       {/* Veículo e Motorista */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Veículo e Motorista</h3>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Veículo e Motorista</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Select name="caminhao_id" label="Caminhão" value={formData.caminhao_id} onChange={handleChange} required>
             <option value="">Selecione o caminhão</option>
@@ -178,7 +179,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
 
       {/* Produto e Valores */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Produto e Valores</h3>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Produto e Valores</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Select label="Produto" value={produtoTipo} onChange={(e) => setProdutoTipo(e.target.value)} required>
             <option value="">Selecione o produto</option>
@@ -195,24 +196,24 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
 
       {/* Resumo Financeiro */}
       {qtdSacas > 0 && precoFrete > 0 && produto && (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Resumo Financeiro</h3>
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Resumo Financeiro</h3>
           <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
             <div>
-              <p className="text-zinc-500">Peso Total</p>
-              <p className="font-semibold text-zinc-900 dark:text-zinc-50">{pesoTotal.toLocaleString('pt-BR')} kg</p>
+              <p className="text-[var(--color-text-secondary)]">Peso Total</p>
+              <p className="font-semibold text-[var(--color-text)]">{pesoTotal.toLocaleString('pt-BR')} kg</p>
             </div>
             <div>
-              <p className="text-zinc-500">Valor Produto</p>
-              <p className="font-semibold text-zinc-900 dark:text-zinc-50">{formatCurrency(valorProduto)}</p>
+              <p className="text-[var(--color-text-secondary)]">Valor Produto</p>
+              <p className="font-semibold text-[var(--color-text)]">{formatCurrency(valorProduto)}</p>
             </div>
             <div>
-              <p className="text-zinc-500">Valor Frete</p>
-              <p className="font-semibold text-zinc-900 dark:text-zinc-50">{formatCurrency(valorFrete)}</p>
+              <p className="text-[var(--color-text-secondary)]">Valor Frete</p>
+              <p className="font-semibold text-[var(--color-text)]">{formatCurrency(valorFrete)}</p>
             </div>
             <div>
-              <p className="text-zinc-500">Total Geral</p>
-              <p className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(valorTotal)}</p>
+              <p className="text-[var(--color-text-secondary)]">Total Geral</p>
+              <p className="text-lg font-bold text-emerald-400">{formatCurrency(valorTotal)}</p>
             </div>
           </div>
         </div>
@@ -220,7 +221,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
 
       <Input name="observacoes" label="Observações" placeholder="Informações adicionais da viagem..." value={formData.observacoes} onChange={handleChange} />
 
-      <Button type="submit" variant="success" loading={loading} className="w-full">
+      <Button type="submit" variant="primary" loading={loading} className="w-full">
         Cadastrar Viagem
       </Button>
     </form>
@@ -250,29 +251,29 @@ function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Finalizar Viagem">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
+        <div className="rounded-lg bg-[var(--color-surface)] p-4">
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-zinc-500">Produto</p>
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">{trip.produto}</p>
+              <p className="text-[var(--color-text-secondary)]">Produto</p>
+              <p className="font-medium text-[var(--color-text)]">{trip.produto}</p>
             </div>
             <div>
-              <p className="text-zinc-500">Quantidade</p>
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">{trip.quantidade_sacas} sacas</p>
+              <p className="text-[var(--color-text-secondary)]">Quantidade</p>
+              <p className="font-medium text-[var(--color-text)]">{trip.quantidade_sacas} sacas</p>
             </div>
             <div>
-              <p className="text-zinc-500">Valor Produto</p>
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">{formatCurrency(trip.valor_total_produto)}</p>
+              <p className="text-[var(--color-text-secondary)]">Valor Produto</p>
+              <p className="font-medium text-[var(--color-text)]">{formatCurrency(trip.valor_total_produto)}</p>
             </div>
             <div>
-              <p className="text-zinc-500">Valor Frete</p>
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">{formatCurrency(trip.valor_total_frete)}</p>
+              <p className="text-[var(--color-text-secondary)]">Valor Frete</p>
+              <p className="font-medium text-[var(--color-text)]">{formatCurrency(trip.valor_total_frete)}</p>
             </div>
           </div>
-          <div className="mt-3 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+          <div className="mt-3 border-t border-[var(--color-border)] pt-3">
             <div className="flex justify-between">
-              <span className="font-semibold text-zinc-700 dark:text-zinc-300">Total a Pagar</span>
-              <span className="text-lg font-bold text-green-600 dark:text-green-400">
+              <span className="font-semibold text-[var(--color-text)]">Total a Pagar</span>
+              <span className="text-lg font-bold text-emerald-400">
                 {formatCurrency(Number(trip.valor_total_produto) + Number(trip.valor_total_frete))}
               </span>
             </div>
@@ -375,7 +376,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   if (loadingData) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-zinc-500">Carregando dados...</div>
+        <div className="text-[var(--color-text-secondary)]">Carregando dados...</div>
       </div>
     );
   }
@@ -386,19 +387,19 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-xs sm:text-sm text-zinc-500">Em Andamento</p>
+            <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Em Andamento</p>
             <p className="text-xl sm:text-2xl font-bold text-amber-600">{totalCadastradas}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-xs sm:text-sm text-zinc-500">Finalizadas</p>
+            <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Finalizadas</p>
             <p className="text-xl sm:text-2xl font-bold text-green-600">{totalFinalizadas}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-xs sm:text-sm text-zinc-500">Total Frete</p>
+            <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Total Frete</p>
             <p className="text-xl sm:text-2xl font-bold text-blue-600">{formatCurrency(totalFrete)}</p>
           </CardContent>
         </Card>
@@ -460,7 +461,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                         <Badge variant={trip.status === 'finalizada' ? 'success' : 'warning'}>
                           {trip.status === 'finalizada' ? 'Finalizada' : 'Cadastrada'}
                         </Badge>
-                        <span className="text-xs text-zinc-400">
+                        <span className="text-xs text-[var(--color-text-secondary)]">
                           <Calendar className="mr-1 inline h-3 w-3" />
                           {formatDate(trip.data_viagem || trip.created_at)}
                         </span>
@@ -469,12 +470,12 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                       <div className="mt-3 flex items-center gap-2 text-sm">
                         <MapPin className="h-4 w-4 text-amber-500" />
                         <span className="font-medium">{trip.fornecedores?.nome}</span>
-                        <ArrowRight className="h-4 w-4 text-zinc-400" />
+                        <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)]" />
                         <MapPin className="h-4 w-4 text-blue-500" />
                         <span className="font-medium">{trip.clientes?.nome}</span>
                       </div>
 
-                      <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-zinc-500">
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
                         <span className="flex items-center gap-1">
                           <Truck className="h-3 w-3" />
                           {trip.caminhoes?.placa}
@@ -494,12 +495,12 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                       </div>
 
                       {trip.estoque_id && (
-                        <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+                        <p className="mt-1 text-xs text-emerald-400">
                           Vinculada ao estoque #{trip.estoque_id}
                         </p>
                       )}
                       {trip.forma_pagamento && (
-                        <p className="mt-1 text-xs text-zinc-400">
+                        <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
                           Pago via: {FORMAS_PAGAMENTO.find(f => f.value === trip.forma_pagamento)?.label || trip.forma_pagamento}
                         </p>
                       )}
@@ -528,7 +529,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
       {/* Modal: Cadastrar Viagem */}
       <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Nova Viagem" size="xl">
         {clients.length === 0 || suppliers.length === 0 ? (
-          <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="rounded-lg bg-amber-500/10 p-4 text-sm text-amber-400">
             <p className="font-semibold">Pré-requisitos:</p>
             <ul className="mt-2 list-inside list-disc space-y-1">
               {suppliers.length === 0 && <li>Cadastre pelo menos um <strong>fornecedor</strong></li>}

@@ -69,7 +69,7 @@ function EditClientModal({ client, isOpen, onClose, onSuccess }) {
         </div>
         <div className="flex gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>Cancelar</Button>
-          <Button type="submit" variant="success" loading={loading} className="flex-1">Salvar Alterações</Button>
+          <Button type="submit" variant="primary" loading={loading} className="flex-1">Salvar Alterações</Button>
         </div>
       </form>
     </Modal>
@@ -166,8 +166,8 @@ export function ClientsPage({ clients, onRefetch }) {
                       <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">{client.nome}</h3>
-                      <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-zinc-500">
+                      <h3 className="font-semibold text-[var(--color-text)]">{client.nome}</h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
                         {client.cidade && (
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
@@ -188,7 +188,7 @@ export function ClientsPage({ clients, onRefetch }) {
                         )}
                       </div>
                       {client.endereco && (
-                        <p className="mt-1 text-xs text-zinc-400">{client.endereco}</p>
+                        <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{client.endereco}</p>
                       )}
                     </div>
                   </div>

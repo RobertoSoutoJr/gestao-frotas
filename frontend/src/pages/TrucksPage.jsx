@@ -48,8 +48,8 @@ function TruckDetailModal({ truck, isOpen, onClose }) {
             {truck.foto_url ? (
               <img src={truck.foto_url} alt={truck.placa} className="h-16 w-16 rounded-xl object-cover" />
             ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
-                <Truck className="h-8 w-8 text-zinc-400" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[var(--color-surface)]">
+                <Truck className="h-8 w-8 text-[var(--color-text-secondary)]" />
               </div>
             )}
             <div>
@@ -186,7 +186,7 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
         <div className="flex justify-center">
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="group relative flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:border-blue-500 dark:hover:bg-zinc-700"
+            className="group relative flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
             {fotoPreview ? (
               <>
@@ -196,7 +196,7 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center gap-1 text-zinc-400 group-hover:text-blue-500">
+              <div className="flex flex-col items-center gap-1 text-[var(--color-text-secondary)] group-hover:text-blue-500">
                 <Camera className="h-8 w-8" />
                 <span className="text-xs">Adicionar foto</span>
               </div>
@@ -391,12 +391,12 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
                 <div className="cursor-pointer" onClick={() => setDetailTruck(truck)}>
                   {/* Truck Photo */}
                   {truck.foto_url ? (
-                    <div className="h-40 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                    <div className="h-40 w-full overflow-hidden bg-[var(--color-surface)]">
                       <img src={truck.foto_url} alt={truck.placa} className="h-full w-full object-cover" />
                     </div>
                   ) : (
-                    <div className="flex h-20 sm:h-28 w-full items-center justify-center bg-zinc-100 dark:bg-zinc-800/50">
-                      <Truck className="h-12 w-12 text-zinc-300 dark:text-zinc-600" />
+                    <div className="flex h-20 sm:h-28 w-full items-center justify-center bg-[var(--color-surface)]">
+                      <Truck className="h-12 w-12 text-[var(--color-text-secondary)]" />
                     </div>
                   )}
                   <div className="px-6 pt-6 pb-2">

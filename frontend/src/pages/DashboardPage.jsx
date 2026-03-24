@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
 import { useSectionPrefs, SectionCustomizerButton, SectionCustomizerModal } from '../components/ui/SectionCustomizer';
 import { Truck, Users, Gauge, DollarSign, Fuel, Wrench, ArrowRight, Building2, Factory, Route, Warehouse, Package, AlertCircle, Settings, Eye, EyeOff } from 'lucide-react';
@@ -97,7 +97,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
 
   const periodLabel = PERIOD_OPTIONS.find(p => p.value === period)?.label || 'Mensal';
 
-  const filterByPeriod = (records, dateField = 'created_at') => {
+  const filterByPeriod = useCallback((records, dateField = 'created_at') => {
     const now = new Date();
     return records.filter(r => {
       const d = new Date(r[dateField] || r.created_at);
@@ -117,7 +117,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
           return true;
       }
     });
-  };
+  }, [period]);
 
   const tooltipStyle = {
     backgroundColor: isDark ? 'rgba(10,10,12,0.95)' : 'rgba(255,255,255,0.98)',

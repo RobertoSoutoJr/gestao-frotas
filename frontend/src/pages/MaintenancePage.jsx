@@ -429,10 +429,10 @@ export function MaintenancePage({ trucks, onRefetch }) {
                       <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] tabular-nums hidden lg:table-cell">{maintenance.km_manutencao ? formatNumber(maintenance.km_manutencao, 0) : '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-1">
-                          <Button variant="outline" size="sm" onClick={() => setEditingMaintenance(maintenance)}>
+                          <Button variant="outline" size="sm" onClick={() => setEditingMaintenance(maintenance)} aria-label="Editar">
                             <Edit2 className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="danger" size="sm" onClick={() => setDeletingMaintenance(maintenance)}>
+                          <Button variant="danger" size="sm" onClick={() => setDeletingMaintenance(maintenance)} aria-label="Excluir">
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>

@@ -86,7 +86,7 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
           </Button>
           <Button
             type="submit"
-            variant="success"
+            variant="primary"
             loading={loading}
             className="flex-1"
           >

@@ -69,7 +69,7 @@ function EditSupplierModal({ supplier, isOpen, onClose, onSuccess }) {
         </div>
         <div className="flex gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>Cancelar</Button>
-          <Button type="submit" variant="success" loading={loading} className="flex-1">Salvar Alterações</Button>
+          <Button type="submit" variant="primary" loading={loading} className="flex-1">Salvar Alterações</Button>
         </div>
       </form>
     </Modal>
@@ -166,8 +166,8 @@ export function SuppliersPage({ suppliers, onRefetch }) {
                       <Factory className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">{supplier.nome}</h3>
-                      <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-zinc-500">
+                      <h3 className="font-semibold text-[var(--color-text)]">{supplier.nome}</h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
                         {supplier.cidade && (
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
@@ -188,7 +188,7 @@ export function SuppliersPage({ suppliers, onRefetch }) {
                         )}
                       </div>
                       {supplier.endereco && (
-                        <p className="mt-1 text-xs text-zinc-400">{supplier.endereco}</p>
+                        <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{supplier.endereco}</p>
                       )}
                     </div>
                   </div>

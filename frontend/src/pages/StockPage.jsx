@@ -81,6 +81,7 @@ function SiloIcon({ percent, size = 120 }) {
 
 // ============ STOCK FORM ============
 function StockForm({ suppliers, onSuccess }) {
+  const { error: showError } = useToast();
   const [loading, setLoading] = useState(false);
   const [produtoTipo, setProdutoTipo] = useState('');
   const [produtoCustom, setProdutoCustom] = useState('');
@@ -97,7 +98,7 @@ function StockForm({ suppliers, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!produto) { alert('Selecione ou informe o produto'); return; }
+    if (!produto) { showError('Validação', 'Selecione ou informe o produto'); return; }
     setLoading(true);
     try {
       await stockService.create({
@@ -117,7 +118,7 @@ function StockForm({ suppliers, onSuccess }) {
       setProdutoCustom('');
       onSuccess?.();
     } catch (error) {
-      alert(error.message || 'Falha ao adicionar ao estoque');
+      showError('Erro', error.message || 'Falha ao adicionar ao estoque');
     } finally {
       setLoading(false);
     }
@@ -131,7 +132,7 @@ function StockForm({ suppliers, onSuccess }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Produto e Fornecedor</h3>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Produto e Fornecedor</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Select label="Produto" value={produtoTipo} onChange={(e) => setProdutoTipo(e.target.value)} required>
             <option value="">Selecione o produto</option>
@@ -149,7 +150,7 @@ function StockForm({ suppliers, onSuccess }) {
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Quantidade e Valores</h3>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Quantidade e Valores</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Input name="quantidade_sacas" label="Quantidade (Sacas)" type="number" placeholder="0" min="1" step="0.01" value={formData.quantidade_sacas} onChange={handleChange} required />
           <Input name="preco_pago_saca" label="Preço Pago por Saca (R$)" type="number" placeholder="0,00" min="0.01" step="0.01" value={formData.preco_pago_saca} onChange={handleChange} required />
@@ -159,27 +160,27 @@ function StockForm({ suppliers, onSuccess }) {
       </div>
 
       {qtdSacas > 0 && precoSaca > 0 && (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
             <div>
-              <p className="text-zinc-500">Peso Total</p>
-              <p className="font-semibold text-zinc-900 dark:text-zinc-50">{(qtdSacas * 60).toLocaleString('pt-BR')} kg</p>
+              <p className="text-[var(--color-text-secondary)]">Peso Total</p>
+              <p className="font-semibold text-[var(--color-text)]">{(qtdSacas * 60).toLocaleString('pt-BR')} kg</p>
             </div>
             <div>
-              <p className="text-zinc-500">Valor Total</p>
-              <p className="font-semibold text-zinc-900 dark:text-zinc-50">{formatCurrency(valorTotal)}</p>
+              <p className="text-[var(--color-text-secondary)]">Valor Total</p>
+              <p className="font-semibold text-[var(--color-text)]">{formatCurrency(valorTotal)}</p>
             </div>
             <div>
-              <p className="text-zinc-500">Preço Sugerido Venda</p>
-              <p className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(precoSaca * 1.15)}/saca</p>
+              <p className="text-[var(--color-text-secondary)]">Preço Sugerido Venda</p>
+              <p className="font-semibold text-emerald-400">{formatCurrency(precoSaca * 1.15)}/saca</p>
             </div>
           </div>
         </div>
       )}
 
       <div className="flex flex-wrap items-center gap-4">
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-          <input type="checkbox" name="pago" checked={formData.pago} onChange={handleChange} className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500" />
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--color-text)]">
+          <input type="checkbox" name="pago" checked={formData.pago} onChange={handleChange} className="h-4 w-4 rounded border-[var(--color-border)] text-blue-600 focus:ring-blue-500" />
           Já foi pago ao fornecedor
         </label>
         {formData.pago && (
@@ -192,7 +193,7 @@ function StockForm({ suppliers, onSuccess }) {
 
       <Input name="observacoes" label="Observações" placeholder="Informações adicionais..." value={formData.observacoes} onChange={handleChange} />
 
-      <Button type="submit" variant="success" loading={loading} className="w-full">
+      <Button type="submit" variant="primary" loading={loading} className="w-full">
         Adicionar ao Estoque
       </Button>
     </form>
@@ -220,7 +221,7 @@ function EditStockModal({ item, suppliers, isOpen, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const produto = produtoTipo === 'Outros' ? produtoCustom : produtoTipo;
-    if (!produto) { alert('Selecione ou informe o produto'); return; }
+    if (!produto) { showError('Validação', 'Selecione ou informe o produto'); return; }
     setLoading(true);
     try {
       await stockService.update(item.id, {
@@ -270,7 +271,7 @@ function EditStockModal({ item, suppliers, isOpen, onClose, onSuccess }) {
         </div>
         <div className="flex gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>Cancelar</Button>
-          <Button type="submit" variant="success" loading={loading} className="flex-1">Salvar Alterações</Button>
+          <Button type="submit" variant="primary" loading={loading} className="flex-1">Salvar Alterações</Button>
         </div>
       </form>
     </Modal>
@@ -308,10 +309,10 @@ function PartialPaymentModal({ item, isOpen, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (valorNum <= 0 || valorNum > saldoRestante + 0.01) {
-      alert(`Valor deve ser entre R$ 0,01 e ${formatCurrency(saldoRestante)}`);
+      error('Validação', `Valor deve ser entre R$ 0,01 e ${formatCurrency(saldoRestante)}`);
       return;
     }
-    if (!formaPagamento) { alert('Selecione a forma de pagamento'); return; }
+    if (!formaPagamento) { error('Validação', 'Selecione a forma de pagamento'); return; }
 
     setLoading(true);
     try {
@@ -321,7 +322,7 @@ function PartialPaymentModal({ item, isOpen, onClose, onSuccess }) {
           ...c, valor: Number(c.valor)
         }));
         if (payload.cheques.length === 0) {
-          alert('Adicione pelo menos um cheque com os dados completos');
+          error('Validação', 'Adicione pelo menos um cheque com os dados completos');
           setLoading(false);
           return;
         }
@@ -341,18 +342,18 @@ function PartialPaymentModal({ item, isOpen, onClose, onSuccess }) {
     <Modal isOpen={isOpen} onClose={onClose} title="Registrar Pagamento" size="lg">
       <div className="space-y-4">
         {/* Summary */}
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <div className="grid grid-cols-3 gap-3 text-sm">
             <div>
-              <p className="text-zinc-500">Valor Total</p>
+              <p className="text-[var(--color-text-secondary)]">Valor Total</p>
               <p className="font-semibold text-[var(--color-text)]">{formatCurrency(item.valor_total)}</p>
             </div>
             <div>
-              <p className="text-zinc-500">Já Pago</p>
+              <p className="text-[var(--color-text-secondary)]">Já Pago</p>
               <p className="font-semibold text-green-600">{formatCurrency(item.valor_pago || 0)}</p>
             </div>
             <div>
-              <p className="text-zinc-500">Saldo Restante</p>
+              <p className="text-[var(--color-text-secondary)]">Saldo Restante</p>
               <p className="font-bold text-red-600">{formatCurrency(saldoRestante)}</p>
             </div>
           </div>
@@ -370,7 +371,7 @@ function PartialPaymentModal({ item, isOpen, onClose, onSuccess }) {
 
           {/* Cheque sub-form */}
           {formaPagamento === 'Cheque' && (
-            <div className="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+            <div className="space-y-3 rounded-lg border border-[var(--color-border)] p-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-[var(--color-text)]">Cheques ({cheques.length})</h4>
                 <Button type="button" variant="outline" size="sm" onClick={addCheque}>
@@ -378,10 +379,10 @@ function PartialPaymentModal({ item, isOpen, onClose, onSuccess }) {
                 </Button>
               </div>
               {cheques.map((cheque, idx) => (
-                <div key={idx} className="relative rounded-lg border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
+                <div key={idx} className="relative rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
                   {cheques.length > 1 && (
                     <button type="button" onClick={() => removeCheque(idx)}
-                      className="absolute right-2 top-2 text-zinc-400 hover:text-red-500">
+                      className="absolute right-2 top-2 text-[var(--color-text-secondary)] hover:text-red-500">
                       <X className="h-4 w-4" />
                     </button>
                   )}
@@ -423,7 +424,7 @@ function PartialPaymentModal({ item, isOpen, onClose, onSuccess }) {
         </form>
 
         {/* Payment history */}
-        <div className="border-t border-zinc-200 pt-4 dark:border-zinc-700">
+        <div className="border-t border-[var(--color-border)] pt-4">
           <button type="button" onClick={() => { setShowHistory(!showHistory); if (!showHistory) loadHistory(); }}
             className="flex w-full items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text)]">
             <Receipt className="h-4 w-4" />
@@ -433,16 +434,16 @@ function PartialPaymentModal({ item, isOpen, onClose, onSuccess }) {
           {showHistory && (
             <div className="mt-3 space-y-2">
               {loadingHistory ? (
-                <p className="text-sm text-zinc-400">Carregando...</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">Carregando...</p>
               ) : payments.length === 0 ? (
-                <p className="text-sm text-zinc-400">Nenhum pagamento registrado</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">Nenhum pagamento registrado</p>
               ) : (
                 payments.map(p => (
                   <div key={p.id} className="flex items-center justify-between rounded-lg bg-[var(--color-surface)] p-3 text-sm">
                     <div>
                       <p className="font-medium text-[var(--color-text)]">{formatCurrency(p.valor)} - {p.forma_pagamento}</p>
                       <p className="text-xs text-[var(--color-text-secondary)]">{formatDate(p.data_pagamento)}</p>
-                      {p.observacoes && <p className="text-xs text-zinc-400">{p.observacoes}</p>}
+                      {p.observacoes && <p className="text-xs text-[var(--color-text-secondary)]">{p.observacoes}</p>}
                     </div>
                   </div>
                 ))
@@ -465,7 +466,7 @@ function DueDateBadge({ date }) {
 
   if (diffDays < 0) return <Badge variant="danger">Vencido {Math.abs(diffDays)}d</Badge>;
   if (diffDays <= 7) return <Badge variant="warning">Vence em {diffDays}d</Badge>;
-  return <span className="text-xs text-zinc-400">Vence {formatDate(date)}</span>;
+  return <span className="text-xs text-[var(--color-text-secondary)]">Vence {formatDate(date)}</span>;
 }
 
 // ============ MAIN PAGE ============
@@ -590,7 +591,7 @@ export function StockPage({ onRefetch }) {
   const vencidos = stock.filter(i => !i.pago && i.data_vencimento && new Date(i.data_vencimento + 'T00:00:00') < new Date()).length;
 
   if (loadingData) {
-    return <div className="flex items-center justify-center py-12"><div className="text-zinc-500">Carregando dados...</div></div>;
+    return <div className="flex items-center justify-center py-12"><div className="text-[var(--color-text-secondary)]">Carregando dados...</div></div>;
   }
 
   return (
@@ -599,33 +600,33 @@ export function StockPage({ onRefetch }) {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-xs text-zinc-500">Total em Estoque</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Total em Estoque</p>
             <p className="text-xl font-bold text-[var(--color-text)]">{totalSacasRestante.toLocaleString('pt-BR')} sc</p>
-            <p className="text-xs text-zinc-400">Comprado: {totalSacas.toLocaleString('pt-BR')} sc</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Comprado: {totalSacas.toLocaleString('pt-BR')} sc</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-xs text-zinc-500">Valor Total</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Valor Total</p>
             <p className="text-xl font-bold text-blue-600">{formatCurrency(totalEstoque)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-xs text-zinc-500">Total Pago</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Total Pago</p>
             <p className="text-xl font-bold text-green-600">{formatCurrency(totalPago)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-xs text-zinc-500">Saldo a Pagar</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Saldo a Pagar</p>
             <p className="text-xl font-bold text-red-600">{formatCurrency(totalPendente)}</p>
           </CardContent>
         </Card>
         {vencidos > 0 && (
           <Card className="border-red-400/50">
             <CardContent className="p-4 text-center">
-              <p className="text-xs text-zinc-500">Vencidos</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">Vencidos</p>
               <p className="text-xl font-bold text-red-600">{vencidos}</p>
               <p className="text-xs text-red-400">registros</p>
             </CardContent>
@@ -700,8 +701,8 @@ export function StockPage({ onRefetch }) {
                           <Badge variant={item.pago ? 'success' : percentPago > 0 ? 'warning' : 'danger'}>
                             {item.pago ? 'Pago' : percentPago > 0 ? `Parcial (${Math.round(percentPago)}%)` : 'Pendente'}
                           </Badge>
-                          {item.nota_fiscal && <span className="text-xs text-zinc-400">NF: {item.nota_fiscal}</span>}
-                          <span className="text-xs text-zinc-400">{formatDate(item.data_entrada || item.created_at)}</span>
+                          {item.nota_fiscal && <span className="text-xs text-[var(--color-text-secondary)]">NF: {item.nota_fiscal}</span>}
+                          <span className="text-xs text-[var(--color-text-secondary)]">{formatDate(item.data_entrada || item.created_at)}</span>
                           <DueDateBadge date={item.data_vencimento} />
                         </div>
 
@@ -772,7 +773,7 @@ export function StockPage({ onRefetch }) {
 
                   {/* Expanded trips section */}
                   {expandedItem === item.id && (
-                    <div className="overflow-x-auto border-t border-zinc-200 dark:border-zinc-700 px-2 sm:px-6 pb-4 pt-3">
+                    <div className="overflow-x-auto border-t border-[var(--color-border)] px-2 sm:px-6 pb-4 pt-3">
                       <h4 className="text-sm font-semibold text-[var(--color-text)] mb-2 flex items-center gap-2">
                         <Route className="h-4 w-4" />
                         Saídas (Viagens)
@@ -780,7 +781,7 @@ export function StockPage({ onRefetch }) {
                       {(() => {
                         const itemTrips = trips.filter(t => t.estoque_id === item.id);
                         if (itemTrips.length === 0) return (
-                          <p className="text-sm text-zinc-400">Nenhuma saída registrada para este estoque</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">Nenhuma saída registrada para este estoque</p>
                         );
                         return (
                           <div className="space-y-2">
@@ -803,7 +804,7 @@ export function StockPage({ onRefetch }) {
                                 </div>
                               </div>
                             ))}
-                            <div className="flex justify-between text-xs font-medium pt-1 border-t border-zinc-100 dark:border-zinc-700">
+                            <div className="flex justify-between text-xs font-medium pt-1 border-t border-[var(--color-border)]">
                               <span className="text-[var(--color-text-secondary)]">Total saídas:</span>
                               <span className="text-[var(--color-text)]">{itemTrips.reduce((s, t) => s + Number(t.quantidade_sacas), 0).toLocaleString('pt-BR')} sc</span>
                             </div>
@@ -822,7 +823,7 @@ export function StockPage({ onRefetch }) {
       {/* Modal: Nova Entrada */}
       <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Nova Entrada de Estoque" size="xl">
         {suppliers.length === 0 ? (
-          <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="rounded-lg bg-amber-500/10 p-4 text-sm text-amber-400">
             <p>Cadastre pelo menos um <strong>fornecedor</strong> antes.</p>
           </div>
         ) : (

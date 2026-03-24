@@ -23,11 +23,10 @@ import { useToast } from './hooks/useToast';
 function AuthenticatedContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, trips, stockRecords, loading, error, refetch } = useFleet();
-  const { toasts, success, dismiss } = useToast();
+  const { toasts, dismiss } = useToast();
 
   const handleRefetch = () => {
     refetch();
-    success('Sucesso', 'Dados atualizados com sucesso');
   };
 
   if (loading) {
@@ -43,6 +42,12 @@ function AuthenticatedContent() {
             Erro ao carregar dados
           </h2>
           <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{error}</p>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 rounded-xl bg-[var(--color-accent)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+          >
+            Tentar novamente
+          </button>
         </div>
       </div>
     );

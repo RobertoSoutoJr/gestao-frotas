@@ -379,9 +379,9 @@ export function ReportsPage({ trucks, fuelRecords, maintenanceRecords }) {
                         <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.created_at)}</td>
                         <td className="px-3 py-2 text-[var(--color-text)]">{record.posto || '-'}</td>
                         <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatNumber(record.litros, 2)}</td>
-                        <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatCurrency(record.preco_litro)}</td>
+                        <td className="px-3 py-2 text-right text-[var(--color-text)]">{record.litros > 0 ? formatCurrency(Number(record.valor_total) / Number(record.litros)) : '-'}</td>
                         <td className="px-3 py-2 text-right font-medium text-amber-500">{formatCurrency(record.valor_total)}</td>
-                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_atual ? formatNumber(record.km_atual, 0) : '-'}</td>
+                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_registro ? formatNumber(record.km_registro, 0) : '-'}</td>
                       </tr>
                     );
                   })}

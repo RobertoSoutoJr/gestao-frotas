@@ -128,7 +128,7 @@ export function SectionCustomizerModal({
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-              Seções (arraste para reordenar)
+              Seções (use as setas para reordenar)
             </p>
             <button
               onClick={reset}
