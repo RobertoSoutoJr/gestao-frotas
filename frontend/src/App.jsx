@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useAuth } from './hooks/useAuth';
@@ -15,6 +15,7 @@ import { FuelPage } from './pages/FuelPage';
 import { MaintenancePage } from './pages/MaintenancePage';
 import { ReportsPage } from './pages/ReportsPage';
 import { AuthPage } from './pages/AuthPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { LoadingScreen } from './components/ui/Spinner';
 import { Button } from './components/ui/Button';
 import { ToastContainer } from './components/ui/Toast';
@@ -22,12 +23,12 @@ import { useFleet } from './hooks/useFleet';
 import { useToast } from './hooks/useToast';
 
 function AuthenticatedContent() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const navigate = useNavigate();
   const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, trips, stockRecords, loading, error, refetch } = useFleet();
   const { toasts, dismiss } = useToast();
 
-  const handleRefetch = () => {
-    refetch();
+  const handleNavigate = (path) => {
+    navigate(`/${path}`);
   };
 
   if (loading) {
@@ -61,54 +62,57 @@ function AuthenticatedContent() {
       <div className="linear-grid" />
 
       <Header />
-      <TabNavigation activeTab={activeTab} onChange={setActiveTab} />
+      <TabNavigation />
 
-      {/* Main content: add bottom padding on mobile for the fixed bottom nav */}
       <main className="relative z-10 container mx-auto px-4 py-6 md:py-8 pb-safe-bottom md:pb-8">
-        {activeTab === 'dashboard' && (
-          <DashboardPage
-            trucks={trucks}
-            drivers={drivers}
-            clients={clients}
-            suppliers={suppliers}
-            trips={trips}
-            stockRecords={stockRecords}
-            fuelRecords={fuelRecords}
-            maintenanceRecords={maintenanceRecords}
-            onNavigate={setActiveTab}
-          />
-        )}
-        {activeTab === 'trucks' && (
-          <TrucksPage trucks={trucks} drivers={drivers} onRefetch={handleRefetch} />
-        )}
-        {activeTab === 'drivers' && (
-          <DriversPage drivers={drivers} onRefetch={handleRefetch} />
-        )}
-        {activeTab === 'clients' && (
-          <ClientsPage clients={clients} onRefetch={handleRefetch} />
-        )}
-        {activeTab === 'suppliers' && (
-          <SuppliersPage suppliers={suppliers} onRefetch={handleRefetch} />
-        )}
-        {activeTab === 'trips' && (
-          <TripsPage trucks={trucks} drivers={drivers} onRefetch={handleRefetch} />
-        )}
-        {activeTab === 'stock' && (
-          <StockPage onRefetch={handleRefetch} />
-        )}
-        {activeTab === 'fuel' && (
-          <FuelPage trucks={trucks} drivers={drivers} onRefetch={handleRefetch} />
-        )}
-        {activeTab === 'maintenance' && (
-          <MaintenancePage trucks={trucks} onRefetch={handleRefetch} />
-        )}
-        {activeTab === 'reports' && (
-          <ReportsPage
-            trucks={trucks}
-            fuelRecords={fuelRecords}
-            maintenanceRecords={maintenanceRecords}
-          />
-        )}
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={
+            <DashboardPage
+              trucks={trucks}
+              drivers={drivers}
+              clients={clients}
+              suppliers={suppliers}
+              trips={trips}
+              stockRecords={stockRecords}
+              fuelRecords={fuelRecords}
+              maintenanceRecords={maintenanceRecords}
+              onNavigate={handleNavigate}
+            />
+          } />
+          <Route path="/trucks" element={
+            <TrucksPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
+          } />
+          <Route path="/drivers" element={
+            <DriversPage drivers={drivers} onRefetch={refetch} />
+          } />
+          <Route path="/clients" element={
+            <ClientsPage clients={clients} onRefetch={refetch} />
+          } />
+          <Route path="/suppliers" element={
+            <SuppliersPage suppliers={suppliers} onRefetch={refetch} />
+          } />
+          <Route path="/trips" element={
+            <TripsPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
+          } />
+          <Route path="/stock" element={
+            <StockPage onRefetch={refetch} />
+          } />
+          <Route path="/fuel" element={
+            <FuelPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
+          } />
+          <Route path="/maintenance" element={
+            <MaintenancePage trucks={trucks} onRefetch={refetch} />
+          } />
+          <Route path="/reports" element={
+            <ReportsPage
+              trucks={trucks}
+              fuelRecords={fuelRecords}
+              maintenanceRecords={maintenanceRecords}
+            />
+          } />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
       </main>
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
@@ -132,11 +136,13 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 

@@ -1,18 +1,19 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { LayoutDashboard, Truck, Users, Fuel, Wrench, BarChart3, Building2, Factory, Route, Warehouse, ChevronLeft, ChevronRight, MoreHorizontal, X } from 'lucide-react';
 
 const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'trucks', label: 'Caminhões', icon: Truck },
-  { id: 'drivers', label: 'Motoristas', icon: Users },
-  { id: 'clients', label: 'Clientes', icon: Building2 },
-  { id: 'suppliers', label: 'Fornecedores', icon: Factory },
-  { id: 'trips', label: 'Viagens', icon: Route },
-  { id: 'stock', label: 'Estoque', icon: Warehouse },
-  { id: 'fuel', label: 'Abastecimento', icon: Fuel },
-  { id: 'maintenance', label: 'Manutenção', icon: Wrench },
-  { id: 'reports', label: 'Relatórios', icon: BarChart3 }
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+  { id: 'trucks', label: 'Caminhões', icon: Truck, path: '/trucks' },
+  { id: 'drivers', label: 'Motoristas', icon: Users, path: '/drivers' },
+  { id: 'clients', label: 'Clientes', icon: Building2, path: '/clients' },
+  { id: 'suppliers', label: 'Fornecedores', icon: Factory, path: '/suppliers' },
+  { id: 'trips', label: 'Viagens', icon: Route, path: '/trips' },
+  { id: 'stock', label: 'Estoque', icon: Warehouse, path: '/stock' },
+  { id: 'fuel', label: 'Abastecimento', icon: Fuel, path: '/fuel' },
+  { id: 'maintenance', label: 'Manutenção', icon: Wrench, path: '/maintenance' },
+  { id: 'reports', label: 'Relatórios', icon: BarChart3, path: '/reports' }
 ];
 
 // Primary tabs shown in mobile bottom nav
@@ -20,11 +21,20 @@ const primaryTabIds = ['dashboard', 'trucks', 'trips', 'stock', 'reports'];
 const primaryTabs = tabs.filter(t => primaryTabIds.includes(t.id));
 const secondaryTabs = tabs.filter(t => !primaryTabIds.includes(t.id));
 
-export function TabNavigation({ activeTab, onChange }) {
+export function TabNavigation() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  // Derive active tab from current URL path
+  const activeTab = tabs.find(t => location.pathname.startsWith(t.path))?.id || 'dashboard';
+
+  const handleTabChange = (tab) => {
+    navigate(tab.path);
+  };
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -54,10 +64,10 @@ export function TabNavigation({ activeTab, onChange }) {
     }
   }, [activeTab]);
 
-  // Close "more" panel when switching tabs
+  // Close "more" panel when route changes
   useEffect(() => {
     setMoreOpen(false);
-  }, [activeTab]);
+  }, [location.pathname]);
 
   const scroll = (direction) => {
     const el = scrollRef.current;
@@ -95,7 +105,7 @@ export function TabNavigation({ activeTab, onChange }) {
                     aria-selected={isActive}
                     aria-current={isActive ? 'page' : undefined}
                     data-tab={tab.id}
-                    onClick={() => onChange(tab.id)}
+                    onClick={() => handleTabChange(tab)}
                     className={cn(
                       'flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer',
                       isActive
@@ -136,7 +146,7 @@ export function TabNavigation({ activeTab, onChange }) {
                 role="tab"
                 aria-selected={isActive}
                 aria-current={isActive ? 'page' : undefined}
-                onClick={() => onChange(tab.id)}
+                onClick={() => handleTabChange(tab)}
                 className={cn(
                   'flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] py-2 px-1 flex-1 transition-colors duration-150 cursor-pointer',
                   isActive
@@ -218,7 +228,7 @@ export function TabNavigation({ activeTab, onChange }) {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => onChange(tab.id)}
+                    onClick={() => handleTabChange(tab)}
                     className={cn(
                       'flex flex-col items-center justify-center gap-1.5 rounded-xl py-4 px-2 min-h-[72px] transition-colors duration-150 cursor-pointer',
                       isActive
@@ -226,7 +236,7 @@ export function TabNavigation({ activeTab, onChange }) {
                         : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
                     )}
                   >
-                    <Icon className="h-6 w-6 shrink-0" />
+                    <Icon className="h-6 w-6 shrink-0" aria-hidden="true" />
                     <span className={cn(
                       'text-xs font-medium',
                       isActive && 'font-semibold'
