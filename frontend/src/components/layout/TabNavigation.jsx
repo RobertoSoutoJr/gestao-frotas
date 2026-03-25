@@ -70,20 +70,20 @@ export function TabNavigation({ activeTab, onChange }) {
   return (
     <>
       {/* ===== Desktop/Tablet: horizontal scrollable tabs (>= md) ===== */}
-      <nav className="relative z-10 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-xl transition-colors duration-200 hidden md:block">
+      <nav aria-label="Navegacao principal" className="relative z-10 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-xl transition-colors duration-200 hidden md:block">
         <div className="container mx-auto px-4">
           <div className="relative">
             {canScrollLeft && (
               <button
                 onClick={() => scroll(-1)}
                 className="absolute left-0 top-0 bottom-0 z-20 flex items-center pr-2 bg-gradient-to-r from-[var(--color-bg)] via-[var(--color-bg)]/80 to-transparent cursor-pointer"
-                aria-label="Scroll left"
+                aria-label="Rolar para esquerda"
               >
-                <ChevronLeft className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                <ChevronLeft className="h-4 w-4 text-[var(--color-text-secondary)]" aria-hidden="true" />
               </button>
             )}
 
-            <div ref={scrollRef} className="flex overflow-x-auto scrollbar-hide">
+            <div ref={scrollRef} role="tablist" className="flex overflow-x-auto scrollbar-hide">
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -91,6 +91,9 @@ export function TabNavigation({ activeTab, onChange }) {
                 return (
                   <button
                     key={tab.id}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-current={isActive ? 'page' : undefined}
                     data-tab={tab.id}
                     onClick={() => onChange(tab.id)}
                     className={cn(
@@ -100,7 +103,7 @@ export function TabNavigation({ activeTab, onChange }) {
                         : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
                     )}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4" aria-hidden="true" />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -111,9 +114,9 @@ export function TabNavigation({ activeTab, onChange }) {
               <button
                 onClick={() => scroll(1)}
                 className="absolute right-0 top-0 bottom-0 z-20 flex items-center pl-2 bg-gradient-to-l from-[var(--color-bg)] via-[var(--color-bg)]/80 to-transparent cursor-pointer"
-                aria-label="Scroll right"
+                aria-label="Rolar para direita"
               >
-                <ChevronRight className="h-4 w-4 text-[var(--color-text-secondary)]" />
+                <ChevronRight className="h-4 w-4 text-[var(--color-text-secondary)]" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -121,8 +124,8 @@ export function TabNavigation({ activeTab, onChange }) {
       </nav>
 
       {/* ===== Mobile: fixed bottom navigation bar (< md) ===== */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-[var(--color-border)] bg-[var(--color-bg)]/95 backdrop-blur-xl" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <div className="flex items-stretch justify-around px-1">
+      <nav aria-label="Navegacao principal" className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-[var(--color-border)] bg-[var(--color-bg)]/95 backdrop-blur-xl" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="flex items-stretch justify-around px-1" role="tablist">
           {primaryTabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -130,6 +133,9 @@ export function TabNavigation({ activeTab, onChange }) {
             return (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={isActive}
+                aria-current={isActive ? 'page' : undefined}
                 onClick={() => onChange(tab.id)}
                 className={cn(
                   'flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] py-2 px-1 flex-1 transition-colors duration-150 cursor-pointer',
@@ -138,7 +144,7 @@ export function TabNavigation({ activeTab, onChange }) {
                     : 'text-[var(--color-text-secondary)]'
                 )}
               >
-                <Icon className="h-6 w-6 shrink-0" />
+                <Icon className="h-6 w-6 shrink-0" aria-hidden="true" />
                 <span className={cn(
                   'text-[10px] leading-tight font-medium truncate max-w-full',
                   isActive && 'font-semibold'
@@ -151,6 +157,8 @@ export function TabNavigation({ activeTab, onChange }) {
 
           {/* "Mais" button */}
           <button
+            aria-label="Mais opcoes"
+            aria-expanded={moreOpen}
             onClick={() => setMoreOpen(true)}
             className={cn(
               'flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] py-2 px-1 flex-1 transition-colors duration-150 cursor-pointer',
@@ -159,7 +167,7 @@ export function TabNavigation({ activeTab, onChange }) {
                 : 'text-[var(--color-text-secondary)]'
             )}
           >
-            <MoreHorizontal className="h-6 w-6 shrink-0" />
+            <MoreHorizontal className="h-6 w-6 shrink-0" aria-hidden="true" />
             <span className={cn(
               'text-[10px] leading-tight font-medium',
               isSecondaryActive && 'font-semibold'
@@ -194,9 +202,10 @@ export function TabNavigation({ activeTab, onChange }) {
               <span className="text-sm font-semibold text-[var(--color-text)]">Mais opções</span>
               <button
                 onClick={() => setMoreOpen(false)}
+                aria-label="Fechar menu"
                 className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-hover)] cursor-pointer"
               >
-                <X className="h-5 w-5 text-[var(--color-text-secondary)]" />
+                <X className="h-5 w-5 text-[var(--color-text-secondary)]" aria-hidden="true" />
               </button>
             </div>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { cn } from '../../lib/utils';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -11,12 +11,14 @@ export function Input({
   className,
   type = 'text',
   mask,
+  id: externalId,
   onFocus,
   onBlur,
   onChange,
   ...props
 }) {
-  const [focused, setFocused] = useState(false);
+  const autoId = useId();
+  const inputId = externalId || autoId;
 
   const applyMask = (value) => {
     if (!mask) return value;
@@ -57,16 +59,17 @@ export function Input({
   return (
     <div className="space-y-1.5">
       {label && (
-        <label className="block text-sm font-medium text-[var(--color-text-secondary)]">
+        <label htmlFor={inputId} className="block text-sm font-medium text-[var(--color-text-secondary)]">
           {label}
           {props.required && <span className="text-red-400 ml-0.5">*</span>}
         </label>
       )}
       <div className="relative">
         {Icon && (
-          <Icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-secondary)]" />
+          <Icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-secondary)]" aria-hidden="true" />
         )}
         <input
+          id={inputId}
           type={type}
           className={cn(
             'w-full rounded-lg border bg-[var(--color-input-bg)] px-3 py-2.5 text-base sm:text-sm text-[var(--color-text)] min-h-[44px] sm:min-h-0 touch-manipulation',
@@ -86,8 +89,8 @@ export function Input({
           onChange={handleChange}
           {...props}
         />
-        {error && <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-red-400" />}
-        {success && !error && <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400" />}
+        {error && <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-red-400" aria-hidden="true" />}
+        {success && !error && <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400" aria-hidden="true" />}
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
       {helperText && !error && <p className="text-xs text-[var(--color-text-secondary)]">{helperText}</p>}

@@ -28,7 +28,7 @@ function Toast({ toast, onDismiss }) {
         style.border
       )}
       role="alert"
-      aria-live="polite"
+      aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
     >
       {style.icon && <div className="mt-0.5 shrink-0">{style.icon}</div>}
       <div className="flex-1 min-w-0">

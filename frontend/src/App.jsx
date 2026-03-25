@@ -16,6 +16,7 @@ import { MaintenancePage } from './pages/MaintenancePage';
 import { ReportsPage } from './pages/ReportsPage';
 import { AuthPage } from './pages/AuthPage';
 import { LoadingScreen } from './components/ui/Spinner';
+import { Button } from './components/ui/Button';
 import { ToastContainer } from './components/ui/Toast';
 import { useFleet } from './hooks/useFleet';
 import { useToast } from './hooks/useToast';
@@ -42,12 +43,13 @@ function AuthenticatedContent() {
             Erro ao carregar dados
           </h2>
           <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{error}</p>
-          <button
+          <Button
             onClick={() => refetch()}
-            className="mt-4 rounded-xl bg-[var(--color-accent)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            variant="primary"
+            className="mt-4"
           >
             Tentar novamente
-          </button>
+          </Button>
         </div>
       </div>
     );
