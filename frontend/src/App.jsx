@@ -14,6 +14,7 @@ import { StockPage } from './pages/StockPage';
 import { FuelPage } from './pages/FuelPage';
 import { MaintenancePage } from './pages/MaintenancePage';
 import { ReportsPage } from './pages/ReportsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { AuthPage } from './pages/AuthPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoadingScreen } from './components/ui/Spinner';
@@ -111,6 +112,7 @@ function AuthenticatedContent() {
               maintenanceRecords={maintenanceRecords}
             />
           } />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>

@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Fuel, LogOut, ChevronDown, Sun, Moon, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Fuel, LogOut, ChevronDown, Sun, Moon, X, Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
 import { cn } from '../../lib/utils';
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
@@ -91,6 +93,13 @@ export function Header() {
                       </div>
                       <div className="p-1.5">
                         <button
+                          onClick={() => { navigate('/settings'); setMenuOpen(false); }}
+                          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--color-text-secondary)] transition-all hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] cursor-pointer"
+                        >
+                          <Settings className="h-4 w-4" />
+                          Configuracoes
+                        </button>
+                        <button
                           onClick={handleLogout}
                           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-500 transition-all hover:bg-red-500/10 cursor-pointer"
                         >
@@ -135,7 +144,14 @@ export function Header() {
 
                         <div className="border-t border-[var(--color-border)] mx-4" />
 
-                        <div className="p-4">
+                        <div className="p-4 space-y-2">
+                          <button
+                            onClick={() => { navigate('/settings'); setMenuOpen(false); }}
+                            className="flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3 min-h-[44px] text-sm font-medium text-[var(--color-text)] bg-[var(--color-surface)] transition-all hover:bg-[var(--color-surface-hover)] cursor-pointer"
+                          >
+                            <Settings className="h-5 w-5" />
+                            Configuracoes
+                          </button>
                           <button
                             onClick={handleLogout}
                             className="flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3 min-h-[44px] text-sm font-medium text-red-500 bg-red-500/10 transition-all hover:bg-red-500/15 cursor-pointer"
