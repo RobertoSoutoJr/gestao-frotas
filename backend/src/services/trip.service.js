@@ -73,21 +73,29 @@ class TripService {
     return data;
   }
 
-  async finalize(id, formaPagamento, userId) {
+  async finalize(id, finalizeData, userId) {
     // Get trip to check for linked stock
     const trip = await this.getById(id, userId);
     if (trip.status !== 'cadastrada') {
       throw new AppError('Apenas viagens cadastradas podem ser finalizadas.', 400);
     }
 
+    const updatePayload = {
+      status: 'finalizada',
+      forma_pagamento: finalizeData.forma_pagamento,
+      data_finalizacao: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // Save costs if provided
+    if (finalizeData.custo_combustivel !== undefined) updatePayload.custo_combustivel = finalizeData.custo_combustivel;
+    if (finalizeData.custo_pedagio !== undefined) updatePayload.custo_pedagio = finalizeData.custo_pedagio;
+    if (finalizeData.custo_manutencao !== undefined) updatePayload.custo_manutencao = finalizeData.custo_manutencao;
+    if (finalizeData.custo_outros !== undefined) updatePayload.custo_outros = finalizeData.custo_outros;
+
     const { data, error } = await supabase
       .from('viagens')
-      .update({
-        status: 'finalizada',
-        forma_pagamento: formaPagamento,
-        data_finalizacao: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq('id', id)
       .eq('user_id', userId)
       .eq('status', 'cadastrada')

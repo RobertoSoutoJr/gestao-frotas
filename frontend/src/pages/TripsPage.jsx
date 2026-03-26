@@ -9,8 +9,10 @@ import { Select } from '../components/ui/Select';
 import { Badge } from '../components/ui/Badge';
 import {
   Route, MapPin, Truck, Users, Package, DollarSign, CheckCircle,
-  Edit2, Trash2, Search, Filter, ArrowRight, Calendar
+  Edit2, Trash2, Search, Filter, ArrowRight, Calendar, Map
 } from 'lucide-react';
+import { MapView } from '../components/ui/MapView';
+import { DocumentGallery } from '../components/ui/DocumentGallery';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { tripsService } from '../services/trips';
 import { clientsService } from '../services/clients';
@@ -38,7 +40,8 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
   const [selectedEstoqueId, setSelectedEstoqueId] = useState('');
   const [formData, setFormData] = useState({
     fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '',
-    quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: ''
+    quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '',
+    custo_combustivel: '', custo_pedagio: '', custo_manutencao: '', custo_outros: ''
   });
 
   const selectedSupplier = suppliers.find(s => s.id === Number(formData.fornecedor_id));
@@ -99,9 +102,17 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
         preco_produto_saca: precoSaca,
         preco_frete_saca: precoFrete,
         observacoes: formData.observacoes || null,
-        estoque_id: selectedEstoqueId ? Number(selectedEstoqueId) : null
+        estoque_id: selectedEstoqueId ? Number(selectedEstoqueId) : null,
+        custo_combustivel: Number(formData.custo_combustivel) || 0,
+        custo_pedagio: Number(formData.custo_pedagio) || 0,
+        custo_manutencao: Number(formData.custo_manutencao) || 0,
+        custo_outros: Number(formData.custo_outros) || 0,
+        origem_cidade: selectedSupplier?.cidade || null,
+        origem_estado: selectedSupplier?.estado || null,
+        destino_cidade: selectedClient?.cidade || null,
+        destino_estado: selectedClient?.estado || null,
       });
-      setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '' });
+      setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '', custo_combustivel: '', custo_pedagio: '', custo_manutencao: '', custo_outros: '' });
       setProdutoTipo('');
       setProdutoCustom('');
       setSelectedEstoqueId('');
@@ -219,6 +230,17 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
         </div>
       )}
 
+      {/* Despesas da Viagem (opcional) */}
+      <div>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Despesas da Viagem (Opcional)</h3>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <Input name="custo_combustivel" label="Combustivel (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_combustivel} onChange={handleChange} />
+          <Input name="custo_pedagio" label="Pedagio (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_pedagio} onChange={handleChange} />
+          <Input name="custo_manutencao" label="Manutencao (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_manutencao} onChange={handleChange} />
+          <Input name="custo_outros" label="Outros (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_outros} onChange={handleChange} />
+        </div>
+      </div>
+
       <Input name="observacoes" label="Observações" placeholder="Informações adicionais da viagem..." value={formData.observacoes} onChange={handleChange} />
 
       <Button type="submit" variant="primary" loading={loading} className="w-full">
@@ -231,13 +253,35 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
 function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [formaPagamento, setFormaPagamento] = useState('');
+  const [custos, setCustos] = useState({
+    custo_combustivel: trip.custo_combustivel || '',
+    custo_pedagio: trip.custo_pedagio || '',
+    custo_manutencao: trip.custo_manutencao || '',
+    custo_outros: trip.custo_outros || ''
+  });
   const { success, error } = useToast();
+
+  const custoTotal = (Number(custos.custo_combustivel) || 0) + (Number(custos.custo_pedagio) || 0) +
+    (Number(custos.custo_manutencao) || 0) + (Number(custos.custo_outros) || 0);
+  const receita = Number(trip.valor_total_frete) || 0;
+  const lucro = receita - custoTotal;
+  const margem = receita > 0 ? (lucro / receita) * 100 : 0;
+
+  const handleCustoChange = (e) => {
+    setCustos(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await tripsService.finalize(trip.id, { forma_pagamento: formaPagamento });
+      await tripsService.finalize(trip.id, {
+        forma_pagamento: formaPagamento,
+        custo_combustivel: Number(custos.custo_combustivel) || 0,
+        custo_pedagio: Number(custos.custo_pedagio) || 0,
+        custo_manutencao: Number(custos.custo_manutencao) || 0,
+        custo_outros: Number(custos.custo_outros) || 0
+      });
       success('Viagem Finalizada!', 'A viagem foi finalizada com sucesso');
       onSuccess?.();
       onClose();
@@ -251,6 +295,7 @@ function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Finalizar Viagem">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Trip summary */}
         <div className="rounded-lg bg-[var(--color-surface)] p-4">
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
@@ -266,16 +311,38 @@ function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
               <p className="font-medium text-[var(--color-text)]">{formatCurrency(trip.valor_total_produto)}</p>
             </div>
             <div>
-              <p className="text-[var(--color-text-secondary)]">Valor Frete</p>
-              <p className="font-medium text-[var(--color-text)]">{formatCurrency(trip.valor_total_frete)}</p>
+              <p className="text-[var(--color-text-secondary)]">Receita (Frete)</p>
+              <p className="font-medium text-emerald-400">{formatCurrency(receita)}</p>
             </div>
           </div>
-          <div className="mt-3 border-t border-[var(--color-border)] pt-3">
-            <div className="flex justify-between">
-              <span className="font-semibold text-[var(--color-text)]">Total a Pagar</span>
-              <span className="text-lg font-bold text-emerald-400">
-                {formatCurrency(Number(trip.valor_total_produto) + Number(trip.valor_total_frete))}
-              </span>
+        </div>
+
+        {/* Costs */}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Despesas da Viagem</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Input name="custo_combustivel" label="Combustivel (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_combustivel} onChange={handleCustoChange} />
+            <Input name="custo_pedagio" label="Pedagio (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_pedagio} onChange={handleCustoChange} />
+            <Input name="custo_manutencao" label="Manutencao (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_manutencao} onChange={handleCustoChange} />
+            <Input name="custo_outros" label="Outros (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_outros} onChange={handleCustoChange} />
+          </div>
+        </div>
+
+        {/* Profitability summary */}
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Rentabilidade</h3>
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <div>
+              <p className="text-[var(--color-text-secondary)]">Custo Total</p>
+              <p className="font-semibold text-red-400">{formatCurrency(custoTotal)}</p>
+            </div>
+            <div>
+              <p className="text-[var(--color-text-secondary)]">Lucro</p>
+              <p className={`font-semibold ${lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(lucro)}</p>
+            </div>
+            <div>
+              <p className="text-[var(--color-text-secondary)]">Margem</p>
+              <p className={`font-semibold ${margem >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{margem.toFixed(1)}%</p>
             </div>
           </div>
         </div>
@@ -310,6 +377,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const [statusFilter, setStatusFilter] = useState('todas');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -371,7 +439,13 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
 
   const totalCadastradas = trips.filter(t => t.status === 'cadastrada').length;
   const totalFinalizadas = trips.filter(t => t.status === 'finalizada').length;
-  const totalFrete = trips.filter(t => t.status === 'finalizada').reduce((sum, t) => sum + Number(t.valor_total_frete || 0), 0);
+  const finalizadas = trips.filter(t => t.status === 'finalizada');
+  const totalFrete = finalizadas.reduce((sum, t) => sum + Number(t.valor_total_frete || 0), 0);
+  const totalCustos = finalizadas.reduce((sum, t) =>
+    sum + (Number(t.custo_combustivel) || 0) + (Number(t.custo_pedagio) || 0) +
+    (Number(t.custo_manutencao) || 0) + (Number(t.custo_outros) || 0), 0);
+  const lucroTotal = totalFrete - totalCustos;
+  const margemMedia = totalFrete > 0 ? (lucroTotal / totalFrete) * 100 : 0;
 
   if (loadingData) {
     return (
@@ -384,26 +458,65 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   return (
     <div className="space-y-8">
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 sm:gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Em Andamento</p>
-            <p className="text-xl sm:text-2xl font-bold text-amber-600">{totalCadastradas}</p>
+            <p className="text-xl sm:text-2xl font-bold text-amber-400">{totalCadastradas}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Finalizadas</p>
-            <p className="text-xl sm:text-2xl font-bold text-green-600">{totalFinalizadas}</p>
+            <p className="text-xl sm:text-2xl font-bold text-emerald-400">{totalFinalizadas}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Total Frete</p>
-            <p className="text-xl sm:text-2xl font-bold text-blue-600">{formatCurrency(totalFrete)}</p>
+            <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Receita (Frete)</p>
+            <p className="text-xl sm:text-2xl font-bold text-blue-400">{formatCurrency(totalFrete)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Lucro</p>
+            <p className={`text-xl sm:text-2xl font-bold ${lucroTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(lucroTotal)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Margem</p>
+            <p className={`text-xl sm:text-2xl font-bold ${margemMedia >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{margemMedia.toFixed(1)}%</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Mapa de Rotas */}
+      {showMap && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Map className="h-5 w-5" /> Mapa de Rotas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MapView
+              trips={filteredTrips.map(t => ({
+                ...t,
+                origem_cidade: t.origem_cidade || t.fornecedores?.cidade,
+                origem_estado: t.origem_estado || t.fornecedores?.estado,
+                destino_cidade: t.destino_cidade || t.clientes?.cidade,
+                destino_estado: t.destino_estado || t.clientes?.estado,
+              })).filter(t => t.origem_cidade || t.destino_cidade)}
+              height="420px"
+            />
+            <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
+              {filteredTrips.filter(t => t.status === 'cadastrada').length} viagem(ns) ativa(s) em amarelo.
+              Rotas finalizadas em cinza tracejado.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Lista de Viagens */}
       <div>
@@ -412,6 +525,10 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
             Viagens ({filteredTrips.length} de {trips.length})
           </h2>
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowMap(!showMap)}>
+              <Map className="mr-2 h-4 w-4" />
+              {showMap ? 'Ocultar Mapa' : 'Mapa'}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
               <Filter className="mr-2 h-4 w-4" />
               {showFilters ? 'Ocultar Filtros' : 'Filtros'}
@@ -494,6 +611,25 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                         </span>
                       </div>
 
+                      {/* Cost center for finalized trips */}
+                      {trip.status === 'finalizada' && (() => {
+                        const ct = (Number(trip.custo_combustivel) || 0) + (Number(trip.custo_pedagio) || 0) +
+                          (Number(trip.custo_manutencao) || 0) + (Number(trip.custo_outros) || 0);
+                        const rec = Number(trip.valor_total_frete) || 0;
+                        const luc = rec - ct;
+                        if (ct > 0) {
+                          return (
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                              <span className="text-red-400">Custos: {formatCurrency(ct)}</span>
+                              <span className={luc >= 0 ? 'text-emerald-400 font-medium' : 'text-red-400 font-medium'}>
+                                Lucro: {formatCurrency(luc)} ({rec > 0 ? ((luc / rec) * 100).toFixed(1) : 0}%)
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+
                       {trip.estoque_id && (
                         <p className="mt-1 text-xs text-emerald-400">
                           Vinculada ao estoque #{trip.estoque_id}
@@ -507,6 +643,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                     </div>
 
                     <div className="flex flex-row flex-wrap gap-2 sm:ml-4 sm:flex-col sm:shrink-0">
+                      <DocumentGallery entidadeTipo="viagem" entidadeId={trip.id} compact />
                       {trip.status === 'cadastrada' && (
                         <>
                           <Button variant="success" size="sm" onClick={() => setFinalizingTrip(trip)}>

@@ -25,8 +25,8 @@ exports.update = asyncHandler(async (req, res) => {
 });
 
 exports.finalize = asyncHandler(async (req, res) => {
-  const { forma_pagamento } = finalizeTripSchema.parse(req.body);
-  const trip = await tripService.finalize(req.params.id, forma_pagamento, req.userId);
+  const validatedData = finalizeTripSchema.parse(req.body);
+  const trip = await tripService.finalize(req.params.id, validatedData, req.userId);
   res.json({ success: true, data: trip });
 });
 

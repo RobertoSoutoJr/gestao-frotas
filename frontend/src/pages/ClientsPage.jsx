@@ -7,7 +7,8 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ClientForm } from '../components/forms/ClientForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Building2, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus } from 'lucide-react';
+import { Building2, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus, TrendingUp, DollarSign, Route } from 'lucide-react';
+import { formatCurrency } from '../lib/utils';
 import { clientsService } from '../services/clients';
 import { useToast } from '../hooks/useToast';
 
@@ -76,7 +77,39 @@ function EditClientModal({ client, isOpen, onClose, onSuccess }) {
   );
 }
 
-export function ClientsPage({ clients, onRefetch }) {
+function useClientProfitability(clients, trips) {
+  return useMemo(() => {
+    const finalized = (trips || []).filter(t => t.status === 'finalizada');
+    const map = {};
+
+    finalized.forEach(t => {
+      const cid = t.cliente_id;
+      if (!map[cid]) map[cid] = { receita: 0, custos: 0, viagens: 0 };
+      map[cid].receita += Number(t.valor_total_frete) || 0;
+      map[cid].custos += (Number(t.custo_combustivel) || 0) + (Number(t.custo_pedagio) || 0) +
+        (Number(t.custo_manutencao) || 0) + (Number(t.custo_outros) || 0);
+      map[cid].viagens += 1;
+    });
+
+    // Calculate profit and margin
+    Object.values(map).forEach(v => {
+      v.lucro = v.receita - v.custos;
+      v.margem = v.receita > 0 ? (v.lucro / v.receita) * 100 : 0;
+    });
+
+    // Ranking sorted by lucro descending
+    const ranking = Object.entries(map)
+      .map(([id, data]) => {
+        const client = (clients || []).find(c => c.id === Number(id));
+        return { id: Number(id), nome: client?.nome || `#${id}`, ...data };
+      })
+      .sort((a, b) => b.lucro - a.lucro);
+
+    return { map, ranking };
+  }, [clients, trips]);
+}
+
+export function ClientsPage({ clients, trips, onRefetch }) {
   const { success, error } = useToast();
   const [editingClient, setEditingClient] = useState(null);
   const [deletingClient, setDeletingClient] = useState(null);
@@ -84,6 +117,7 @@ export function ClientsPage({ clients, onRefetch }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const { map: profitMap, ranking } = useClientProfitability(clients, trips);
 
   const filteredClients = useMemo(() => {
     return clients.filter(c => {
@@ -119,6 +153,47 @@ export function ClientsPage({ clients, onRefetch }) {
 
   return (
     <div className="space-y-8">
+      {/* Profitability Ranking */}
+      {ranking.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
+            Rentabilidade por Cliente
+          </h2>
+          <div className="overflow-x-auto">
+            <Card>
+              <CardContent className="p-0">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
+                      <th className="px-4 py-3 text-left font-medium">#</th>
+                      <th className="px-4 py-3 text-left font-medium">Cliente</th>
+                      <th className="px-4 py-3 text-right font-medium">Viagens</th>
+                      <th className="px-4 py-3 text-right font-medium">Receita</th>
+                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Custos</th>
+                      <th className="px-4 py-3 text-right font-medium">Lucro</th>
+                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Margem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ranking.slice(0, 10).map((r, i) => (
+                      <tr key={r.id} className="border-b border-[var(--color-border)] last:border-0">
+                        <td className="px-4 py-3 font-medium text-[var(--color-text-secondary)]">{i + 1}</td>
+                        <td className="px-4 py-3 font-medium text-[var(--color-text)]">{r.nome}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] tabular-nums">{r.viagens}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-text)] tabular-nums">{formatCurrency(r.receita)}</td>
+                        <td className="px-4 py-3 text-right text-red-400 tabular-nums hidden sm:table-cell">{formatCurrency(r.custos)}</td>
+                        <td className={`px-4 py-3 text-right font-semibold tabular-nums ${r.lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(r.lucro)}</td>
+                        <td className={`px-4 py-3 text-right tabular-nums hidden sm:table-cell ${r.margem >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{r.margem.toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold text-[var(--color-text)]">
@@ -189,6 +264,22 @@ export function ClientsPage({ clients, onRefetch }) {
                       </div>
                       {client.endereco && (
                         <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{client.endereco}</p>
+                      )}
+                      {profitMap[client.id] && (
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                          <span className="flex items-center gap-1 text-[var(--color-text-secondary)]">
+                            <Route className="h-3 w-3" />
+                            {profitMap[client.id].viagens} viagen{profitMap[client.id].viagens > 1 ? 's' : ''}
+                          </span>
+                          <span className="flex items-center gap-1 text-blue-400">
+                            <DollarSign className="h-3 w-3" />
+                            {formatCurrency(profitMap[client.id].receita)}
+                          </span>
+                          <span className={`flex items-center gap-1 font-medium ${profitMap[client.id].lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            <TrendingUp className="h-3 w-3" />
+                            {formatCurrency(profitMap[client.id].lucro)} ({profitMap[client.id].margem.toFixed(1)}%)
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>

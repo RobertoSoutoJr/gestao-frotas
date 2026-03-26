@@ -14,7 +14,19 @@ const createTripSchema = z.object({
   distancia_km: z.number().nonnegative().optional().nullable(),
   data_viagem: z.string().optional().nullable(),
   observacoes: z.string().max(1000).optional().nullable(),
-  estoque_id: z.number().int().positive().optional().nullable()
+  estoque_id: z.number().int().positive().optional().nullable(),
+  custo_combustivel: z.number().nonnegative().optional().default(0),
+  custo_pedagio: z.number().nonnegative().optional().default(0),
+  custo_manutencao: z.number().nonnegative().optional().default(0),
+  custo_outros: z.number().nonnegative().optional().default(0),
+  origem_cidade: z.string().max(100).optional().nullable(),
+  origem_estado: z.string().max(2).optional().nullable(),
+  destino_cidade: z.string().max(100).optional().nullable(),
+  destino_estado: z.string().max(2).optional().nullable(),
+  origem_lat: z.number().optional().nullable(),
+  origem_lng: z.number().optional().nullable(),
+  destino_lat: z.number().optional().nullable(),
+  destino_lng: z.number().optional().nullable(),
 });
 
 const updateTripSchema = createTripSchema.partial();
@@ -23,7 +35,11 @@ const finalizeTripSchema = z.object({
   forma_pagamento: z.enum(
     ['dinheiro', 'pix', 'transferencia', 'boleto', 'cheque', 'cartao', 'a_prazo'],
     { errorMap: () => ({ message: 'Forma de pagamento inválida' }) }
-  )
+  ),
+  custo_combustivel: z.number().nonnegative().optional(),
+  custo_pedagio: z.number().nonnegative().optional(),
+  custo_manutencao: z.number().nonnegative().optional(),
+  custo_outros: z.number().nonnegative().optional()
 });
 
 module.exports = { createTripSchema, updateTripSchema, finalizeTripSchema };
