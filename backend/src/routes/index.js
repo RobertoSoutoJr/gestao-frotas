@@ -9,6 +9,7 @@ const supplierRoutes = require('./supplier.routes');
 const productRoutes = require('./product.routes');
 const tripRoutes = require('./trip.routes');
 const stockRoutes = require('./stock.routes');
+const documentRoutes = require('./document.routes');
 const { protect } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -31,5 +32,6 @@ router.use('/fornecedores', protect, supplierRoutes);
 router.use('/produtos', protect, productRoutes);
 router.use('/viagens', protect, tripRoutes);
 router.use('/estoque', protect, stockRoutes);
+router.use('/documentos', protect, documentRoutes);
 
 module.exports = router;
