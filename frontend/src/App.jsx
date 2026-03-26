@@ -1,32 +1,57 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useAuth } from './hooks/useAuth';
 import { Header } from './components/layout/Header';
 import { TabNavigation } from './components/layout/TabNavigation';
-import { DashboardPage } from './pages/DashboardPage';
-import { TrucksPage } from './pages/TrucksPage';
-import { DriversPage } from './pages/DriversPage';
-import { ClientsPage } from './pages/ClientsPage';
-import { SuppliersPage } from './pages/SuppliersPage';
-import { TripsPage } from './pages/TripsPage';
-import { StockPage } from './pages/StockPage';
-import { FuelPage } from './pages/FuelPage';
-import { MaintenancePage } from './pages/MaintenancePage';
-import { ReportsPage } from './pages/ReportsPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { AuthPage } from './pages/AuthPage';
-import { NotFoundPage } from './pages/NotFoundPage';
 import { LoadingScreen } from './components/ui/Spinner';
 import { Button } from './components/ui/Button';
 import { ToastContainer } from './components/ui/Toast';
 import { useFleet } from './hooks/useFleet';
 import { useToast } from './hooks/useToast';
 
+// Lazy-loaded pages (code splitting)
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const TrucksPage = lazy(() => import('./pages/TrucksPage').then(m => ({ default: m.TrucksPage })));
+const DriversPage = lazy(() => import('./pages/DriversPage').then(m => ({ default: m.DriversPage })));
+const ClientsPage = lazy(() => import('./pages/ClientsPage').then(m => ({ default: m.ClientsPage })));
+const SuppliersPage = lazy(() => import('./pages/SuppliersPage').then(m => ({ default: m.SuppliersPage })));
+const TripsPage = lazy(() => import('./pages/TripsPage').then(m => ({ default: m.TripsPage })));
+const StockPage = lazy(() => import('./pages/StockPage').then(m => ({ default: m.StockPage })));
+const FuelPage = lazy(() => import('./pages/FuelPage').then(m => ({ default: m.FuelPage })));
+const MaintenancePage = lazy(() => import('./pages/MaintenancePage').then(m => ({ default: m.MaintenancePage })));
+const ReportsPage = lazy(() => import('./pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.AuthPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+
+// Skeleton fallback for route transitions
+function PageSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-8 w-48 rounded-lg bg-[var(--color-surface)]" />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-24 rounded-xl bg-[var(--color-surface)]" />
+        ))}
+      </div>
+      <div className="h-64 rounded-xl bg-[var(--color-surface)]" />
+      <div className="space-y-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-20 rounded-xl bg-[var(--color-surface)]" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AuthenticatedContent() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, trips, stockRecords, loading, error, refetch } = useFleet();
   const { toasts, dismiss } = useToast();
+  const isAdmin = user?.role !== 'motorista';
 
   const handleNavigate = (path) => {
     navigate(`/${path}`);
@@ -66,55 +91,70 @@ function AuthenticatedContent() {
       <TabNavigation />
 
       <main className="relative z-10 container mx-auto px-4 py-6 md:py-8 pb-safe-bottom md:pb-8">
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={
-            <DashboardPage
-              trucks={trucks}
-              drivers={drivers}
-              clients={clients}
-              suppliers={suppliers}
-              trips={trips}
-              stockRecords={stockRecords}
-              fuelRecords={fuelRecords}
-              maintenanceRecords={maintenanceRecords}
-              onNavigate={handleNavigate}
-            />
-          } />
-          <Route path="/trucks" element={
-            <TrucksPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
-          } />
-          <Route path="/drivers" element={
-            <DriversPage drivers={drivers} onRefetch={refetch} />
-          } />
-          <Route path="/clients" element={
-            <ClientsPage clients={clients} onRefetch={refetch} />
-          } />
-          <Route path="/suppliers" element={
-            <SuppliersPage suppliers={suppliers} onRefetch={refetch} />
-          } />
-          <Route path="/trips" element={
-            <TripsPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
-          } />
-          <Route path="/stock" element={
-            <StockPage onRefetch={refetch} />
-          } />
-          <Route path="/fuel" element={
-            <FuelPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
-          } />
-          <Route path="/maintenance" element={
-            <MaintenancePage trucks={trucks} onRefetch={refetch} />
-          } />
-          <Route path="/reports" element={
-            <ReportsPage
-              trucks={trucks}
-              fuelRecords={fuelRecords}
-              maintenanceRecords={maintenanceRecords}
-            />
-          } />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        <Suspense fallback={<PageSkeleton />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={
+              <DashboardPage
+                trucks={trucks}
+                drivers={drivers}
+                clients={clients}
+                suppliers={suppliers}
+                trips={trips}
+                stockRecords={stockRecords}
+                fuelRecords={fuelRecords}
+                maintenanceRecords={maintenanceRecords}
+                onNavigate={handleNavigate}
+              />
+            } />
+            <Route path="/trips" element={
+              <TripsPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
+            } />
+            <Route path="/fuel" element={
+              <FuelPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
+            } />
+            <Route path="/settings" element={<SettingsPage />} />
+
+            {/* Admin-only routes */}
+            {isAdmin && (
+              <>
+                <Route path="/trucks" element={
+                  <TrucksPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
+                } />
+                <Route path="/drivers" element={
+                  <DriversPage drivers={drivers} trips={trips} fuelRecords={fuelRecords} onRefetch={refetch} />
+                } />
+                <Route path="/clients" element={
+                  <ClientsPage clients={clients} trips={trips} onRefetch={refetch} />
+                } />
+                <Route path="/suppliers" element={
+                  <SuppliersPage suppliers={suppliers} onRefetch={refetch} />
+                } />
+                <Route path="/stock" element={
+                  <StockPage onRefetch={refetch} />
+                } />
+                <Route path="/maintenance" element={
+                  <MaintenancePage trucks={trucks} onRefetch={refetch} />
+                } />
+                <Route path="/reports" element={
+                  <ReportsPage
+                    trucks={trucks}
+                    drivers={drivers}
+                    fuelRecords={fuelRecords}
+                    maintenanceRecords={maintenanceRecords}
+                    trips={trips}
+                  />
+                } />
+              </>
+            )}
+
+            {/* Fallback: motorista trying admin routes */}
+            {!isAdmin && (
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            )}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </main>
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
@@ -130,7 +170,11 @@ function AppContent() {
   }
 
   if (!isAuthenticated) {
-    return <AuthPage />;
+    return (
+      <Suspense fallback={<LoadingScreen />}>
+        <AuthPage />
+      </Suspense>
+    );
   }
 
   return <AuthenticatedContent />;
