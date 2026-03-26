@@ -97,6 +97,29 @@ exports.updateProfile = asyncHandler(async (req, res) => {
   });
 });
 
+// RBAC endpoints
+exports.createMotoristaAccount = asyncHandler(async (req, res) => {
+  const { nome, email, password, motorista_id } = req.body;
+  if (!nome || !email || !password) {
+    return res.status(400).json({ success: false, message: 'nome, email e password são obrigatórios' });
+  }
+  const user = await authService.createMotoristaAccount(req.userId, {
+    nome, email, password, motoristaId: motorista_id || null
+  });
+  res.status(201).json({ success: true, data: user });
+});
+
+exports.getMotoristaAccounts = asyncHandler(async (req, res) => {
+  const accounts = await authService.getMotoristaAccounts(req.userId);
+  res.json({ success: true, data: accounts });
+});
+
+exports.toggleMotoristaAccount = asyncHandler(async (req, res) => {
+  const { is_active } = req.body;
+  const user = await authService.toggleMotoristaAccount(req.userId, Number(req.params.id), is_active);
+  res.json({ success: true, data: user });
+});
+
 exports.changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
   const result = await authService.changePassword(req.userId, currentPassword, newPassword);

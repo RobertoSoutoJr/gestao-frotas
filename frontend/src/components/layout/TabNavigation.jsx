@@ -2,32 +2,38 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { LayoutDashboard, Truck, Users, Fuel, Wrench, BarChart3, Building2, Factory, Route, Warehouse, ChevronLeft, ChevronRight, MoreHorizontal, X } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
-const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { id: 'trucks', label: 'Caminhões', icon: Truck, path: '/trucks' },
-  { id: 'drivers', label: 'Motoristas', icon: Users, path: '/drivers' },
-  { id: 'clients', label: 'Clientes', icon: Building2, path: '/clients' },
-  { id: 'suppliers', label: 'Fornecedores', icon: Factory, path: '/suppliers' },
-  { id: 'trips', label: 'Viagens', icon: Route, path: '/trips' },
-  { id: 'stock', label: 'Estoque', icon: Warehouse, path: '/stock' },
-  { id: 'fuel', label: 'Abastecimento', icon: Fuel, path: '/fuel' },
-  { id: 'maintenance', label: 'Manutenção', icon: Wrench, path: '/maintenance' },
-  { id: 'reports', label: 'Relatórios', icon: BarChart3, path: '/reports' }
+const ALL_TABS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['admin', 'motorista'] },
+  { id: 'trucks', label: 'Caminhões', icon: Truck, path: '/trucks', roles: ['admin'] },
+  { id: 'drivers', label: 'Motoristas', icon: Users, path: '/drivers', roles: ['admin'] },
+  { id: 'clients', label: 'Clientes', icon: Building2, path: '/clients', roles: ['admin'] },
+  { id: 'suppliers', label: 'Fornecedores', icon: Factory, path: '/suppliers', roles: ['admin'] },
+  { id: 'trips', label: 'Viagens', icon: Route, path: '/trips', roles: ['admin', 'motorista'] },
+  { id: 'stock', label: 'Estoque', icon: Warehouse, path: '/stock', roles: ['admin'] },
+  { id: 'fuel', label: 'Abastecimento', icon: Fuel, path: '/fuel', roles: ['admin', 'motorista'] },
+  { id: 'maintenance', label: 'Manutenção', icon: Wrench, path: '/maintenance', roles: ['admin'] },
+  { id: 'reports', label: 'Relatórios', icon: BarChart3, path: '/reports', roles: ['admin'] }
 ];
 
-// Primary tabs shown in mobile bottom nav
-const primaryTabIds = ['dashboard', 'trucks', 'trips', 'stock', 'reports'];
-const primaryTabs = tabs.filter(t => primaryTabIds.includes(t.id));
-const secondaryTabs = tabs.filter(t => !primaryTabIds.includes(t.id));
-
 export function TabNavigation() {
+  const { user } = useAuth();
+  const role = user?.role || 'admin';
+  const tabs = ALL_TABS.filter(t => t.roles.includes(role));
   const location = useLocation();
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  // For motorista: fewer tabs, show all in bottom bar
+  const primaryTabIds = role === 'motorista'
+    ? ['dashboard', 'trips', 'fuel']
+    : ['dashboard', 'trucks', 'trips', 'stock', 'reports'];
+  const primaryTabs = tabs.filter(t => primaryTabIds.includes(t.id));
+  const secondaryTabs = tabs.filter(t => !primaryTabIds.includes(t.id));
 
   // Derive active tab from current URL path
   const activeTab = tabs.find(t => location.pathname.startsWith(t.path))?.id || 'dashboard';

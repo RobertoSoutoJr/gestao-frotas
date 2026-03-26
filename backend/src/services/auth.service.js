@@ -34,7 +34,7 @@ class AuthService {
         .from('users')
         .update({ nome, password_hash, empresa: empresa || null, telefone: telefone || null })
         .eq('email', email.toLowerCase())
-        .select('id, nome, email, empresa, telefone, avatar_url, email_verified, created_at')
+        .select('id, nome, email, empresa, telefone, avatar_url, email_verified, role, owner_id, motorista_id, created_at')
         .single();
 
       if (error) throw new AppError('Erro ao atualizar usuário', 500);
@@ -54,7 +54,7 @@ class AuthService {
           telefone: telefone || null,
           email_verified: false
         })
-        .select('id, nome, email, empresa, telefone, avatar_url, email_verified, created_at')
+        .select('id, nome, email, empresa, telefone, avatar_url, email_verified, role, owner_id, motorista_id, created_at')
         .single();
 
       if (error) throw new AppError('Erro ao criar usuário', 500);
@@ -233,7 +233,7 @@ class AuthService {
   async getProfile(userId) {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, nome, email, empresa, telefone, avatar_url, email_verified, created_at, updated_at')
+      .select('id, nome, email, empresa, telefone, avatar_url, email_verified, role, owner_id, motorista_id, created_at, updated_at')
       .eq('id', userId)
       .single();
 
@@ -299,6 +299,67 @@ class AuthService {
       .eq('user_id', userId);
 
     return { message: 'Senha alterada com sucesso. Por favor, faça login novamente.' };
+  }
+
+  // RBAC: Admin creates a motorista user account
+  async createMotoristaAccount(adminUserId, { nome, email, password, motoristaId }) {
+    // Check if email exists
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (existing) throw new AppError('Email já cadastrado', 409);
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .insert({
+        nome,
+        email: email.toLowerCase(),
+        password_hash,
+        role: 'motorista',
+        owner_id: adminUserId,
+        motorista_id: motoristaId || null,
+        email_verified: true, // Admin-created, skip verification
+        is_active: true,
+      })
+      .select('id, nome, email, role, motorista_id, is_active, created_at')
+      .single();
+
+    if (error) throw new AppError('Erro ao criar conta de motorista', 500);
+    return user;
+  }
+
+  // List motorista accounts created by this admin
+  async getMotoristaAccounts(adminUserId) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, nome, email, role, motorista_id, is_active, created_at')
+      .eq('owner_id', adminUserId)
+      .eq('role', 'motorista')
+      .order('created_at', { ascending: false });
+
+    if (error) throw new AppError('Erro ao listar contas', 500);
+    return data;
+  }
+
+  // Toggle active status of a motorista account
+  async toggleMotoristaAccount(adminUserId, userId, isActive) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ is_active: isActive, updated_at: new Date().toISOString() })
+      .eq('id', userId)
+      .eq('owner_id', adminUserId)
+      .eq('role', 'motorista')
+      .select('id, nome, email, is_active')
+      .single();
+
+    if (error || !data) throw new AppError('Conta não encontrada', 404);
+    return data;
   }
 
   async saveRefreshToken(userId, refreshToken) {

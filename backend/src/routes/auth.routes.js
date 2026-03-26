@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
-const { protect } = require('../middlewares/auth.middleware');
+const { protect, requireAdmin } = require('../middlewares/auth.middleware');
 
 // Rotas públicas
 router.post('/register', authController.register);
@@ -15,5 +15,10 @@ router.post('/logout', authController.logout);
 router.get('/profile', protect, authController.getProfile);
 router.put('/profile', protect, authController.updateProfile);
 router.post('/change-password', protect, authController.changePassword);
+
+// RBAC: Motorista account management (admin only)
+router.post('/motoristas', protect, requireAdmin, authController.createMotoristaAccount);
+router.get('/motoristas', protect, requireAdmin, authController.getMotoristaAccounts);
+router.patch('/motoristas/:id', protect, requireAdmin, authController.toggleMotoristaAccount);
 
 module.exports = router;

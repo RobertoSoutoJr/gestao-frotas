@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { supabase } = require('../config/database');
 const { AppError } = require('./errorHandler');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
@@ -45,6 +46,24 @@ exports.protect = async (req, res, next) => {
 
     // Adicionar user ID ao request
     req.userId = decoded.userId;
+
+    // Load role info (cached per request)
+    const { data: user } = await supabase
+      .from('users')
+      .select('role, owner_id, motorista_id')
+      .eq('id', decoded.userId)
+      .single();
+
+    req.userRole = user?.role || 'admin';
+    req.ownerId = user?.owner_id || null;
+    req.motoristaId = user?.motorista_id || null;
+
+    // For motorista accounts, scope data to the admin who created them
+    if (req.userRole === 'motorista' && req.ownerId) {
+      req.userId = req.ownerId; // Data belongs to the admin
+      req.realUserId = decoded.userId; // Keep real identity
+    }
+
     next();
   } catch (error) {
     next(error);
@@ -69,6 +88,22 @@ exports.optionalAuth = async (req, res, next) => {
   } catch (error) {
     next();
   }
+};
+
+// Middleware: require admin role
+exports.requireAdmin = (req, res, next) => {
+  if (req.userRole !== 'admin') {
+    return next(new AppError('Acesso restrito a administradores', 403));
+  }
+  next();
+};
+
+// Middleware: require motorista role
+exports.requireMotorista = (req, res, next) => {
+  if (req.userRole !== 'motorista') {
+    return next(new AppError('Acesso restrito a motoristas', 403));
+  }
+  next();
 };
 
 exports.JWT_SECRET = JWT_SECRET;

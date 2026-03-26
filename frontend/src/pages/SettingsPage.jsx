@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
+import { Select } from '../components/ui/Select';
 import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import authService from '../services/auth';
-import { User, Lock, Building2, Phone, Mail, Save, Eye, EyeOff, LogOut } from 'lucide-react';
+import { driversService } from '../services/drivers';
+import { User, Lock, Building2, Phone, Mail, Save, Eye, EyeOff, LogOut, Users, Plus, Power } from 'lucide-react';
 
 export function SettingsPage() {
   const { user, updateUser, logout } = useAuth();
@@ -234,6 +237,9 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
+      {/* Motorista Accounts (admin only) */}
+      {user?.role !== 'motorista' && <MotoristaAccountsSection />}
+
       {/* Danger Zone */}
       <Card className="border-red-500/30">
         <CardHeader>
@@ -253,5 +259,180 @@ export function SettingsPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function MotoristaAccountsSection() {
+  const { addToast } = useToast();
+  const [accounts, setAccounts] = useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ nome: '', email: '', password: '', motorista_id: '' });
+
+  const fetchData = async () => {
+    try {
+      const [accRes, drvRes] = await Promise.all([
+        authService.getMotoristaAccounts(),
+        driversService.getAll(),
+      ]);
+      setAccounts(accRes.data || []);
+      setDrivers(drvRes.data || []);
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!form.nome || !form.email || !form.password) {
+      addToast('Preencha nome, email e senha', 'error');
+      return;
+    }
+    if (form.password.length < 6) {
+      addToast('Senha deve ter pelo menos 6 caracteres', 'error');
+      return;
+    }
+    setCreating(true);
+    try {
+      await authService.createMotoristaAccount({
+        nome: form.nome,
+        email: form.email,
+        password: form.password,
+        motorista_id: form.motorista_id ? Number(form.motorista_id) : null,
+      });
+      addToast('Conta de motorista criada', 'success');
+      setForm({ nome: '', email: '', password: '', motorista_id: '' });
+      setShowCreate(false);
+      fetchData();
+    } catch (err) {
+      addToast(err.message || 'Erro ao criar conta', 'error');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleToggle = async (account) => {
+    try {
+      await authService.toggleMotoristaAccount(account.id, !account.is_active);
+      addToast(account.is_active ? 'Conta desativada' : 'Conta ativada', 'success');
+      fetchData();
+    } catch (err) {
+      addToast(err.message || 'Erro ao alterar status', 'error');
+    }
+  };
+
+  // Drivers not yet linked to an account
+  const linkedIds = accounts.map(a => a.motorista_id).filter(Boolean);
+  const availableDrivers = drivers.filter(d => !linkedIds.includes(d.id));
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Contas de Motorista
+            </CardTitle>
+            <CardDescription>Crie logins para seus motoristas acessarem o app</CardDescription>
+          </div>
+          <Button variant="primary" size="sm" onClick={() => setShowCreate(!showCreate)}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Nova Conta
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Create form */}
+        {showCreate && (
+          <form onSubmit={handleCreate} className="space-y-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Input
+                label="Nome"
+                placeholder="Nome do motorista"
+                value={form.nome}
+                onChange={(e) => setForm(prev => ({ ...prev, nome: e.target.value }))}
+                required
+              />
+              <Input
+                label="Email"
+                type="email"
+                placeholder="email@exemplo.com"
+                value={form.email}
+                onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
+                required
+              />
+              <Input
+                label="Senha"
+                type="password"
+                placeholder="Min. 6 caracteres"
+                value={form.password}
+                onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
+                required
+              />
+              <Select
+                label="Vincular ao motorista (opcional)"
+                value={form.motorista_id}
+                onChange={(e) => setForm(prev => ({ ...prev, motorista_id: e.target.value }))}
+              >
+                <option value="">Sem vinculo</option>
+                {availableDrivers.map(d => (
+                  <option key={d.id} value={d.id}>{d.nome}</option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowCreate(false)}>Cancelar</Button>
+              <Button type="submit" variant="primary" size="sm" disabled={creating}>
+                {creating ? 'Criando...' : 'Criar Conta'}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* Accounts list */}
+        {loading ? (
+          <p className="text-sm text-[var(--color-text-secondary)]">Carregando...</p>
+        ) : accounts.length === 0 ? (
+          <p className="text-sm text-[var(--color-text-secondary)]">Nenhuma conta de motorista criada</p>
+        ) : (
+          <div className="space-y-2">
+            {accounts.map(acc => {
+              const linkedDriver = drivers.find(d => d.id === acc.motorista_id);
+              return (
+                <div key={acc.id} className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-4 py-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[var(--color-text)]">{acc.nome}</span>
+                      <Badge variant={acc.is_active ? 'success' : 'default'}>
+                        {acc.is_active ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      {acc.email}
+                      {linkedDriver && <span className="ml-2">| Vinculado: {linkedDriver.nome}</span>}
+                    </p>
+                  </div>
+                  <Button
+                    variant={acc.is_active ? 'danger' : 'success'}
+                    size="sm"
+                    onClick={() => handleToggle(acc)}
+                  >
+                    <Power className="mr-1.5 h-3.5 w-3.5" />
+                    {acc.is_active ? 'Desativar' : 'Ativar'}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

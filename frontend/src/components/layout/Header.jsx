@@ -64,11 +64,13 @@ export function Header() {
                     <div className="text-sm font-medium text-[var(--color-text)] leading-none">
                       {user.nome}
                     </div>
-                    {user.empresa && (
+                    {user.role === 'motorista' ? (
+                      <div className="text-xs text-amber-400 mt-0.5 font-medium">Motorista</div>
+                    ) : user.empresa ? (
                       <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">
                         {user.empresa}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                   <ChevronDown className={cn(
                     "h-4 w-4 text-[var(--color-text-secondary)] transition-transform duration-200",

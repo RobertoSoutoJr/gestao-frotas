@@ -93,6 +93,19 @@ const authService = {
     return await api.post('/auth/change-password', { currentPassword, newPassword });
   },
 
+  // RBAC: Motorista account management
+  async getMotoristaAccounts() {
+    return await api.get('/auth/motoristas');
+  },
+
+  async createMotoristaAccount(data) {
+    return await api.post('/auth/motoristas', data);
+  },
+
+  async toggleMotoristaAccount(id, isActive) {
+    return await api.patch(`/auth/motoristas/${id}`, { is_active: isActive });
+  },
+
   getCurrentUser() {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
