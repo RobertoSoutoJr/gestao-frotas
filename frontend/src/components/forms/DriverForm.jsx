@@ -10,7 +10,9 @@ export function DriverForm({ onSuccess }) {
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
-    telefone: ''
+    telefone: '',
+    numero_cnh: '',
+    validade_cnh: ''
   });
 
   const handleSubmit = async (e) => {
@@ -20,7 +22,7 @@ export function DriverForm({ onSuccess }) {
     try {
       await driversService.create(formData);
       success('Sucesso!', 'Motorista cadastrado com sucesso');
-      setFormData({ nome: '', cpf: '', telefone: '' });
+      setFormData({ nome: '', cpf: '', telefone: '', numero_cnh: '', validade_cnh: '' });
       onSuccess?.();
     } catch (err) {
       console.error('Failed to create driver:', err);
@@ -62,6 +64,20 @@ export function DriverForm({ onSuccess }) {
           label="Telefone"
           placeholder="(11) 98888-8888"
           value={formData.telefone}
+          onChange={handleChange}
+        />
+        <Input
+          name="numero_cnh"
+          label="Numero CNH"
+          placeholder="00000000000"
+          value={formData.numero_cnh}
+          onChange={handleChange}
+        />
+        <Input
+          name="validade_cnh"
+          label="Validade CNH"
+          type="date"
+          value={formData.validade_cnh}
           onChange={handleChange}
         />
       </div>

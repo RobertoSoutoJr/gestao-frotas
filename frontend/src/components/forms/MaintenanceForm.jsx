@@ -25,7 +25,8 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
     tipo_manutencao: 'Preventiva',
     valor_total: '',
     km_manutencao: '',
-    data_manutencao: ''
+    data_manutencao: '',
+    status: 'concluida'
   });
 
   const handleSubmit = async (e) => {
@@ -39,7 +40,8 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
         tipo_manutencao: formData.tipo_manutencao,
         valor_total: Number(formData.valor_total),
         km_manutencao: formData.km_manutencao ? Number(formData.km_manutencao) : undefined,
-        data_manutencao: formData.data_manutencao || undefined
+        data_manutencao: formData.data_manutencao || undefined,
+        status: formData.status
       };
 
       await maintenanceService.create(data);
@@ -50,7 +52,8 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
         tipo_manutencao: 'Preventiva',
         valor_total: '',
         km_manutencao: '',
-        data_manutencao: ''
+        data_manutencao: '',
+        status: 'concluida'
       });
       onSuccess?.();
     } catch (err) {
@@ -99,6 +102,18 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
               {type}
             </option>
           ))}
+        </Select>
+
+        <Select
+          name="status"
+          label="Status"
+          value={formData.status}
+          onChange={handleChange}
+          required
+        >
+          <option value="concluida">Concluida</option>
+          <option value="pendente">Pendente</option>
+          <option value="em_andamento">Em andamento</option>
         </Select>
 
         <Input

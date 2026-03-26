@@ -24,7 +24,9 @@ const createTruckSchema = z.object({
     .optional(),
   capacidade_silo_ton: z.number()
     .positive('Capacidade deve ser positiva')
-    .optional()
+    .optional(),
+  data_licenciamento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido').optional().nullable(),
+  km_proxima_revisao: z.number().int().nonnegative().optional().nullable()
 });
 
 const updateTruckSchema = createTruckSchema.partial();

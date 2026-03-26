@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
+import { DocumentGallery } from '../components/ui/DocumentGallery';
 import { Wrench, Truck, Calendar, DollarSign, Edit2, Trash2, Search, Filter, Plus } from 'lucide-react';
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { maintenanceService } from '../services/maintenance';
@@ -44,7 +45,8 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
     tipo_manutencao: maintenance.tipo_manutencao || 'Preventiva',
     valor_total: maintenance.valor_total || '',
     km_manutencao: maintenance.km_manutencao || '',
-    data_manutencao: maintenance.data_manutencao ? maintenance.data_manutencao.split('T')[0] : ''
+    data_manutencao: maintenance.data_manutencao ? maintenance.data_manutencao.split('T')[0] : '',
+    status: maintenance.status || 'concluida'
   });
 
   const handleSubmit = async (e) => {
@@ -58,7 +60,8 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
         tipo_manutencao: formData.tipo_manutencao,
         valor_total: Number(formData.valor_total),
         km_manutencao: Number(formData.km_manutencao),
-        data_manutencao: formData.data_manutencao
+        data_manutencao: formData.data_manutencao,
+        status: formData.status
       };
 
       await maintenanceService.update(maintenance.id, data);
@@ -111,6 +114,19 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
                 {type}
               </option>
             ))}
+          </Select>
+
+          <Select
+            name="status"
+            label="Status"
+            value={formData.status}
+            onChange={handleChange}
+            required
+            className="md:col-span-2"
+          >
+            <option value="concluida">Concluida</option>
+            <option value="pendente">Pendente</option>
+            <option value="em_andamento">Em andamento</option>
           </Select>
 
           <Input
@@ -175,6 +191,11 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
           </Button>
         </div>
       </form>
+
+      {/* Documentos da Manutencao */}
+      <div className="mt-6 border-t border-[var(--color-border)] pt-6">
+        <DocumentGallery entidadeTipo="manutencao" entidadeId={maintenance.id} />
+      </div>
     </Modal>
   );
 }
@@ -409,6 +430,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
                   <tr className="border-b border-[var(--color-border)]">
                     <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
                     <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
+                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden sm:table-cell">Status</th>
                     <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden sm:table-cell">Descrição</th>
                     <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden md:table-cell">Data</th>
                     <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Valor</th>
@@ -427,6 +449,16 @@ export function MaintenancePage({ trucks, onRefetch }) {
                       <td className="px-4 py-3">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${TYPE_COLORS[maintenance.tipo_manutencao] || TYPE_COLORS.Outros}`}>
                           {maintenance.tipo_manutencao}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${
+                          maintenance.status === 'pendente' ? 'bg-amber-500/15 text-amber-400' :
+                          maintenance.status === 'em_andamento' ? 'bg-blue-500/15 text-blue-400' :
+                          'bg-emerald-500/15 text-emerald-400'
+                        }`}>
+                          {maintenance.status === 'pendente' ? 'Pendente' :
+                           maintenance.status === 'em_andamento' ? 'Em andamento' : 'Concluida'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden sm:table-cell max-w-[200px] xl:max-w-[300px]">

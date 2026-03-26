@@ -16,7 +16,9 @@ export function TruckForm({ onSuccess }) {
     modelo: '',
     ano: '',
     km_atual: '',
-    capacidade_silo_ton: ''
+    capacidade_silo_ton: '',
+    data_licenciamento: '',
+    km_proxima_revisao: ''
   });
 
   const handleFileChange = (e) => {
@@ -42,7 +44,9 @@ export function TruckForm({ onSuccess }) {
         ...formData,
         ano: formData.ano ? Number(formData.ano) : undefined,
         km_atual: formData.km_atual ? Number(formData.km_atual) : undefined,
-        capacidade_silo_ton: formData.capacidade_silo_ton ? Number(formData.capacidade_silo_ton) : undefined
+        capacidade_silo_ton: formData.capacidade_silo_ton ? Number(formData.capacidade_silo_ton) : undefined,
+        data_licenciamento: formData.data_licenciamento || undefined,
+        km_proxima_revisao: formData.km_proxima_revisao ? Number(formData.km_proxima_revisao) : undefined
       };
 
       const res = await trucksService.create(data);
@@ -58,7 +62,7 @@ export function TruckForm({ onSuccess }) {
       }
 
       success('Sucesso!', 'Caminhão cadastrado com sucesso');
-      setFormData({ placa: '', modelo: '', ano: '', km_atual: '', capacidade_silo_ton: '' });
+      setFormData({ placa: '', modelo: '', ano: '', km_atual: '', capacidade_silo_ton: '', data_licenciamento: '', km_proxima_revisao: '' });
       setFotoFile(null);
       setFotoPreview(null);
       onSuccess?.();
@@ -115,6 +119,21 @@ export function TruckForm({ onSuccess }) {
           step="0.01"
           placeholder="30"
           value={formData.capacidade_silo_ton}
+          onChange={handleChange}
+        />
+        <Input
+          name="data_licenciamento"
+          label="Validade Licenciamento"
+          type="date"
+          value={formData.data_licenciamento}
+          onChange={handleChange}
+        />
+        <Input
+          name="km_proxima_revisao"
+          label="KM Proxima Revisao"
+          type="number"
+          placeholder="100000"
+          value={formData.km_proxima_revisao}
           onChange={handleChange}
           className="md:col-span-2"
         />

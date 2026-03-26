@@ -7,10 +7,51 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { DriverForm } from '../components/forms/DriverForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Users, Phone, CreditCard, Edit2, Trash2, Search, Filter, Plus } from 'lucide-react';
-import { formatCPF } from '../lib/utils';
+import { DocumentGallery } from '../components/ui/DocumentGallery';
+import { Users, Phone, CreditCard, Edit2, Trash2, Search, Filter, Plus, Route, DollarSign, TrendingUp, Fuel as FuelIcon } from 'lucide-react';
+import { formatCPF, formatCurrency, formatNumber } from '../lib/utils';
 import { driversService } from '../services/drivers';
 import { useToast } from '../hooks/useToast';
+
+function useDriverPerformance(drivers, trips, fuelRecords) {
+  return useMemo(() => {
+    const finalized = (trips || []).filter(t => t.status === 'finalizada');
+    const map = {};
+
+    finalized.forEach(t => {
+      const did = t.motorista_id;
+      if (!did) return;
+      if (!map[did]) map[did] = { viagens: 0, km: 0, receita: 0, custos: 0, litros: 0 };
+      map[did].viagens += 1;
+      map[did].km += Number(t.km_total) || 0;
+      map[did].receita += Number(t.valor_total_frete) || 0;
+      map[did].custos += (Number(t.custo_combustivel) || 0) + (Number(t.custo_pedagio) || 0) +
+        (Number(t.custo_manutencao) || 0) + (Number(t.custo_outros) || 0);
+    });
+
+    (fuelRecords || []).forEach(r => {
+      const did = r.motorista_id;
+      if (!did) return;
+      if (!map[did]) map[did] = { viagens: 0, km: 0, receita: 0, custos: 0, litros: 0 };
+      map[did].litros += Number(r.litros) || 0;
+    });
+
+    Object.values(map).forEach(v => {
+      v.lucro = v.receita - v.custos;
+      v.margem = v.receita > 0 ? (v.lucro / v.receita) * 100 : 0;
+      v.kmPerLiter = v.litros > 0 ? v.km / v.litros : 0;
+    });
+
+    const ranking = Object.entries(map)
+      .map(([id, data]) => {
+        const driver = (drivers || []).find(d => d.id === Number(id));
+        return { id: Number(id), nome: driver?.nome || `#${id}`, ...data };
+      })
+      .sort((a, b) => b.viagens - a.viagens);
+
+    return { map, ranking };
+  }, [drivers, trips, fuelRecords]);
+}
 
 function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -18,7 +59,9 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     nome: driver.nome || '',
     cpf: driver.cpf || '',
-    telefone: driver.telefone || ''
+    telefone: driver.telefone || '',
+    numero_cnh: driver.numero_cnh || '',
+    validade_cnh: driver.validade_cnh ? driver.validade_cnh.split('T')[0] : ''
   });
 
   const handleSubmit = async (e) => {
@@ -73,6 +116,20 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
             value={formData.telefone}
             onChange={handleChange}
           />
+          <Input
+            name="numero_cnh"
+            label="Numero CNH"
+            placeholder="00000000000"
+            value={formData.numero_cnh}
+            onChange={handleChange}
+          />
+          <Input
+            name="validade_cnh"
+            label="Validade CNH"
+            type="date"
+            value={formData.validade_cnh}
+            onChange={handleChange}
+          />
         </div>
         <div className="flex gap-3">
           <Button
@@ -94,11 +151,16 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
           </Button>
         </div>
       </form>
+
+      {/* Documentos do Motorista */}
+      <div className="mt-6 border-t border-[var(--color-border)] pt-6">
+        <DocumentGallery entidadeTipo="motorista" entidadeId={driver.id} />
+      </div>
     </Modal>
   );
 }
 
-export function DriversPage({ drivers, onRefetch }) {
+export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
   const { success, error } = useToast();
   const [editingDriver, setEditingDriver] = useState(null);
   const [deletingDriver, setDeletingDriver] = useState(null);
@@ -107,6 +169,7 @@ export function DriversPage({ drivers, onRefetch }) {
   const [sortBy, setSortBy] = useState('nome');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const { map: perfMap, ranking } = useDriverPerformance(drivers, trips, fuelRecords);
 
   const filteredAndSortedDrivers = useMemo(() => {
     let filtered = drivers.filter(driver => {
@@ -157,6 +220,47 @@ export function DriversPage({ drivers, onRefetch }) {
 
   return (
     <div className="space-y-8">
+      {/* Performance Ranking */}
+      {ranking.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
+            Produtividade por Motorista
+          </h2>
+          <div className="overflow-x-auto">
+            <Card>
+              <CardContent className="p-0">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
+                      <th className="px-4 py-3 text-left font-medium">#</th>
+                      <th className="px-4 py-3 text-left font-medium">Motorista</th>
+                      <th className="px-4 py-3 text-right font-medium">Viagens</th>
+                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Km</th>
+                      <th className="px-4 py-3 text-right font-medium">Receita</th>
+                      <th className="px-4 py-3 text-right font-medium">Lucro</th>
+                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Margem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ranking.slice(0, 10).map((r, i) => (
+                      <tr key={r.id} className="border-b border-[var(--color-border)] last:border-0">
+                        <td className="px-4 py-3 font-medium text-[var(--color-text-secondary)]">{i + 1}</td>
+                        <td className="px-4 py-3 font-medium text-[var(--color-text)]">{r.nome}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-text)] tabular-nums">{r.viagens}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] tabular-nums hidden sm:table-cell">{formatNumber(r.km, 0)}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-text)] tabular-nums">{formatCurrency(r.receita)}</td>
+                        <td className={`px-4 py-3 text-right font-semibold tabular-nums ${r.lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(r.lucro)}</td>
+                        <td className={`px-4 py-3 text-right tabular-nums hidden sm:table-cell ${r.margem >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{r.margem.toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold text-[var(--color-text)]">
@@ -250,6 +354,27 @@ export function DriversPage({ drivers, onRefetch }) {
                           </span>
                         )}
                       </div>
+                      {perfMap[driver.id] && (
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                          <span className="flex items-center gap-1 text-[var(--color-text-secondary)]">
+                            <Route className="h-3 w-3" />
+                            {perfMap[driver.id].viagens} viagen{perfMap[driver.id].viagens > 1 ? 's' : ''}
+                          </span>
+                          {perfMap[driver.id].km > 0 && (
+                            <span className="text-[var(--color-text-secondary)]">
+                              {formatNumber(perfMap[driver.id].km, 0)} km
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1 text-blue-400">
+                            <DollarSign className="h-3 w-3" />
+                            {formatCurrency(perfMap[driver.id].receita)}
+                          </span>
+                          <span className={`flex items-center gap-1 font-medium ${perfMap[driver.id].lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            <TrendingUp className="h-3 w-3" />
+                            {formatCurrency(perfMap[driver.id].lucro)} ({perfMap[driver.id].margem.toFixed(1)}%)
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 

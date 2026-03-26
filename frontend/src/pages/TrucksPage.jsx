@@ -10,6 +10,7 @@ import { FuelForm } from '../components/forms/FuelForm';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
+import { DocumentGallery } from '../components/ui/DocumentGallery';
 import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench, Camera, Calendar, DollarSign, ChevronRight } from 'lucide-react';
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { trucksService } from '../services/trucks';
@@ -121,7 +122,9 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
     modelo: truck.modelo || '',
     ano: truck.ano || '',
     km_atual: truck.km_atual || '',
-    capacidade_silo_ton: truck.capacidade_silo_ton || ''
+    capacidade_silo_ton: truck.capacidade_silo_ton || '',
+    data_licenciamento: truck.data_licenciamento ? truck.data_licenciamento.split('T')[0] : '',
+    km_proxima_revisao: truck.km_proxima_revisao || ''
   });
 
   const handleFileChange = (e) => {
@@ -147,7 +150,9 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
         ...formData,
         ano: formData.ano ? Number(formData.ano) : undefined,
         km_atual: formData.km_atual ? Number(formData.km_atual) : undefined,
-        capacidade_silo_ton: formData.capacidade_silo_ton ? Number(formData.capacidade_silo_ton) : undefined
+        capacidade_silo_ton: formData.capacidade_silo_ton ? Number(formData.capacidade_silo_ton) : undefined,
+        data_licenciamento: formData.data_licenciamento || null,
+        km_proxima_revisao: formData.km_proxima_revisao ? Number(formData.km_proxima_revisao) : null
       };
 
       await trucksService.update(truck.id, data);
@@ -224,6 +229,21 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
             placeholder="30"
             value={formData.capacidade_silo_ton}
             onChange={handleChange}
+          />
+          <Input
+            name="data_licenciamento"
+            label="Validade Licenciamento"
+            type="date"
+            value={formData.data_licenciamento}
+            onChange={handleChange}
+          />
+          <Input
+            name="km_proxima_revisao"
+            label="KM Proxima Revisao"
+            type="number"
+            placeholder="100000"
+            value={formData.km_proxima_revisao}
+            onChange={handleChange}
             className="md:col-span-2"
           />
         </div>
@@ -236,6 +256,11 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
           </Button>
         </div>
       </form>
+
+      {/* Documentos do Caminhao */}
+      <div className="mt-6 border-t border-[var(--color-border)] pt-6">
+        <DocumentGallery entidadeTipo="caminhao" entidadeId={truck.id} />
+      </div>
     </Modal>
   );
 }
