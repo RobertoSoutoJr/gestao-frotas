@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Fuel, LogOut, ChevronDown, Sun, Moon, X, Settings } from 'lucide-react';
+import { Fuel, LogOut, ChevronDown, Sun, Moon, X, Settings, Search } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
 import { GlobalSearch } from '../ui/GlobalSearch';
@@ -8,6 +8,7 @@ import { cn } from '../../lib/utils';
 
 export function Header({ searchData }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
@@ -44,6 +45,17 @@ export function Header({ searchData }) {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            {/* Mobile Search Button */}
+            {searchData && (
+              <button
+                onClick={() => setMobileSearchOpen(true)}
+                className="flex sm:hidden h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] transition-all duration-200 hover:bg-[var(--color-surface-hover)] cursor-pointer"
+                aria-label="Buscar"
+              >
+                <Search className="h-5 w-5 text-[var(--color-text-secondary)]" />
+              </button>
+            )}
+
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -179,6 +191,23 @@ export function Header({ searchData }) {
           </div>
         </div>
       </div>
+
+      {/* Mobile Search Overlay */}
+      {mobileSearchOpen && searchData && (
+        <div className="fixed inset-0 z-[70] sm:hidden bg-[var(--color-bg)] animate-fade-in">
+          <div className="flex items-center gap-2 px-3 py-3 border-b border-[var(--color-border)]">
+            <div className="flex-1">
+              <GlobalSearch data={searchData} autoFocus onSelect={() => setMobileSearchOpen(false)} />
+            </div>
+            <button
+              onClick={() => setMobileSearchOpen(false)}
+              className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-[var(--color-surface-hover)] cursor-pointer shrink-0"
+            >
+              <X className="h-5 w-5 text-[var(--color-text-secondary)]" />
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

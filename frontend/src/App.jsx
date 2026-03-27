@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -10,6 +10,7 @@ import { Button } from './components/ui/Button';
 import { ToastContainer } from './components/ui/Toast';
 import { useFleet } from './hooks/useFleet';
 import { useToast } from './hooks/useToast';
+import { OnboardingWizard, isOnboardingDone } from './components/ui/OnboardingWizard';
 
 // Lazy-loaded pages (code splitting)
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
@@ -25,6 +26,7 @@ const ReportsPage = lazy(() => import('./pages/ReportsPage').then(m => ({ defaul
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.AuthPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
 
 // Skeleton fallback for route transitions
 function PageSkeleton() {
@@ -52,6 +54,7 @@ function AuthenticatedContent() {
   const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, trips, stockRecords, loading, error, refetch } = useFleet();
   const { toasts, dismiss } = useToast();
   const isAdmin = user?.role !== 'motorista';
+  const [showOnboarding, setShowOnboarding] = useState(!isOnboardingDone());
 
   const handleNavigate = (path) => {
     navigate(`/${path}`);
@@ -158,6 +161,10 @@ function AuthenticatedContent() {
       </main>
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
+
+      {showOnboarding && isAdmin && trucks.length === 0 && (
+        <OnboardingWizard onComplete={() => { setShowOnboarding(false); refetch(); }} />
+      )}
     </div>
   );
 }
@@ -172,7 +179,10 @@ function AppContent() {
   if (!isAuthenticated) {
     return (
       <Suspense fallback={<LoadingScreen />}>
-        <AuthPage />
+        <Routes>
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="*" element={<LandingPage />} />
+        </Routes>
       </Suspense>
     );
   }

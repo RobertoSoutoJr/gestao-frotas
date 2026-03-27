@@ -32,7 +32,7 @@ function getSubtext(item, type) {
   }
 }
 
-export function GlobalSearch({ data }) {
+export function GlobalSearch({ data, autoFocus, onSelect }) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -100,12 +100,20 @@ export function GlobalSearch({ data }) {
     return flat;
   }, [results]);
 
+  // Auto-focus for mobile overlay
+  useEffect(() => {
+    if (autoFocus) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [autoFocus]);
+
   const handleSelect = useCallback((type, item) => {
     const config = ENTITY_CONFIG[type];
     navigate(config.path);
     setIsOpen(false);
     setQuery('');
-  }, [navigate]);
+    onSelect?.();
+  }, [navigate, onSelect]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e) => {
