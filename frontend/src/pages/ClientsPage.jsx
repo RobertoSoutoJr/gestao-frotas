@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -8,6 +8,8 @@ import { ClientForm } from '../components/forms/ClientForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Building2, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus, TrendingUp, DollarSign, Route } from 'lucide-react';
+
+const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 import { formatCurrency } from '../lib/utils';
 import { clientsService } from '../services/clients';
 import { useToast } from '../hooks/useToast';
@@ -29,7 +31,9 @@ function EditClientModal({ client, isOpen, onClose, onSuccess }) {
     cidade: client.cidade || '',
     estado: client.estado || '',
     cep: client.cep || '',
-    observacoes: client.observacoes || ''
+    observacoes: client.observacoes || '',
+    latitude: client.latitude || null,
+    longitude: client.longitude || null
   });
 
   const handleSubmit = async (e) => {
@@ -68,6 +72,16 @@ function EditClientModal({ client, isOpen, onClose, onSuccess }) {
           </Select>
           <Input name="observacoes" label="Observações" value={formData.observacoes} onChange={handleChange} className="md:col-span-2" />
         </div>
+
+        <Suspense fallback={<div className="h-[280px] rounded-xl bg-[var(--color-bg-elevated)] animate-pulse" />}>
+          <LocationPicker
+            label="Localização"
+            latitude={formData.latitude}
+            longitude={formData.longitude}
+            onChange={({ latitude, longitude }) => setFormData(prev => ({ ...prev, latitude, longitude }))}
+          />
+        </Suspense>
+
         <div className="flex gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>Cancelar</Button>
           <Button type="submit" variant="primary" loading={loading} className="flex-1">Salvar Alterações</Button>

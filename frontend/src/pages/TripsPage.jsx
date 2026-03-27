@@ -109,8 +109,12 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
         custo_outros: Number(formData.custo_outros) || 0,
         origem_cidade: selectedSupplier?.cidade || null,
         origem_estado: selectedSupplier?.estado || null,
+        origem_lat: selectedSupplier?.latitude || null,
+        origem_lng: selectedSupplier?.longitude || null,
         destino_cidade: selectedClient?.cidade || null,
         destino_estado: selectedClient?.estado || null,
+        destino_lat: selectedClient?.latitude || null,
+        destino_lng: selectedClient?.longitude || null,
       });
       setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '', custo_combustivel: '', custo_pedagio: '', custo_manutencao: '', custo_outros: '' });
       setProdutoTipo('');

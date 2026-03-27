@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { clientsService } from '../../services/clients';
+
+const LocationPicker = lazy(() => import('../ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 
 const ESTADOS_BR = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
@@ -13,7 +15,8 @@ export function ClientForm({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: '', cpf_cnpj: '', telefone: '', email: '',
-    endereco: '', cidade: '', estado: '', cep: '', observacoes: ''
+    endereco: '', cidade: '', estado: '', cep: '', observacoes: '',
+    latitude: null, longitude: null
   });
 
   const handleSubmit = async (e) => {
@@ -21,7 +24,7 @@ export function ClientForm({ onSuccess }) {
     setLoading(true);
     try {
       await clientsService.create(formData);
-      setFormData({ nome: '', cpf_cnpj: '', telefone: '', email: '', endereco: '', cidade: '', estado: '', cep: '', observacoes: '' });
+      setFormData({ nome: '', cpf_cnpj: '', telefone: '', email: '', endereco: '', cidade: '', estado: '', cep: '', observacoes: '', latitude: null, longitude: null });
       onSuccess?.();
     } catch (error) {
       console.error('Failed to create client:', error);
@@ -51,6 +54,16 @@ export function ClientForm({ onSuccess }) {
         </Select>
         <Input name="observacoes" label="Observações" placeholder="Informações adicionais..." value={formData.observacoes} onChange={handleChange} className="md:col-span-2" />
       </div>
+
+      <Suspense fallback={<div className="h-[280px] rounded-xl bg-[var(--color-bg-elevated)] animate-pulse" />}>
+        <LocationPicker
+          label="Localização (clique no mapa ou use GPS)"
+          latitude={formData.latitude}
+          longitude={formData.longitude}
+          onChange={({ latitude, longitude }) => setFormData(prev => ({ ...prev, latitude, longitude }))}
+        />
+      </Suspense>
+
       <Button type="submit" variant="success" loading={loading} className="w-full">
         Cadastrar Cliente
       </Button>

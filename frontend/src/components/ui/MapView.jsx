@@ -2,6 +2,7 @@ import { useEffect, useRef, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { fetchRoute } from '../../lib/routeUtils';
 
 // Fix default marker icons (leaflet + bundler issue)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -33,7 +34,7 @@ const ICONS = {
   finalized: createColoredIcon('#6B7280'),
 };
 
-// Geocoding cache (persisted in sessionStorage)
+// Geocoding cache (persisted in sessionStorage) — fallback for old data without coords
 const GEO_CACHE_KEY = 'fueltrack_geocache';
 
 function getGeoCache() {
@@ -46,7 +47,7 @@ function setGeoCache(cache) {
   try { sessionStorage.setItem(GEO_CACHE_KEY, JSON.stringify(cache)); } catch {}
 }
 
-// Nominatim geocoding with rate limiting
+// Nominatim geocoding with rate limiting (fallback only)
 const geocodeQueue = [];
 let geocodeRunning = false;
 
@@ -74,7 +75,6 @@ async function processGeoQueue() {
     } catch {
       resolve(null);
     }
-    // Nominatim rate limit: 1 req/sec
     await new Promise(r => setTimeout(r, 1100));
   }
   geocodeRunning = false;
@@ -103,6 +103,7 @@ function FitBounds({ points }) {
 // Main MapView component
 export function MapView({ trips = [], height = '400px', className = '', onTripClick }) {
   const [geoTrips, setGeoTrips] = useState([]);
+  const [routeData, setRouteData] = useState({});
   const [loading, setLoading] = useState(false);
   const mountedRef = useRef(true);
 
@@ -111,7 +112,7 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
     return () => { mountedRef.current = false; };
   }, []);
 
-  // Geocode trips that don't have lat/lng
+  // Resolve coordinates: use direct lat/lng first, fallback to geocoding
   useEffect(() => {
     if (trips.length === 0) { setGeoTrips([]); return; }
     setLoading(true);
@@ -122,13 +123,12 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
         let oLat = trip.origem_lat, oLng = trip.origem_lng;
         let dLat = trip.destino_lat, dLng = trip.destino_lng;
 
-        // Geocode origin if missing
+        // Fallback: geocode by city if no direct coords
         if (!oLat && trip.origem_cidade) {
           const coords = await geocodeCity(trip.origem_cidade, trip.origem_estado);
           if (coords) { oLat = coords.lat; oLng = coords.lng; }
         }
 
-        // Geocode destination if missing
         if (!dLat && trip.destino_cidade) {
           const coords = await geocodeCity(trip.destino_cidade, trip.destino_estado);
           if (coords) { dLat = coords.lat; dLng = coords.lng; }
@@ -151,6 +151,29 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
     resolve();
   }, [trips]);
 
+  // Fetch real routes via OSRM for resolved trips
+  useEffect(() => {
+    if (geoTrips.length === 0) return;
+
+    async function fetchRoutes() {
+      const routes = {};
+      for (const trip of geoTrips) {
+        const route = await fetchRoute(
+          trip.origem_lat, trip.origem_lng,
+          trip.destino_lat, trip.destino_lng
+        );
+        if (route && mountedRef.current) {
+          routes[trip.id] = route;
+        }
+      }
+      if (mountedRef.current) {
+        setRouteData(prev => ({ ...prev, ...routes }));
+      }
+    }
+
+    fetchRoutes();
+  }, [geoTrips]);
+
   const allPoints = useMemo(() => {
     const pts = [];
     geoTrips.forEach(t => {
@@ -169,7 +192,7 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
     <div className={`relative rounded-xl overflow-hidden border border-[var(--color-border)] ${className}`} style={{ height }}>
       {loading && (
         <div className="absolute top-3 right-3 z-[1000] bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs text-[var(--color-text-secondary)] shadow-lg">
-          Geocodificando...
+          Carregando rotas...
         </div>
       )}
       <MapContainer
@@ -187,6 +210,7 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
         {geoTrips.map(trip => {
           const isActive = trip.status !== 'finalizada';
           const lineColor = isActive ? '#F59E0B' : '#6B7280';
+          const route = routeData[trip.id];
 
           return (
             <div key={trip.id}>
@@ -200,6 +224,9 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
                     <strong>Origem</strong><br />
                     {trip.origem_cidade}{trip.origem_estado ? `/${trip.origem_estado}` : ''}<br />
                     <span style={{ color: '#666' }}>Viagem #{trip.id}</span>
+                    {route && (
+                      <><br /><span style={{ color: '#5E6AD2' }}>{route.distance_km} km - {route.duration_min} min</span></>
+                    )}
                     {onTripClick && (
                       <><br /><a href="#" onClick={(e) => { e.preventDefault(); onTripClick(trip); }} style={{ color: '#5E6AD2' }}>Ver detalhes</a></>
                     )}
@@ -217,20 +244,24 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
                     <strong>Destino</strong><br />
                     {trip.destino_cidade}{trip.destino_estado ? `/${trip.destino_estado}` : ''}<br />
                     <span style={{ color: '#666' }}>Viagem #{trip.id}</span>
+                    {route && (
+                      <><br /><span style={{ color: '#10B981' }}>{route.distance_km} km - {route.duration_min} min</span></>
+                    )}
                   </div>
                 </Popup>
               </Marker>
 
-              {/* Route line */}
+              {/* Route line: real OSRM route or fallback straight line */}
               <Polyline
-                positions={[
-                  [trip.origem_lat, trip.origem_lng],
-                  [trip.destino_lat, trip.destino_lng],
-                ]}
+                positions={
+                  route
+                    ? route.coordinates
+                    : [[trip.origem_lat, trip.origem_lng], [trip.destino_lat, trip.destino_lng]]
+                }
                 color={lineColor}
                 weight={isActive ? 3 : 2}
                 opacity={isActive ? 0.9 : 0.5}
-                dashArray={isActive ? '' : '8 4'}
+                dashArray={route ? '' : '8 4'}
               />
             </div>
           );
@@ -251,6 +282,14 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
           <div className="flex items-center gap-2">
             <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#10B981]" />
             <span className="text-[var(--color-text-secondary)]">Destino</span>
+          </div>
+          <div className="flex items-center gap-2 mt-1 pt-1 border-t border-[var(--color-border)]">
+            <span className="inline-block w-4 h-0.5 bg-[var(--color-text-secondary)]" />
+            <span className="text-[var(--color-text-secondary)]">Rota real</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-4 h-0.5 bg-[var(--color-text-secondary)]" style={{ borderTop: '2px dashed var(--color-text-tertiary)' }} />
+            <span className="text-[var(--color-text-secondary)]">Linha reta (sem rota)</span>
           </div>
         </div>
       )}
