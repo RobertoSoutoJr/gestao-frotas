@@ -1,13 +1,14 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
 import { useSectionPrefs, SectionCustomizerButton, SectionCustomizerModal } from '../components/ui/SectionCustomizer';
-import { Truck, Users, Gauge, DollarSign, Fuel, Wrench, ArrowRight, Building2, Factory, Route, Warehouse, Package, AlertCircle, AlertTriangle, TrendingUp, TrendingDown, Minus, Activity, Droplets, Zap, Bell } from 'lucide-react';
+import { Truck, Users, Gauge, DollarSign, Fuel, Wrench, ArrowRight, Building2, Factory, Route, Warehouse, Package, AlertCircle, AlertTriangle, TrendingUp, TrendingDown, Minus, Activity, Droplets, Zap, Bell, Wallet } from 'lucide-react';
 import { useSmartAlerts } from '../hooks/useSmartAlerts';
+import { useNotifications } from '../hooks/useNotifications';
 import { MiniMapView } from '../components/ui/MapView';
 import { formatCurrency, formatNumber } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  LineChart, Line, BarChart, Bar, ComposedChart, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 
@@ -109,10 +110,11 @@ const DASHBOARD_SECTIONS = [
   { id: 'cost_distribution', label: 'Distribuição de Custos', description: 'Combustível vs Manutenção', icon: Fuel },
   { id: 'top_trucks', label: 'Top 5 Veículos', description: 'Veículos com maior custo operacional', icon: Truck },
   { id: 'client_profitability', label: 'Rentabilidade por Cliente', description: 'Lucro e margem por cliente', icon: Building2 },
+  { id: 'cashflow', label: 'Fluxo de Caixa', description: 'Receita vs despesas com saldo acumulado', icon: Wallet },
   { id: 'fleet_map', label: 'Mapa da Frota', description: 'Viagens ativas no mapa', icon: Route },
 ];
 
-const DEFAULT_ORDER = ['alerts', 'kpis', 'fleet_map', 'main_stats', 'operations', 'freight_summary', 'spending_chart', 'cost_distribution', 'top_trucks', 'client_profitability'];
+const DEFAULT_ORDER = ['alerts', 'kpis', 'fleet_map', 'main_stats', 'operations', 'freight_summary', 'cashflow', 'spending_chart', 'cost_distribution', 'top_trucks', 'client_profitability'];
 const DEFAULT_VISIBILITY = {
   kpis: true,
   main_stats: true,
@@ -122,6 +124,7 @@ const DEFAULT_VISIBILITY = {
   spending_chart: true,
   cost_distribution: true,
   top_trucks: true,
+  cashflow: true,
   client_profitability: true,
   fleet_map: true
 };
@@ -137,6 +140,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
   const { isDark } = useTheme();
   const [showCustomize, setShowCustomize] = useState(false);
   const smartAlerts = useSmartAlerts({ trucks, drivers, fuelRecords, maintenanceRecords });
+  useNotifications(smartAlerts);
 
   const { prefs, setPrefs, isVisible, getOrder, moveUp, moveDown, toggleVisibility, reset } = useSectionPrefs(
     'dashboard_prefs_v2', DEFAULT_ORDER, DEFAULT_VISIBILITY
@@ -387,6 +391,67 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
     { name: 'Combustível', value: stats.fuelCost, color: CHART_COLORS.accent },
     { name: 'Manutenção', value: stats.maintenanceCost, color: CHART_COLORS.secondary }
   ];
+
+  // Cashflow data: receita (frete) vs despesas (combustivel + manutencao + custos viagem) por mes
+  const cashflowData = useMemo(() => {
+    const now = new Date();
+    const months = [];
+    const monthCount = period === 'yearly' ? 12 : 6;
+
+    for (let i = monthCount - 1; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      const label = date.toLocaleDateString('pt-BR', { month: 'short' });
+
+      // Receita: frete de viagens finalizadas nesse mes
+      const receita = (trips || [])
+        .filter(t => {
+          if (t.status !== 'finalizada') return false;
+          const d = new Date(t.data_finalizacao || t.updated_at || t.created_at);
+          return d.getMonth() === month && d.getFullYear() === year;
+        })
+        .reduce((s, t) => s + (Number(t.valor_total_frete) || 0), 0);
+
+      // Despesas: combustivel + manutencao + custos de viagem
+      const despCombustivel = fuelRecords
+        .filter(r => { const d = new Date(r.created_at); return d.getMonth() === month && d.getFullYear() === year; })
+        .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+
+      const despManutencao = maintenanceRecords
+        .filter(r => { const d = new Date(r.data_manutencao || r.created_at); return d.getMonth() === month && d.getFullYear() === year; })
+        .reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+
+      const despViagem = (trips || [])
+        .filter(t => {
+          if (t.status !== 'finalizada') return false;
+          const d = new Date(t.data_finalizacao || t.updated_at || t.created_at);
+          return d.getMonth() === month && d.getFullYear() === year;
+        })
+        .reduce((s, t) =>
+          s + (Number(t.custo_combustivel) || 0) + (Number(t.custo_pedagio) || 0) +
+          (Number(t.custo_manutencao) || 0) + (Number(t.custo_outros) || 0), 0);
+
+      const despesa = despCombustivel + despManutencao + despViagem;
+      const resultado = receita - despesa;
+
+      months.push({
+        month: label.charAt(0).toUpperCase() + label.slice(1).replace('.', ''),
+        receita,
+        despesa,
+        resultado,
+      });
+    }
+
+    // Saldo acumulado
+    let saldo = 0;
+    months.forEach(m => {
+      saldo += m.resultado;
+      m.saldo = saldo;
+    });
+
+    return months;
+  }, [trips, fuelRecords, maintenanceRecords, period]);
 
   const periodSubtitleMap = { daily: 'Hoje', weekly: 'Esta semana', monthly: 'Este mês', yearly: 'Este ano' };
   const periodSubtitle = periodSubtitleMap[period] || 'Este mês';
@@ -775,6 +840,72 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
         </Card>
       );
     },
+    cashflow: () => {
+      const hasData = cashflowData.some(d => d.receita > 0 || d.despesa > 0);
+      if (!hasData) return null;
+
+      const totalReceita = cashflowData.reduce((s, d) => s + d.receita, 0);
+      const totalDespesa = cashflowData.reduce((s, d) => s + d.despesa, 0);
+      const totalResultado = totalReceita - totalDespesa;
+      const saldoFinal = cashflowData[cashflowData.length - 1]?.saldo || 0;
+
+      return (
+        <Card>
+          <CardContent className="p-4 sm:p-6">
+            <div className="mb-4 sm:mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text)]">Fluxo de Caixa</h3>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">Receita vs despesas — {period === 'yearly' ? '12 meses' : '6 meses'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-[var(--color-text-secondary)]">Saldo acumulado</p>
+                  <p className={`text-lg font-bold ${saldoFinal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {formatCurrency(saldoFinal)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary cards */}
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-center">
+                <p className="text-[10px] text-emerald-400/70 uppercase tracking-wider">Receita</p>
+                <p className="text-sm font-bold text-emerald-400 mt-0.5">{formatCurrency(totalReceita)}</p>
+              </div>
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-center">
+                <p className="text-[10px] text-red-400/70 uppercase tracking-wider">Despesas</p>
+                <p className="text-sm font-bold text-red-400 mt-0.5">{formatCurrency(totalDespesa)}</p>
+              </div>
+              <div className={`rounded-xl ${totalResultado >= 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'} border p-3 text-center`}>
+                <p className={`text-[10px] ${totalResultado >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'} uppercase tracking-wider`}>Resultado</p>
+                <p className={`text-sm font-bold ${totalResultado >= 0 ? 'text-emerald-400' : 'text-red-400'} mt-0.5`}>{formatCurrency(totalResultado)}</p>
+              </div>
+            </div>
+
+            {/* Chart */}
+            <div className="h-[250px] sm:h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={cashflowData} barGap={2}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="month" stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
+                  <YAxis stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    formatter={(v, name) => [formatCurrency(v), name]}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '12px', fontFamily: '"Inter"', fontSize: '12px' }} />
+                  <Bar dataKey="receita" name="Receita" fill="#10B981" radius={[3, 3, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="despesa" name="Despesas" fill="#EF4444" radius={[3, 3, 0, 0]} maxBarSize={40} />
+                  <Line type="monotone" dataKey="saldo" name="Saldo Acum." stroke="#5E6AD2" strokeWidth={2.5} dot={{ fill: '#5E6AD2', r: 3, strokeWidth: 0 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    },
+
     client_profitability: () => {
       if (clientProfitData.length === 0) return null;
       return (

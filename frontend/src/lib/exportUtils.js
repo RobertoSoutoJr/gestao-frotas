@@ -368,6 +368,93 @@ export function exportMaintenanceTableToExcel(maintenanceRecords, trucks) {
 
 // ==================== FULL REPORT ====================
 
+export function exportFullReportToPDF(dreData, stats, driverStats, fuelRecords, maintenanceRecords, trucks, dateRange) {
+  const doc = new jsPDF();
+  const period = dateRange || 'Periodo completo';
+
+  // Page 1: DRE
+  let y = addHeader(doc, 'Relatorio Completo — DRE', period);
+  const dreRows = [
+    ['Receita de Frete', formatCurrencyPlain(dreData.receita)],
+    ['(-) Desp. Combustivel', formatCurrencyPlain(dreData.custoCombustivel)],
+    ['(-) Desp. Pedagio', formatCurrencyPlain(dreData.custoPedagio)],
+    ['(-) Desp. Manutencao', formatCurrencyPlain(dreData.custoManutencao)],
+    ['(-) Desp. Outros', formatCurrencyPlain(dreData.custoOutros)],
+    ['(-) Abastecimentos frota', formatCurrencyPlain(dreData.despesasCombGeral)],
+    ['(-) Manutencoes frota', formatCurrencyPlain(dreData.despesasManGeral)],
+    ['RESULTADO', formatCurrencyPlain(dreData.lucro)],
+    ['Margem', `${dreData.margem.toFixed(1)}%`],
+  ];
+  autoTable(doc, {
+    startY: y,
+    head: [['Descricao', 'Valor']],
+    body: dreRows,
+    theme: 'striped',
+    styles: { fontSize: 9, font: 'helvetica' },
+    headStyles: { fillColor: [94, 106, 210] },
+  });
+
+  // Page 2: Caminhoes
+  doc.addPage();
+  y = addHeader(doc, 'Relatorio Completo — Caminhoes', period);
+  autoTable(doc, {
+    startY: y,
+    head: [['Placa', 'Modelo', 'Comb.', 'Manut.', 'Total', 'Viagens', 'Receita', 'Lucro']],
+    body: stats.map(s => [
+      s.truck.placa, s.truck.modelo || '',
+      formatCurrencyPlain(s.totalFuel), formatCurrencyPlain(s.totalMaintenance),
+      formatCurrencyPlain(s.totalSpent), s.tripsCount,
+      formatCurrencyPlain(s.tripReceita), formatCurrencyPlain(s.tripLucro),
+    ]),
+    theme: 'striped',
+    styles: { fontSize: 8, font: 'helvetica' },
+    headStyles: { fillColor: [94, 106, 210] },
+  });
+
+  // Page 3: Motoristas
+  if (driverStats && driverStats.length > 0) {
+    doc.addPage();
+    y = addHeader(doc, 'Relatorio Completo — Motoristas', period);
+    autoTable(doc, {
+      startY: y,
+      head: [['Motorista', 'Viagens', 'KM Total', 'Litros', 'km/l', 'Receita', 'Lucro', 'Margem']],
+      body: driverStats.map(s => [
+        s.driver.nome, s.viagens, s.totalKm.toFixed(0),
+        s.litros.toFixed(1), s.kmPerLiter > 0 ? s.kmPerLiter.toFixed(2) : '—',
+        formatCurrencyPlain(s.receita), formatCurrencyPlain(s.lucro),
+        s.viagens > 0 ? `${s.margem.toFixed(1)}%` : '—',
+      ]),
+      theme: 'striped',
+      styles: { fontSize: 8, font: 'helvetica' },
+      headStyles: { fillColor: [94, 106, 210] },
+    });
+  }
+
+  // Page 4: Ultimos abastecimentos
+  doc.addPage();
+  y = addHeader(doc, 'Relatorio Completo — Abastecimentos', period);
+  const sortedFuel = [...fuelRecords].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50);
+  autoTable(doc, {
+    startY: y,
+    head: [['Data', 'Caminhao', 'Litros', 'R$/L', 'Total', 'KM']],
+    body: sortedFuel.map(r => {
+      const truck = trucks.find(t => t.id === r.caminhao_id);
+      return [
+        new Date(r.created_at).toLocaleDateString('pt-BR'),
+        truck?.placa || '', Number(r.litros).toFixed(1),
+        r.litros > 0 ? (Number(r.valor_total) / Number(r.litros)).toFixed(2) : '',
+        formatCurrencyPlain(r.valor_total), r.km_registro || '',
+      ];
+    }),
+    theme: 'striped',
+    styles: { fontSize: 8, font: 'helvetica' },
+    headStyles: { fillColor: [94, 106, 210] },
+  });
+
+  addFooter(doc);
+  doc.save(`fueltrack-relatorio-completo-${Date.now()}.pdf`);
+}
+
 export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords, maintenanceRecords, trucks, dateRange) {
   const wb = createWorkbook();
 

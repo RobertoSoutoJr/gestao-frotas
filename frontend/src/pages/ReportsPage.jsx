@@ -12,7 +12,7 @@ import { formatCurrency, formatNumber, formatDate } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   exportDREtoPDF, exportTruckReportToPDF, exportDriverReportToPDF,
-  exportFuelTableToPDF, exportMaintenanceTableToPDF,
+  exportFuelTableToPDF, exportMaintenanceTableToPDF, exportFullReportToPDF,
   exportDREtoExcel, exportTruckReportToExcel, exportDriverReportToExcel,
   exportFuelTableToExcel, exportMaintenanceTableToExcel, exportFullReportToExcel,
 } from '../lib/exportUtils';
@@ -1078,6 +1078,9 @@ export function ReportsPage({ trucks, drivers, fuelRecords, maintenanceRecords, 
                   </button>
                   <button onClick={() => exportMaintenanceTableToPDF(filteredData.filteredMaintenance, trucks)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
                     <FileText className="h-3.5 w-3.5 text-red-400" /> Manutencoes
+                  </button>
+                  <button onClick={() => exportFullReportToPDF(dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : '')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors font-medium">
+                    <FileText className="h-3.5 w-3.5 text-[#5E6AD2]" /> Relatorio Completo (PDF)
                   </button>
                   <div className="border-t border-[var(--color-border)] my-1" />
                   <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)] font-semibold">Excel</p>

@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Fuel, LogOut, ChevronDown, Sun, Moon, X, Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
+import { GlobalSearch } from '../ui/GlobalSearch';
 import { cn } from '../../lib/utils';
 
-export function Header() {
+export function Header({ searchData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -33,6 +34,13 @@ export function Header() {
               <span className="text-[var(--color-accent)]">Track</span>
             </h1>
           </div>
+
+          {/* Global Search */}
+          {searchData && (
+            <div className="hidden sm:block flex-1 max-w-md mx-4">
+              <GlobalSearch data={searchData} />
+            </div>
+          )}
 
           {/* Right side */}
           <div className="flex items-center gap-2">

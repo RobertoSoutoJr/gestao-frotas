@@ -23,6 +23,41 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Push notifications
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, body, tag, url } = event.data;
+    self.registration.showNotification(title, {
+      body,
+      tag: tag || 'fueltrack-alert',
+      icon: '/icon-192.svg',
+      badge: '/icon-192.svg',
+      vibrate: [200, 100, 200],
+      data: { url: url || '/' },
+      actions: [{ action: 'open', title: 'Ver detalhes' }],
+    });
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
+      const focused = clients.find((c) => c.focused);
+      if (focused) {
+        focused.navigate(url);
+        return focused.focus();
+      }
+      if (clients.length > 0) {
+        clients[0].navigate(url);
+        return clients[0].focus();
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});
+
 // Fetch: network-first for API, cache-first for assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;

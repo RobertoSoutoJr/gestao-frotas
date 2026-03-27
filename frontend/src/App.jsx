@@ -87,7 +87,7 @@ function AuthenticatedContent() {
       <div className="linear-bg" />
       <div className="linear-grid" />
 
-      <Header />
+      <Header searchData={{ trucks, drivers, clients, suppliers, trips }} />
       <TabNavigation />
 
       <main className="relative z-10 container mx-auto px-4 py-6 md:py-8 pb-safe-bottom md:pb-8">
