@@ -6,5 +6,7 @@ export const tripsService = {
   create: (data) => api.post('/viagens', data),
   update: (id, data) => api.put(`/viagens/${id}`, data),
   finalize: (id, data) => api.patch(`/viagens/${id}/finalizar`, data),
+  updateLocation: (id, field, lat, lng) => api.patch(`/viagens/${id}/location`, { field, lat, lng }),
+  syncLocations: (items) => api.post('/viagens/sync-locations', { items }),
   delete: (id) => api.delete(`/viagens/${id}`)
 };

@@ -15,3 +15,8 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }
+
+// Setup offline GPS queue auto-sync
+import { setupAutoSync } from './lib/offlineQueue';
+const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+setupAutoSync(apiBase + '/viagens');

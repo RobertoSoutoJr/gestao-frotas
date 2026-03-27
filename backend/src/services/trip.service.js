@@ -126,6 +126,25 @@ class TripService {
     return data;
   }
 
+  async updateLocation(id, field, lat, lng, userId) {
+    const updateData = {
+      [`${field}_lat`]: lat,
+      [`${field}_lng`]: lng,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('viagens')
+      .update(updateData)
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select('id, origem_lat, origem_lng, destino_lat, destino_lng')
+      .single();
+
+    if (error) throw new AppError('Falha ao atualizar localização da viagem', 500, error);
+    return data;
+  }
+
   async delete(id, userId) {
     const { error } = await supabase
       .from('viagens')

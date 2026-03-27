@@ -13,12 +13,14 @@ import {
 } from 'lucide-react';
 import { MapView } from '../components/ui/MapView';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
+import { GPSCapture } from '../components/ui/GPSCapture';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { tripsService } from '../services/trips';
 import { clientsService } from '../services/clients';
 import { suppliersService } from '../services/suppliers';
 import { stockService } from '../services/stock';
 import { useToast } from '../hooks/useToast';
+import { Navigation } from 'lucide-react';
 
 const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
 
@@ -38,6 +40,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
   const [produtoTipo, setProdutoTipo] = useState('');
   const [produtoCustom, setProdutoCustom] = useState('');
   const [selectedEstoqueId, setSelectedEstoqueId] = useState('');
+  const [gpsOrigem, setGpsOrigem] = useState(null);
   const [formData, setFormData] = useState({
     fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '',
     quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '',
@@ -109,8 +112,8 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
         custo_outros: Number(formData.custo_outros) || 0,
         origem_cidade: selectedSupplier?.cidade || null,
         origem_estado: selectedSupplier?.estado || null,
-        origem_lat: selectedSupplier?.latitude || null,
-        origem_lng: selectedSupplier?.longitude || null,
+        origem_lat: gpsOrigem?.lat || selectedSupplier?.latitude || null,
+        origem_lng: gpsOrigem?.lng || selectedSupplier?.longitude || null,
         destino_cidade: selectedClient?.cidade || null,
         destino_estado: selectedClient?.estado || null,
         destino_lat: selectedClient?.latitude || null,
@@ -155,6 +158,14 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
             {selectedClient.cidade || selectedClient.nome}
           </div>
         )}
+        {/* GPS capture for origin (at loading point) */}
+        <div className="mt-3">
+          <GPSCapture
+            type="trip_origin"
+            label="Capturar GPS do carregamento"
+            onCapture={({ lat, lng }) => setGpsOrigem({ lat, lng })}
+          />
+        </div>
       </div>
 
       {/* Estoque Vinculado (opcional) */}
@@ -257,6 +268,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
 function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [formaPagamento, setFormaPagamento] = useState('');
+  const [gpsDestino, setGpsDestino] = useState(null);
   const [custos, setCustos] = useState({
     custo_combustivel: trip.custo_combustivel || '',
     custo_pedagio: trip.custo_pedagio || '',
@@ -286,6 +298,12 @@ function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
         custo_manutencao: Number(custos.custo_manutencao) || 0,
         custo_outros: Number(custos.custo_outros) || 0
       });
+      // Update destination GPS if captured
+      if (gpsDestino) {
+        try {
+          await tripsService.updateLocation(trip.id, 'destino', gpsDestino.lat, gpsDestino.lng);
+        } catch { /* non-blocking */ }
+      }
       success('Viagem Finalizada!', 'A viagem foi finalizada com sucesso');
       onSuccess?.();
       onClose();
@@ -349,6 +367,20 @@ function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
               <p className={`font-semibold ${margem >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{margem.toFixed(1)}%</p>
             </div>
           </div>
+        </div>
+
+        {/* GPS capture for destination (at unloading point) */}
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Localizacao da Descarga</h3>
+          <p className="mb-3 text-xs text-[var(--color-text-tertiary)]">Capture a localizacao GPS real do ponto de descarga</p>
+          <GPSCapture
+            type="trip_destination"
+            tripId={trip.id}
+            label="Capturar GPS da descarga"
+            onCapture={({ lat, lng, offline }) => {
+              if (!offline) setGpsDestino({ lat, lng });
+            }}
+          />
         </div>
 
         <Select label="Forma de Pagamento" value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} required>
