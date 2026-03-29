@@ -14,6 +14,7 @@ import {
 import { MapView } from '../components/ui/MapView';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
 import { GPSCapture } from '../components/ui/GPSCapture';
+import { TripCostsPanel } from '../components/ui/TripCostsPanel';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { tripsService } from '../services/trips';
 import { clientsService } from '../services/clients';
@@ -665,6 +666,13 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                         }
                         return null;
                       })()}
+
+                      {/* Custos detalhados */}
+                      <TripCostsPanel
+                        tripId={trip.id}
+                        readOnly={trip.status === 'finalizada'}
+                        onTotalsChange={() => handleRefetch()}
+                      />
 
                       {trip.estoque_id && (
                         <p className="mt-1 text-xs text-emerald-400">
