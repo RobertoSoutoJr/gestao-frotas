@@ -139,7 +139,7 @@ const PERIOD_OPTIONS = [
 export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stockRecords, fuelRecords, maintenanceRecords, onNavigate }) {
   const { isDark } = useTheme();
   const [showCustomize, setShowCustomize] = useState(false);
-  const smartAlerts = useSmartAlerts({ trucks, drivers, fuelRecords, maintenanceRecords });
+  const smartAlerts = useSmartAlerts({ trucks, drivers, fuelRecords, maintenanceRecords, trips });
   useNotifications(smartAlerts);
 
   const { prefs, setPrefs, isVisible, getOrder, moveUp, moveDown, toggleVisibility, reset } = useSectionPrefs(

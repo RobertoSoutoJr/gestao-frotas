@@ -21,7 +21,8 @@ import { clientsService } from '../services/clients';
 import { suppliersService } from '../services/suppliers';
 import { stockService } from '../services/stock';
 import { useToast } from '../hooks/useToast';
-import { Navigation } from 'lucide-react';
+import { Navigation, AlertTriangle } from 'lucide-react';
+import { validarFreteANTT, getEixosOptions } from '../lib/anttFreight';
 
 const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
 
@@ -45,6 +46,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
   const [formData, setFormData] = useState({
     fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '',
     quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '',
+    distancia_km: '', eixos: '5',
     custo_combustivel: '', custo_pedagio: '', custo_manutencao: '', custo_outros: ''
   });
 
@@ -91,6 +93,13 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
   const valorFrete = qtdSacas * precoFrete;
   const valorTotal = valorProduto + valorFrete;
 
+  // ANTT validation
+  const distKm = Number(formData.distancia_km) || 0;
+  const eixos = Number(formData.eixos) || 5;
+  const anttValidation = distKm > 0 && valorFrete > 0
+    ? validarFreteANTT(valorFrete, distKm, eixos, qtdSacas)
+    : null;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!produto) { showError('Validação', 'Selecione ou informe o produto'); return; }
@@ -106,6 +115,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
         preco_produto_saca: precoSaca,
         preco_frete_saca: precoFrete,
         observacoes: formData.observacoes || null,
+        distancia_km: Number(formData.distancia_km) || null,
         estoque_id: selectedEstoqueId ? Number(selectedEstoqueId) : null,
         custo_combustivel: Number(formData.custo_combustivel) || 0,
         custo_pedagio: Number(formData.custo_pedagio) || 0,
@@ -120,7 +130,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
         destino_lat: selectedClient?.latitude || null,
         destino_lng: selectedClient?.longitude || null,
       });
-      setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '', custo_combustivel: '', custo_pedagio: '', custo_manutencao: '', custo_outros: '' });
+      setFormData({ fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '', quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '', distancia_km: '', eixos: '5', custo_combustivel: '', custo_pedagio: '', custo_manutencao: '', custo_outros: '' });
       setProdutoTipo('');
       setProdutoCustom('');
       setSelectedEstoqueId('');
@@ -219,6 +229,37 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
           <Input name="preco_produto_saca" label="Preço Produto/Saca (R$)" type="number" placeholder="0,00" min="0.01" step="0.01" value={formData.preco_produto_saca} onChange={handleChange} required />
           <Input name="preco_frete_saca" label="Frete por Saca (R$)" type="number" placeholder="0,00" min="0.50" max="10.00" step="0.01" value={formData.preco_frete_saca} onChange={handleChange} required helperText="R$0,50 a R$10,00" />
         </div>
+        {/* Distance + axles for ANTT validation */}
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input name="distancia_km" label="Distância (km)" type="number" placeholder="Ex: 250" min="0" step="1" value={formData.distancia_km} onChange={handleChange} helperText="Para validar piso ANTT" />
+          <Select name="eixos" label="Eixos do caminhão" value={formData.eixos} onChange={handleChange}>
+            {getEixosOptions().map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </Select>
+        </div>
+        {/* ANTT Warning */}
+        {anttValidation && !anttValidation.valid && (
+          <div className="mt-3 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3">
+            <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-semibold text-red-400">Frete abaixo do piso ANTT</p>
+              <p className="text-red-400/80 mt-1">
+                Piso mínimo para {distKm}km com {eixos} eixos: <strong>{formatCurrency(anttValidation.minimo)}</strong>
+                {' '}(seu frete: {formatCurrency(valorFrete)})
+              </p>
+              <p className="text-red-400/60 text-xs mt-1">
+                Diferença: {formatCurrency(Math.abs(anttValidation.diferenca))} abaixo do mínimo legal (Res. ANTT 5.867/2020)
+              </p>
+            </div>
+          </div>
+        )}
+        {anttValidation && anttValidation.valid && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400">
+            <CheckCircle className="h-4 w-4" />
+            Frete dentro do piso ANTT (+{anttValidation.percentual.toFixed(1)}% acima do mínimo)
+          </div>
+        )}
       </div>
 
       {/* Resumo Financeiro */}

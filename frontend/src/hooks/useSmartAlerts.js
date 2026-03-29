@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { validarFreteANTT } from '../lib/anttFreight';
+import { formatCurrency } from '../lib/utils';
 
 const ALERT_LEVELS = { critical: 0, warning: 1, info: 2 };
 
@@ -6,7 +8,7 @@ const ALERT_LEVELS = { critical: 0, warning: 1, info: 2 };
  * Generates smart alerts from fleet data.
  * All calculations are frontend-only — no backend changes needed.
  */
-export function useSmartAlerts({ trucks, drivers, fuelRecords, maintenanceRecords }) {
+export function useSmartAlerts({ trucks, drivers, fuelRecords, maintenanceRecords, trips }) {
   return useMemo(() => {
     const alerts = [];
     const now = new Date();
@@ -149,9 +151,25 @@ export function useSmartAlerts({ trucks, drivers, fuelRecords, maintenanceRecord
       }
     });
 
+    // === 6. Viagens com frete abaixo do piso ANTT ===
+    (trips || []).filter(t => t.status === 'cadastrada' && t.distancia_km > 0).forEach(trip => {
+      const valorFrete = Number(trip.valor_total_frete) || 0;
+      const result = validarFreteANTT(valorFrete, Number(trip.distancia_km), 5, Number(trip.quantidade_sacas));
+      if (!result.valid) {
+        alerts.push({
+          id: `antt-below-${trip.id}`,
+          level: 'warning',
+          category: 'compliance',
+          title: `Frete abaixo do piso ANTT`,
+          detail: `Viagem #${trip.id}: ${formatCurrency(valorFrete)} < mínimo ${formatCurrency(result.minimo)}`,
+          action: 'trips',
+        });
+      }
+    });
+
     // Sort: critical first, then warning, then info
     alerts.sort((a, b) => ALERT_LEVELS[a.level] - ALERT_LEVELS[b.level]);
 
     return alerts;
-  }, [trucks, drivers, fuelRecords, maintenanceRecords]);
+  }, [trucks, drivers, fuelRecords, maintenanceRecords, trips]);
 }
