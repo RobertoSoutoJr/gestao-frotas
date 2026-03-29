@@ -143,6 +143,7 @@ function AuthenticatedContent() {
                   <ReportsPage
                     trucks={trucks}
                     drivers={drivers}
+                    clients={clients}
                     fuelRecords={fuelRecords}
                     maintenanceRecords={maintenanceRecords}
                     trips={trips}

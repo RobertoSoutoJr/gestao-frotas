@@ -7,7 +7,7 @@ import { Input } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useSectionPrefs, SectionCustomizerButton, SectionCustomizerModal } from '../components/ui/SectionCustomizer';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X, Truck, PieChart as PieChartIcon, LineChart as LineChartIcon, Receipt, Gauge, Route, Award, Users, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X, Truck, PieChart as PieChartIcon, LineChart as LineChartIcon, Receipt, Gauge, Route, Award, Users, Download, FileSpreadsheet, FileText, Building2, Trophy } from 'lucide-react';
 import { formatCurrency, formatNumber, formatDate } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -30,9 +30,11 @@ const REPORT_SECTIONS = [
   { id: 'chart_monthly', label: 'Evolução Mensal', description: 'Gráfico de linha temporal', icon: LineChartIcon },
   { id: 'truck_detail', label: 'Detalhamento por Caminhão', description: 'Cards individuais com resumo de cada veículo', icon: Truck },
   { id: 'driver_detail', label: 'Detalhamento por Motorista', description: 'Performance, km, produtividade por motorista', icon: Users },
+  { id: 'client_profitability', label: 'Rentabilidade por Cliente', description: 'Ranking de clientes por margem e faturamento', icon: Building2 },
+  { id: 'profitability_ranking', label: 'Ranking Geral', description: 'Top caminhões, motoristas e clientes por lucro', icon: Trophy },
 ];
 
-const DEFAULT_ORDER = ['filters', 'dre', 'summary_cards', 'maintenance_table', 'fuel_table', 'chart_costs', 'chart_distribution', 'chart_monthly', 'truck_detail', 'driver_detail'];
+const DEFAULT_ORDER = ['filters', 'dre', 'client_profitability', 'profitability_ranking', 'summary_cards', 'maintenance_table', 'fuel_table', 'chart_costs', 'chart_distribution', 'chart_monthly', 'truck_detail', 'driver_detail'];
 const DEFAULT_VISIBILITY = {
   filters: true,
   dre: true,
@@ -44,9 +46,11 @@ const DEFAULT_VISIBILITY = {
   chart_monthly: true,
   truck_detail: true,
   driver_detail: true,
+  client_profitability: true,
+  profitability_ranking: true,
 };
 
-export function ReportsPage({ trucks, drivers, fuelRecords, maintenanceRecords, trips }) {
+export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenanceRecords, trips }) {
   const { isDark } = useTheme();
   const [showCustomize, setShowCustomize] = useState(false);
 
@@ -279,6 +283,32 @@ export function ReportsPage({ trucks, drivers, fuelRecords, maintenanceRecords, 
       return { driver, viagens, totalKm, receita, custos, lucro, margem, litros, kmPerLiter, avgKmPerTrip };
     }).filter(s => s.viagens > 0 || s.litros > 0);
   }, [drivers, trips, fuelRecords]);
+
+  // Client profitability
+  const clientStats = useMemo(() => {
+    const clientList = clients || [];
+    const finalized = (trips || []).filter(t => t.status === 'finalizada');
+    if (startDate || endDate) {
+      // apply date filters
+    }
+    let filtered = finalized;
+    if (startDate) filtered = filtered.filter(t => new Date(t.data_finalizacao || t.created_at) >= new Date(startDate));
+    if (endDate) filtered = filtered.filter(t => new Date(t.data_finalizacao || t.created_at) <= new Date(endDate));
+
+    return clientList.map(client => {
+      const clientTrips = filtered.filter(t => t.cliente_id === client.id);
+      const viagens = clientTrips.length;
+      const receita = clientTrips.reduce((s, t) => s + (Number(t.valor_total_frete) || 0), 0);
+      const custos = clientTrips.reduce((s, t) =>
+        s + (Number(t.custo_combustivel) || 0) + (Number(t.custo_pedagio) || 0) +
+        (Number(t.custo_manutencao) || 0) + (Number(t.custo_outros) || 0), 0);
+      const lucro = receita - custos;
+      const margem = receita > 0 ? (lucro / receita) * 100 : 0;
+      const sacas = clientTrips.reduce((s, t) => s + (Number(t.quantidade_sacas) || 0), 0);
+
+      return { client, viagens, receita, custos, lucro, margem, sacas };
+    }).filter(s => s.viagens > 0).sort((a, b) => b.lucro - a.lucro);
+  }, [clients, trips, startDate, endDate]);
 
   const clearFilters = () => {
     setSelectedTruck('all');
@@ -997,6 +1027,195 @@ export function ReportsPage({ trucks, drivers, fuelRecords, maintenanceRecords, 
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      );
+    },
+    client_profitability: () => {
+      if (clientStats.length === 0) return null;
+      const chartDataClients = clientStats.slice(0, 10).map(s => ({
+        name: s.client.nome.length > 15 ? s.client.nome.slice(0, 15) + '...' : s.client.nome,
+        Receita: Number(s.receita.toFixed(2)),
+        Custos: Number(s.custos.toFixed(2)),
+        Lucro: Number(s.lucro.toFixed(2)),
+      }));
+
+      return (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Rentabilidade por Cliente
+              </CardTitle>
+              <CardDescription>{clientStats.length} cliente(s) com viagens finalizadas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)]">
+                      <th className="text-left py-2 px-2 text-[var(--color-text-secondary)] font-medium">#</th>
+                      <th className="text-left py-2 px-2 text-[var(--color-text-secondary)] font-medium">Cliente</th>
+                      <th className="text-right py-2 px-2 text-[var(--color-text-secondary)] font-medium">Viagens</th>
+                      <th className="text-right py-2 px-2 text-[var(--color-text-secondary)] font-medium">Sacas</th>
+                      <th className="text-right py-2 px-2 text-[var(--color-text-secondary)] font-medium">Receita</th>
+                      <th className="text-right py-2 px-2 text-[var(--color-text-secondary)] font-medium">Custos</th>
+                      <th className="text-right py-2 px-2 text-[var(--color-text-secondary)] font-medium">Lucro</th>
+                      <th className="text-right py-2 px-2 text-[var(--color-text-secondary)] font-medium">Margem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clientStats.map((s, i) => (
+                      <tr key={s.client.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-hover)]">
+                        <td className="py-2.5 px-2 text-[var(--color-text-secondary)]">{i + 1}</td>
+                        <td className="py-2.5 px-2 font-medium text-[var(--color-text)]">{s.client.nome}</td>
+                        <td className="py-2.5 px-2 text-right tabular-nums">{s.viagens}</td>
+                        <td className="py-2.5 px-2 text-right tabular-nums">{formatNumber(s.sacas)}</td>
+                        <td className="py-2.5 px-2 text-right tabular-nums text-emerald-400">{formatCurrency(s.receita)}</td>
+                        <td className="py-2.5 px-2 text-right tabular-nums text-red-400">{formatCurrency(s.custos)}</td>
+                        <td className={`py-2.5 px-2 text-right tabular-nums font-semibold ${s.lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {formatCurrency(s.lucro)}
+                        </td>
+                        <td className="py-2.5 px-2 text-right">
+                          <Badge variant={s.margem >= 30 ? 'success' : s.margem >= 10 ? 'warning' : 'danger'}>
+                            {s.margem.toFixed(1)}%
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Chart */}
+          {chartDataClients.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartDataClients} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                    <XAxis dataKey="name" tick={{ fill: axisColor, fontSize: 11 }} />
+                    <YAxis tick={{ fill: axisColor, fontSize: 11 }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatCurrency(v)} />
+                    <Legend />
+                    <Bar dataKey="Receita" fill="#10B981" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Custos" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Lucro" fill="#5E6AD2" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      );
+    },
+
+    profitability_ranking: () => {
+      const finalized = (trips || []).filter(t => t.status === 'finalizada');
+      if (finalized.length === 0) return null;
+
+      // Top trucks by profit
+      const truckRanking = stats
+        .filter(s => s.tripsCount > 0)
+        .sort((a, b) => b.tripLucro - a.tripLucro)
+        .slice(0, 5);
+
+      // Top drivers by profit
+      const driverRanking = [...driverStats]
+        .sort((a, b) => b.lucro - a.lucro)
+        .slice(0, 5);
+
+      // Top clients by profit
+      const clientRanking = clientStats.slice(0, 5);
+
+      const RankingList = ({ items, getName, getReceita, getLucro, getMargem }) => (
+        <div className="space-y-2">
+          {items.map((item, i) => {
+            const lucro = getLucro(item);
+            const margem = getMargem(item);
+            return (
+              <div key={i} className="flex items-center gap-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] px-4 py-3">
+                <span className={`text-lg font-bold ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-amber-600' : 'text-[var(--color-text-secondary)]'}`}>
+                  #{i + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[var(--color-text)] truncate">{getName(item)}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">Receita: {formatCurrency(getReceita(item))}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={`text-sm font-bold ${lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(lucro)}</p>
+                  <Badge variant={margem >= 30 ? 'success' : margem >= 10 ? 'warning' : 'danger'} className="text-[10px]">
+                    {margem.toFixed(1)}%
+                  </Badge>
+                </div>
+              </div>
+            );
+          })}
+          {items.length === 0 && <p className="text-xs text-[var(--color-text-secondary)] text-center py-3">Sem dados</p>}
+        </div>
+      );
+
+      return (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-400" />
+                Ranking de Rentabilidade
+              </CardTitle>
+              <CardDescription>Top 5 por lucro em cada categoria</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2"><Truck className="h-4 w-4" /> Caminhoes</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <RankingList
+                  items={truckRanking}
+                  getName={s => `${s.truck.placa} - ${s.truck.modelo || ''}`}
+                  getReceita={s => s.tripReceita}
+                  getLucro={s => s.tripLucro}
+                  getMargem={s => s.tripMargem}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2"><Users className="h-4 w-4" /> Motoristas</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <RankingList
+                  items={driverRanking}
+                  getName={s => s.driver.nome}
+                  getReceita={s => s.receita}
+                  getLucro={s => s.lucro}
+                  getMargem={s => s.margem}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2"><Building2 className="h-4 w-4" /> Clientes</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <RankingList
+                  items={clientRanking}
+                  getName={s => s.client.nome}
+                  getReceita={s => s.receita}
+                  getLucro={s => s.lucro}
+                  getMargem={s => s.margem}
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
       );
