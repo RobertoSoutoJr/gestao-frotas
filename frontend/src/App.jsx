@@ -6,6 +6,7 @@ import { useAuth } from './hooks/useAuth';
 import { Header } from './components/layout/Header';
 import { TabNavigation } from './components/layout/TabNavigation';
 import { LoadingScreen } from './components/ui/Spinner';
+import { PageSkeleton } from './components/ui/Skeleton';
 import { Button } from './components/ui/Button';
 import { ToastContainer } from './components/ui/Toast';
 import { useFleet } from './hooks/useFleet';
@@ -94,7 +95,7 @@ function AuthenticatedContent() {
       <TabNavigation />
 
       <main className="relative z-10 container mx-auto px-4 py-6 md:py-8 pb-safe-bottom md:pb-8">
-        <Suspense fallback={<PageSkeleton />}>
+        <Suspense fallback={<div className="py-8"><PageSkeleton /></div>}>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={
