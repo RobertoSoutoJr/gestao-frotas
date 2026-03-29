@@ -29,25 +29,7 @@ const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.A
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
 
-// Skeleton fallback for route transitions
-function PageSkeleton() {
-  return (
-    <div className="space-y-6 animate-pulse">
-      <div className="h-8 w-48 rounded-lg bg-[var(--color-surface)]" />
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-24 rounded-xl bg-[var(--color-surface)]" />
-        ))}
-      </div>
-      <div className="h-64 rounded-xl bg-[var(--color-surface)]" />
-      <div className="space-y-3">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-20 rounded-xl bg-[var(--color-surface)]" />
-        ))}
-      </div>
-    </div>
-  );
-}
+// PageSkeleton imported from './components/ui/Skeleton'
 
 function AuthenticatedContent() {
   const navigate = useNavigate();
