@@ -27,14 +27,13 @@ export function TripCostsPanel({ tripId, readOnly = false, onTotalsChange }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ tipo: 'pedagio', descricao: '', valor: '', data: '' });
 
-  const fetchCosts = async () => {
+  const fetchCosts = async (notifyParent = false) => {
     try {
       const res = await tripsService.getCosts(tripId);
       setCosts(res.data || []);
-      // Notify parent of totals
-      if (onTotalsChange) {
-        const total = (res.data || []).reduce((s, c) => s + Number(c.valor), 0);
-        onTotalsChange(total);
+      // Only notify parent after user actions (add/delete), not on initial load
+      if (notifyParent && onTotalsChange) {
+        onTotalsChange();
       }
     } catch {
       // silent
@@ -62,7 +61,7 @@ export function TripCostsPanel({ tripId, readOnly = false, onTotalsChange }) {
       setForm({ tipo: 'pedagio', descricao: '', valor: '', data: '' });
       setShowForm(false);
       addToast('Custo adicionado', 'success');
-      fetchCosts();
+      fetchCosts(true);
     } catch (err) {
       addToast(err.message || 'Erro ao adicionar custo', 'error');
     } finally {
@@ -74,7 +73,7 @@ export function TripCostsPanel({ tripId, readOnly = false, onTotalsChange }) {
     try {
       await tripsService.deleteCost(id);
       addToast('Custo removido', 'success');
-      fetchCosts();
+      fetchCosts(true);
     } catch (err) {
       addToast(err.message || 'Erro ao remover', 'error');
     }
