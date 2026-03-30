@@ -21,17 +21,19 @@ const COST_TYPES = [
 export function TripCostsPanel({ tripId, readOnly = false, onTotalsChange }) {
   const { addToast } = useToast();
   const [costs, setCosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [fetched, setFetched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ tipo: 'pedagio', descricao: '', valor: '', data: '' });
 
   const fetchCosts = async (notifyParent = false) => {
     try {
+      setLoading(true);
       const res = await tripsService.getCosts(tripId);
       setCosts(res.data || []);
-      // Only notify parent after user actions (add/delete), not on initial load
+      setFetched(true);
       if (notifyParent && onTotalsChange) {
         onTotalsChange();
       }
@@ -42,7 +44,12 @@ export function TripCostsPanel({ tripId, readOnly = false, onTotalsChange }) {
     }
   };
 
-  useEffect(() => { fetchCosts(); }, [tripId]);
+  // Only fetch when panel is expanded for the first time
+  useEffect(() => {
+    if (expanded && !fetched) {
+      fetchCosts();
+    }
+  }, [expanded]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -82,8 +89,6 @@ export function TripCostsPanel({ tripId, readOnly = false, onTotalsChange }) {
   const total = costs.reduce((s, c) => s + Number(c.valor), 0);
   const getTypeConfig = (tipo) => COST_TYPES.find(t => t.value === tipo) || COST_TYPES[6];
 
-  if (loading) return null;
-
   return (
     <div className="mt-2">
       {/* Summary bar */}
@@ -106,8 +111,11 @@ export function TripCostsPanel({ tripId, readOnly = false, onTotalsChange }) {
       {/* Expanded detail */}
       {expanded && (
         <div className="mt-2 space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-3">
+          {loading && (
+            <p className="text-xs text-[var(--color-text-secondary)] text-center py-2">Carregando custos...</p>
+          )}
           {/* Cost list */}
-          {costs.length === 0 ? (
+          {!loading && costs.length === 0 ? (
             <p className="text-xs text-[var(--color-text-secondary)] text-center py-2">
               Nenhum custo detalhado registrado
             </p>

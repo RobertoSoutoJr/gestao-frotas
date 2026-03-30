@@ -481,7 +481,6 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
 
   const handleRefetch = () => {
     fetchData();
-    onRefetch?.();
   };
 
   const handleCreateSuccess = () => {

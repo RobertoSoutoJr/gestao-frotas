@@ -20,9 +20,9 @@ export function useFleet() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchData = async () => {
+  const fetchData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError(null);
 
       const [trucksRes, driversRes, fuelRes, maintenanceRes, clientsRes, suppliersRes, tripsRes, stockRes] = await Promise.all([
@@ -67,6 +67,6 @@ export function useFleet() {
     stockRecords,
     loading,
     error,
-    refetch: fetchData
+    refetch: () => fetchData(true)
   };
 }
