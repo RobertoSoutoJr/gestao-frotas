@@ -168,8 +168,9 @@ export function TripMapDetail({ trip }) {
           zoomControl={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; Google Maps'
+            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+            maxZoom={20}
           />
           <FitBounds points={points} />
 
