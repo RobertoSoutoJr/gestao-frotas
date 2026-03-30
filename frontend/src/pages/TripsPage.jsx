@@ -15,13 +15,14 @@ import { MapView } from '../components/ui/MapView';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
 import { GPSCapture } from '../components/ui/GPSCapture';
 import { TripCostsPanel } from '../components/ui/TripCostsPanel';
+import { TripMapDetail } from '../components/ui/TripMapDetail';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { tripsService } from '../services/trips';
 import { clientsService } from '../services/clients';
 import { suppliersService } from '../services/suppliers';
 import { stockService } from '../services/stock';
 import { useToast } from '../hooks/useToast';
-import { Navigation, AlertTriangle } from 'lucide-react';
+import { Navigation, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { validarFreteANTT, getEixosOptions } from '../lib/anttFreight';
 
 const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
@@ -456,6 +457,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [expandedTripId, setExpandedTripId] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -646,10 +648,16 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredTrips.map(trip => (
+            {filteredTrips.map(trip => {
+              const isExpanded = expandedTripId === trip.id;
+              return (
               <Card key={trip.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  {/* Clickable header area */}
+                  <div
+                    className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 cursor-pointer"
+                    onClick={() => setExpandedTripId(isExpanded ? null : trip.id)}
+                  >
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <Badge variant={trip.status === 'finalizada' ? 'success' : 'warning'}>
@@ -659,6 +667,10 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                           <Calendar className="mr-1 inline h-3 w-3" />
                           {formatDate(trip.data_viagem || trip.created_at)}
                         </span>
+                        {isExpanded
+                          ? <ChevronUp className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                          : <ChevronDown className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                        }
                       </div>
 
                       <div className="mt-3 flex items-center gap-2 text-sm">
@@ -687,7 +699,26 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                           Frete: {formatCurrency(trip.valor_total_frete)}
                         </span>
                       </div>
+                    </div>
 
+                    <div className="flex flex-row flex-wrap gap-2 sm:ml-4 sm:flex-col sm:shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <DocumentGallery entidadeTipo="viagem" entidadeId={trip.id} compact />
+                      {trip.status === 'cadastrada' && (
+                        <>
+                          <Button variant="success" size="sm" onClick={() => setFinalizingTrip(trip)}>
+                            <CheckCircle className="mr-2 h-4 w-4" /> Finalizar
+                          </Button>
+                          <Button variant="danger" size="sm" onClick={() => setDeletingTrip(trip)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded detail panel */}
+                  {isExpanded && (
+                    <div className="mt-4 space-y-3 border-t border-[var(--color-border)] pt-4">
                       {/* Cost center for finalized trips */}
                       {trip.status === 'finalizada' && (() => {
                         const ct = (Number(trip.custo_combustivel) || 0) + (Number(trip.custo_pedagio) || 0) +
@@ -696,7 +727,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                         const luc = rec - ct;
                         if (ct > 0) {
                           return (
-                            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                            <div className="flex flex-wrap items-center gap-3 text-xs">
                               <span className="text-red-400">Custos: {formatCurrency(ct)}</span>
                               <span className={luc >= 0 ? 'text-emerald-400 font-medium' : 'text-red-400 font-medium'}>
                                 Lucro: {formatCurrency(luc)} ({rec > 0 ? ((luc / rec) * 100).toFixed(1) : 0}%)
@@ -715,34 +746,44 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                       />
 
                       {trip.estoque_id && (
-                        <p className="mt-1 text-xs text-emerald-400">
+                        <p className="text-xs text-emerald-400">
                           Vinculada ao estoque #{trip.estoque_id}
                         </p>
                       )}
                       {trip.forma_pagamento && (
-                        <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+                        <p className="text-xs text-[var(--color-text-secondary)]">
                           Pago via: {FORMAS_PAGAMENTO.find(f => f.value === trip.forma_pagamento)?.label || trip.forma_pagamento}
                         </p>
                       )}
-                    </div>
 
-                    <div className="flex flex-row flex-wrap gap-2 sm:ml-4 sm:flex-col sm:shrink-0">
-                      <DocumentGallery entidadeTipo="viagem" entidadeId={trip.id} compact />
-                      {trip.status === 'cadastrada' && (
-                        <>
-                          <Button variant="success" size="sm" onClick={() => setFinalizingTrip(trip)}>
-                            <CheckCircle className="mr-2 h-4 w-4" /> Finalizar
-                          </Button>
-                          <Button variant="danger" size="sm" onClick={() => setDeletingTrip(trip)}>
-                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                          </Button>
-                        </>
+                      {trip.distancia_km > 0 && (
+                        <p className="text-xs text-[var(--color-text-secondary)]">
+                          Distância: {trip.distancia_km} km | Eixos: {trip.eixos || '-'}
+                        </p>
                       )}
+
+                      {trip.observacoes && (
+                        <p className="text-xs text-[var(--color-text-secondary)] italic">
+                          Obs: {trip.observacoes}
+                        </p>
+                      )}
+
+                      {/* Inline map with route */}
+                      <TripMapDetail
+                        trip={{
+                          ...trip,
+                          origem_cidade: trip.origem_cidade || trip.fornecedores?.cidade,
+                          origem_estado: trip.origem_estado || trip.fornecedores?.estado,
+                          destino_cidade: trip.destino_cidade || trip.clientes?.cidade,
+                          destino_estado: trip.destino_estado || trip.clientes?.estado,
+                        }}
+                      />
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
