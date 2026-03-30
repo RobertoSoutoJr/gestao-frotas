@@ -251,8 +251,8 @@ export function ClientsPage({ clients, trips, onRefetch }) {
               <Card key={client.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20">
-                      <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
+                      <Building2 className="h-5 w-5 text-blue-400" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-[var(--color-text)]">{client.nome}</h3>

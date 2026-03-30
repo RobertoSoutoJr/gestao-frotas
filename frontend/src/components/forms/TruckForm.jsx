@@ -87,7 +87,7 @@ export function TruckForm({ onSuccess }) {
       <div className="flex justify-center">
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="group relative flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:border-blue-500 dark:hover:bg-zinc-700"
+          className="group relative flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-surface-hover)]"
         >
           {fotoPreview ? (
             <img src={fotoPreview} alt="Preview" className="h-full w-full object-cover" />

@@ -176,8 +176,8 @@ export function SuppliersPage({ suppliers, onRefetch }) {
               <Card key={supplier.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-900/20">
-                      <Factory className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
+                      <Factory className="h-5 w-5 text-amber-400" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-[var(--color-text)]">{supplier.nome}</h3>

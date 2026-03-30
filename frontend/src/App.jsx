@@ -15,6 +15,7 @@ import { OnboardingWizard, isOnboardingDone } from './components/ui/OnboardingWi
 
 // Lazy-loaded pages (code splitting)
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const DriverDashboardPage = lazy(() => import('./pages/DriverDashboardPage').then(m => ({ default: m.DriverDashboardPage })));
 const TrucksPage = lazy(() => import('./pages/TrucksPage').then(m => ({ default: m.TrucksPage })));
 const DriversPage = lazy(() => import('./pages/DriversPage').then(m => ({ default: m.DriversPage })));
 const ClientsPage = lazy(() => import('./pages/ClientsPage').then(m => ({ default: m.ClientsPage })));
@@ -81,17 +82,27 @@ function AuthenticatedContent() {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={
-              <DashboardPage
-                trucks={trucks}
-                drivers={drivers}
-                clients={clients}
-                suppliers={suppliers}
-                trips={trips}
-                stockRecords={stockRecords}
-                fuelRecords={fuelRecords}
-                maintenanceRecords={maintenanceRecords}
-                onNavigate={handleNavigate}
-              />
+              isAdmin ? (
+                <DashboardPage
+                  trucks={trucks}
+                  drivers={drivers}
+                  clients={clients}
+                  suppliers={suppliers}
+                  trips={trips}
+                  stockRecords={stockRecords}
+                  fuelRecords={fuelRecords}
+                  maintenanceRecords={maintenanceRecords}
+                  onNavigate={handleNavigate}
+                />
+              ) : (
+                <DriverDashboardPage
+                  trucks={trucks}
+                  drivers={drivers}
+                  trips={trips}
+                  fuelRecords={fuelRecords}
+                  onRefetch={refetch}
+                />
+              )
             } />
             <Route path="/trips" element={
               <TripsPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
