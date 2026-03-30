@@ -81,6 +81,7 @@ function AuthenticatedContent() {
         <Suspense fallback={<div className="py-8"><PageSkeleton /></div>}>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={
               isAdmin ? (
                 <DashboardPage
@@ -146,11 +147,8 @@ function AuthenticatedContent() {
               </>
             )}
 
-            {/* Fallback: motorista trying admin routes */}
-            {!isAdmin && (
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            )}
-            <Route path="*" element={<NotFoundPage />} />
+            {/* Fallback: unknown routes go to dashboard */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
       </main>
