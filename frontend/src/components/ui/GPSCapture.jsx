@@ -3,46 +3,65 @@ import { Navigation, WifiOff, Check, Loader2 } from 'lucide-react';
 import { queueLocationCapture } from '../../lib/offlineQueue';
 
 // States: idle, loading, success, offline_queued, error
+const GPS_ERROR_MESSAGES = {
+  1: 'Permissão negada — ative a localização nas configurações do navegador',
+  2: 'Localização indisponível — verifique se o GPS está ativo',
+  3: 'Tempo esgotado — tente novamente em local com melhor sinal',
+};
+
 export function GPSCapture({ type, tripId, onCapture, label, compact = false }) {
   const [status, setStatus] = useState('idle');
   const [coords, setCoords] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const capture = useCallback(() => {
     if (!navigator.geolocation) {
+      setErrorMsg('Navegador não suporta GPS');
       setStatus('error');
+      setTimeout(() => setStatus('idle'), 5000);
       return;
     }
 
     setStatus('loading');
+    setErrorMsg('');
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = Math.round(pos.coords.latitude * 1000000) / 1000000;
-        const lng = Math.round(pos.coords.longitude * 1000000) / 1000000;
-        setCoords({ lat, lng });
+    // Try high accuracy first, fallback to low accuracy
+    const tryCapture = (highAccuracy) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = Math.round(pos.coords.latitude * 1000000) / 1000000;
+          const lng = Math.round(pos.coords.longitude * 1000000) / 1000000;
+          setCoords({ lat, lng });
 
-        if (navigator.onLine) {
-          // Online: send directly via callback
-          setStatus('success');
-          onCapture?.({ lat, lng, offline: false });
-        } else {
-          // Offline: queue for later sync
-          queueLocationCapture({ type, tripId, lat, lng });
-          setStatus('offline_queued');
-          onCapture?.({ lat, lng, offline: true });
+          if (navigator.onLine) {
+            setStatus('success');
+            onCapture?.({ lat, lng, offline: false });
+          } else {
+            queueLocationCapture({ type, tripId, lat, lng });
+            setStatus('offline_queued');
+            onCapture?.({ lat, lng, offline: true });
+          }
+        },
+        (err) => {
+          // If high accuracy failed with timeout, retry with low accuracy
+          if (highAccuracy && err.code === 3) {
+            tryCapture(false);
+            return;
+          }
+          console.error('GPS error:', err.code, err.message);
+          setErrorMsg(GPS_ERROR_MESSAGES[err.code] || err.message || 'Erro desconhecido');
+          setStatus('error');
+          setTimeout(() => setStatus('idle'), 5000);
+        },
+        {
+          enableHighAccuracy: highAccuracy,
+          timeout: highAccuracy ? 10000 : 20000,
+          maximumAge: 120000,
         }
-      },
-      (err) => {
-        console.error('GPS error:', err.message);
-        setStatus('error');
-        setTimeout(() => setStatus('idle'), 3000);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 60000, // accept 1min old position
-      }
-    );
+      );
+    };
+
+    tryCapture(true);
   }, [type, tripId, onCapture]);
 
   const buttonLabel = {
@@ -86,6 +105,9 @@ export function GPSCapture({ type, tripId, onCapture, label, compact = false }) 
           {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
           {status === 'offline_queued' && ' (sera sincronizado quando voltar online)'}
         </p>
+      )}
+      {status === 'error' && errorMsg && !compact && (
+        <p className="text-xs text-red-400 text-center">{errorMsg}</p>
       )}
     </div>
   );
