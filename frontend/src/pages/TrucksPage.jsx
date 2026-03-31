@@ -191,7 +191,7 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
         <div className="flex justify-center">
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="group relative flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            className="group relative flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:border-blue-400 hover:bg-blue-500/10"
           >
             {fotoPreview ? (
               <>

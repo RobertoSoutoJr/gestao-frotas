@@ -17,6 +17,8 @@ import { stockService } from '../services/stock';
 import { suppliersService } from '../services/suppliers';
 import { tripsService } from '../services/trips';
 import { useToast } from '../hooks/useToast';
+import { usePagination } from '../hooks/usePagination';
+import { Pagination } from '../components/ui/Pagination';
 
 const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
 const FORMAS_PAGAMENTO = ['Pix', 'Dinheiro', 'Transferencia', 'Cheque'];
@@ -551,6 +553,8 @@ export function StockPage({ onRefetch }) {
     return filtered;
   }, [stock, searchTerm, paymentFilter, sortOption]);
 
+  const pagination = usePagination(filteredStock);
+
   const handleDelete = async () => {
     if (!deletingItem) return;
     setDeleteLoading(true);
@@ -680,7 +684,7 @@ export function StockPage({ onRefetch }) {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredStock.map(item => {
+          {pagination.paginatedItems.map(item => {
             const saldo = Number(item.valor_total) - Number(item.valor_pago || 0);
             const percentPago = Number(item.valor_total) > 0 ? (Number(item.valor_pago || 0) / Number(item.valor_total)) * 100 : 0;
             const percentEstoque = Number(item.quantidade_sacas) > 0 ? (Number(item.quantidade_sacas_restante) / Number(item.quantidade_sacas)) * 100 : 0;
@@ -817,6 +821,7 @@ export function StockPage({ onRefetch }) {
               </Card>
             );
           })}
+          <Pagination {...pagination} />
         </div>
       )}
 

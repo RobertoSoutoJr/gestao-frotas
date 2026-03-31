@@ -13,6 +13,8 @@ import { Wrench, Truck, Calendar, DollarSign, Edit2, Trash2, Search, Filter, Plu
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { maintenanceService } from '../services/maintenance';
 import { useToast } from '../hooks/useToast';
+import { usePagination } from '../hooks/usePagination';
+import { Pagination } from '../components/ui/Pagination';
 
 const MAINTENANCE_TYPES = [
   'Preventiva',
@@ -270,6 +272,8 @@ export function MaintenancePage({ trucks, onRefetch }) {
     );
   }, [maintenanceRecords, searchTerm, filterTruck, filterType, filterPeriod]);
 
+  const pagination = usePagination(filteredMaintenanceRecords);
+
   const activeFilterCount = [searchTerm, filterTruck, filterType, filterPeriod !== 'all' ? filterPeriod : ''].filter(Boolean).length;
 
   const loadMaintenanceRecords = async () => {
@@ -439,7 +443,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredMaintenanceRecords.map(maintenance => (
+                  {pagination.paginatedItems.map(maintenance => (
                     <tr key={maintenance.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)] transition-colors">
                       <td className="px-4 py-3">
                         <p className="font-medium text-[var(--color-text)]">{getTruckName(maintenance.caminhao_id).split(' - ')[0]}</p>
@@ -482,6 +486,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
                 </tbody>
               </table>
             </div>
+            <Pagination {...pagination} />
           </Card>
         )}
       </div>

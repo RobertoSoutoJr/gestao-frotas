@@ -24,6 +24,8 @@ import { stockService } from '../services/stock';
 import { useToast } from '../hooks/useToast';
 import { Navigation, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { validarFreteANTT, getEixosOptions } from '../lib/anttFreight';
+import { usePagination } from '../hooks/usePagination';
+import { Pagination } from '../components/ui/Pagination';
 
 const PRODUTOS_OPCOES = ['Milho', 'Sorgo', 'Outros'];
 
@@ -501,6 +503,8 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
     });
   }, [trips, searchTerm, statusFilter]);
 
+  const pagination = usePagination(filteredTrips);
+
   const handleDelete = async () => {
     if (!deletingTrip) return;
     setDeleteLoading(true);
@@ -648,7 +652,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredTrips.map(trip => {
+            {pagination.paginatedItems.map(trip => {
               const isExpanded = expandedTripId === trip.id;
               return (
               <Card key={trip.id} className="hover:shadow-md transition-shadow">
@@ -784,6 +788,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
               </Card>
               );
             })}
+            <Pagination {...pagination} />
           </div>
         )}
       </div>

@@ -12,6 +12,8 @@ import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
+import { usePagination } from '../hooks/usePagination';
+import { Pagination } from '../components/ui/Pagination';
 
 function PricePerLiter({ valorTotal, litros }) {
   if (!valorTotal || !litros || litros === 0) return null;
@@ -310,6 +312,8 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
     return filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }, [fuelRecords, searchTerm, filterTruck, filterPeriod]);
 
+  const pagination = usePagination(filteredFuelRecords);
+
   const activeFilterCount = [searchTerm, filterTruck, filterPeriod !== 'all' ? filterPeriod : ''].filter(Boolean).length;
 
   const loadFuelRecords = async () => {
@@ -471,7 +475,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredFuelRecords.map(fuel => {
+                  {pagination.paginatedItems.map(fuel => {
                     const pricePerL = fuel.litros > 0 ? Number(fuel.valor_total) / Number(fuel.litros) : 0;
                     return (
                       <tr key={fuel.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)] transition-colors">
@@ -505,6 +509,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
                 </tbody>
               </table>
             </div>
+            <Pagination {...pagination} />
           </Card>
         )}
       </div>
