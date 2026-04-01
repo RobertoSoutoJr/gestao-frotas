@@ -37,10 +37,25 @@ export function DriverDashboardPage({ trucks, drivers, trips, fuelRecords, onRef
   const completedTrips = myTrips.filter(t => t.status === 'finalizada');
 
   // Stats
-  const totalKm = myFuel.reduce((s, r) => s + (Number(r.km_registro) || 0), 0);
   const totalLitros = myFuel.reduce((s, r) => s + (Number(r.litros) || 0), 0);
-  const kmPerLiter = totalLitros > 0 ? totalKm / totalLitros : 0;
+  const totalGasto = myFuel.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
   const totalFrete = completedTrips.reduce((s, t) => s + (Number(t.valor_total_frete) || 0), 0);
+  const totalCustos = completedTrips.reduce((s, t) => s + (Number(t.custo_combustivel) || 0) + (Number(t.custo_pedagio) || 0) + (Number(t.custo_manutencao) || 0) + (Number(t.custo_outros) || 0), 0);
+  const lucroTotal = totalFrete - totalCustos;
+  const totalKmViagens = myTrips.reduce((s, t) => s + (Number(t.distancia_km) || 0), 0);
+  const kmPerLiter = totalLitros > 0 ? totalKmViagens / totalLitros : 0;
+
+  // Driver ranking
+  const driverRanking = useMemo(() => {
+    const rankings = drivers.map(d => {
+      const dTrips = trips.filter(t => t.motorista_id === d.id && t.status === 'finalizada');
+      const revenue = dTrips.reduce((s, t) => s + (Number(t.valor_total_frete) || 0), 0);
+      const costs = dTrips.reduce((s, t) => s + (Number(t.custo_combustivel) || 0) + (Number(t.custo_pedagio) || 0) + (Number(t.custo_manutencao) || 0) + (Number(t.custo_outros) || 0), 0);
+      return { id: d.id, nome: d.nome, trips: dTrips.length, revenue, profit: revenue - costs };
+    }).filter(d => d.trips > 0).sort((a, b) => b.profit - a.profit);
+    const myPos = rankings.findIndex(r => r.id === user?.motorista_id);
+    return { position: myPos + 1, total: rankings.length, rankings };
+  }, [drivers, trips, user?.motorista_id]);
 
   // Quick fuel form
   const [showFuelForm, setShowFuelForm] = useState(false);
@@ -90,7 +105,7 @@ export function DriverDashboardPage({ trucks, drivers, trips, fuelRecords, onRef
         </p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Row 1 */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -115,12 +130,85 @@ export function DriverDashboardPage({ trucks, drivers, trips, fuelRecords, onRef
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
+            <MapPin className="mx-auto h-5 w-5 text-purple-400 mb-1" />
+            <p className="text-2xl font-bold text-[var(--color-text)]">{formatNumber(totalKmViagens, 0)}</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">km Rodados</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Stats Cards - Row 2 */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Card>
+          <CardContent className="p-4 text-center">
             <DollarSign className="mx-auto h-5 w-5 text-emerald-400 mb-1" />
             <p className="text-2xl font-bold text-[var(--color-text)]">{formatCurrency(totalFrete)}</p>
             <p className="text-xs text-[var(--color-text-secondary)]">Frete Total</p>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <Droplets className="mx-auto h-5 w-5 text-blue-400 mb-1" />
+            <p className="text-2xl font-bold text-[var(--color-text)]">{formatCurrency(totalGasto)}</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Gasto Combustível</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <TrendingUp className={`mx-auto h-5 w-5 mb-1 ${lucroTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`} />
+            <p className={`text-2xl font-bold ${lucroTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(lucroTotal)}</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Lucro Líquido</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <Fuel className="mx-auto h-5 w-5 text-amber-400 mb-1" />
+            <p className="text-2xl font-bold text-[var(--color-text)]">{formatNumber(totalLitros, 0)}L</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Total Litros</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Ranking */}
+      {driverRanking.total > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-5 w-5 text-amber-400" />
+              Ranking de Motoristas
+            </CardTitle>
+            <CardDescription>Por lucro líquido (frete - custos)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {driverRanking.position > 0 && (
+              <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <p className="text-sm text-[var(--color-text-secondary)]">Sua posição</p>
+                <p className="text-2xl font-bold text-amber-400">
+                  {driverRanking.position}º <span className="text-sm font-normal text-[var(--color-text-secondary)]">de {driverRanking.total} motoristas</span>
+                </p>
+              </div>
+            )}
+            <div className="space-y-2">
+              {driverRanking.rankings.slice(0, 5).map((r, i) => (
+                <div key={r.id} className={`flex items-center justify-between p-2 rounded-lg ${r.id === user?.motorista_id ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-[var(--color-bg-elevated)]'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-lg font-bold w-6 text-center ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-orange-400' : 'text-[var(--color-text-secondary)]'}`}>
+                      {i + 1}º
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-[var(--color-text)]">{r.nome?.split(' ')[0]}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">{r.trips} viagens</p>
+                    </div>
+                  </div>
+                  <span className={`text-sm font-semibold ${r.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {formatCurrency(r.profit)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Fuel Button */}
       <Button variant="primary" className="w-full sm:w-auto" onClick={() => setShowFuelForm(!showFuelForm)}>
