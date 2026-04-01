@@ -47,7 +47,6 @@ export function FuelForm({ trucks, drivers, onSuccess, preselectedTruckId }) {
       });
       onSuccess?.();
     } catch (err) {
-      console.error('Failed to create fuel record:', err);
       showError('Erro', err.message || 'Falha ao registrar abastecimento');
     } finally {
       setLoading(false);

@@ -12,6 +12,7 @@ import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
+import { PageSkeleton } from '../components/ui/Skeleton';
 import { usePagination } from '../hooks/usePagination';
 import { Pagination } from '../components/ui/Pagination';
 
@@ -123,7 +124,7 @@ function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
       onSuccess?.();
       onClose();
     } catch (err) {
-      console.error('Failed to update fuel record:', err);
+
       error('Erro', err.message || 'Falha ao atualizar abastecimento');
     } finally {
       setLoading(false);
@@ -322,7 +323,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
       const response = await fuelService.getAll();
       setFuelRecords(response.data || response || []);
     } catch (err) {
-      console.error('Failed to load fuel records:', err);
+
       error('Erro', 'Falha ao carregar registros de abastecimento');
     } finally {
       setLoading(false);
@@ -349,7 +350,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
       handleSuccess();
       setDeletingFuel(null);
     } catch (err) {
-      console.error('Failed to delete fuel record:', err);
+
       error('Erro', err.message || 'Falha ao excluir abastecimento');
     } finally {
       setDeleteLoading(false);
@@ -432,11 +433,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
         <FuelSummaryCards records={filteredFuelRecords} />
 
         {loading ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-[var(--color-text-secondary)]">Carregando...</p>
-            </CardContent>
-          </Card>
+          <PageSkeleton type="table" />
         ) : fuelRecords.length === 0 ? (
           <Card>
             <CardContent className="py-12">

@@ -17,6 +17,7 @@ import { stockService } from '../services/stock';
 import { suppliersService } from '../services/suppliers';
 import { tripsService } from '../services/trips';
 import { useToast } from '../hooks/useToast';
+import { PageSkeleton } from '../components/ui/Skeleton';
 import { usePagination } from '../hooks/usePagination';
 import { Pagination } from '../components/ui/Pagination';
 
@@ -595,7 +596,7 @@ export function StockPage({ onRefetch }) {
   const vencidos = stock.filter(i => !i.pago && i.data_vencimento && new Date(i.data_vencimento + 'T00:00:00') < new Date()).length;
 
   if (loadingData) {
-    return <div className="flex items-center justify-center py-12"><div className="text-[var(--color-text-secondary)]">Carregando dados...</div></div>;
+    return <PageSkeleton type="cards" />;
   }
 
   return (

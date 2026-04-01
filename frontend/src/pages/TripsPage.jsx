@@ -24,6 +24,7 @@ import { stockService } from '../services/stock';
 import { useToast } from '../hooks/useToast';
 import { Navigation, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { validarFreteANTT, getEixosOptions } from '../lib/anttFreight';
+import { PageSkeleton } from '../components/ui/Skeleton';
 import { usePagination } from '../hooks/usePagination';
 import { Pagination } from '../components/ui/Pagination';
 
@@ -531,11 +532,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const margemMedia = totalFrete > 0 ? (lucroTotal / totalFrete) * 100 : 0;
 
   if (loadingData) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-[var(--color-text-secondary)]">Carregando dados...</div>
-      </div>
-    );
+    return <PageSkeleton type="cards" />;
   }
 
   return (

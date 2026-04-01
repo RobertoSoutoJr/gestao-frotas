@@ -76,7 +76,7 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
       onSuccess?.();
       onClose();
     } catch (err) {
-      console.error('Failed to update driver:', err);
+
       error('Erro', err.message || 'Falha ao atualizar motorista');
     } finally {
       setLoading(false);
@@ -210,7 +210,7 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
       onRefetch?.();
       setDeletingDriver(null);
     } catch (err) {
-      console.error('Failed to delete driver:', err);
+
       error('Erro', err.message || 'Falha ao excluir motorista');
     } finally {
       setDeleteLoading(false);

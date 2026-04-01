@@ -57,7 +57,6 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
       });
       onSuccess?.();
     } catch (err) {
-      console.error('Failed to create maintenance record:', err);
       showError('Erro', err.message || 'Falha ao registrar manutenção');
     } finally {
       setLoading(false);

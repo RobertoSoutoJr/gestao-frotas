@@ -13,6 +13,7 @@ import { Wrench, Truck, Calendar, DollarSign, Edit2, Trash2, Search, Filter, Plu
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { maintenanceService } from '../services/maintenance';
 import { useToast } from '../hooks/useToast';
+import { PageSkeleton } from '../components/ui/Skeleton';
 import { usePagination } from '../hooks/usePagination';
 import { Pagination } from '../components/ui/Pagination';
 
@@ -71,7 +72,7 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
       onSuccess?.();
       onClose();
     } catch (err) {
-      console.error('Failed to update maintenance record:', err);
+
       error('Erro', err.message || 'Falha ao atualizar manutenção');
     } finally {
       setLoading(false);
@@ -282,7 +283,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
       const response = await maintenanceService.getAll();
       setMaintenanceRecords(response.data || response || []);
     } catch (err) {
-      console.error('Failed to load maintenance records:', err);
+
       error('Erro', 'Falha ao carregar registros de manutenção');
     } finally {
       setLoading(false);
@@ -309,7 +310,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
       handleSuccess();
       setDeletingMaintenance(null);
     } catch (err) {
-      console.error('Failed to delete maintenance record:', err);
+
       error('Erro', err.message || 'Falha ao excluir manutenção');
     } finally {
       setDeleteLoading(false);
@@ -401,11 +402,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
         )}
 
         {loading ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-[var(--color-text-secondary)]">Carregando...</p>
-            </CardContent>
-          </Card>
+          <PageSkeleton type="table" />
         ) : maintenanceRecords.length === 0 ? (
           <Card>
             <CardContent className="py-12">

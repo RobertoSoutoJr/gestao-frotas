@@ -56,7 +56,6 @@ export function TruckForm({ onSuccess }) {
         try {
           await trucksService.uploadFoto(res.data.id, fotoFile);
         } catch (err) {
-          console.error('Photo upload failed:', err);
           // Don't fail the whole creation for photo upload failure
         }
       }
@@ -67,7 +66,6 @@ export function TruckForm({ onSuccess }) {
       setFotoPreview(null);
       onSuccess?.();
     } catch (err) {
-      console.error('Failed to create truck:', err);
       showError('Erro', err.message || 'Falha ao cadastrar caminhão');
     } finally {
       setLoading(false);

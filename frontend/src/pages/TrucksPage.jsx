@@ -11,6 +11,7 @@ import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
+import { PageSkeleton } from '../components/ui/Skeleton';
 import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench, Camera, Calendar, DollarSign, ChevronRight } from 'lucide-react';
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { trucksService } from '../services/trucks';
@@ -41,7 +42,7 @@ function TruckDetailModal({ truck, isOpen, onClose }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`${truck.placa} — ${truck.modelo}`} size="lg">
       {loading ? (
-        <p className="py-8 text-center text-[var(--color-text-secondary)]">Carregando...</p>
+        <div className="py-4"><PageSkeleton type="cards" /></div>
       ) : (
         <div className="space-y-6">
           {/* Truck info */}
@@ -162,7 +163,7 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
         try {
           await trucksService.uploadFoto(truck.id, fotoFile);
         } catch (err) {
-          console.error('Photo upload failed:', err);
+          // Photo upload failure is non-critical
         }
       }
 
@@ -170,7 +171,7 @@ function EditTruckModal({ truck, isOpen, onClose, onSuccess }) {
       onSuccess?.();
       onClose();
     } catch (err) {
-      console.error('Failed to update truck:', err);
+
       error('Erro', err.message || 'Falha ao atualizar caminhão');
     } finally {
       setLoading(false);
@@ -316,7 +317,7 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
       onRefetch?.();
       setDeletingTruck(null);
     } catch (err) {
-      console.error('Failed to delete truck:', err);
+
       error('Erro', err.message || 'Falha ao excluir caminhão');
     } finally {
       setDeleteLoading(false);

@@ -25,7 +25,6 @@ export function DriverForm({ onSuccess }) {
       setFormData({ nome: '', cpf: '', telefone: '', numero_cnh: '', validade_cnh: '' });
       onSuccess?.();
     } catch (err) {
-      console.error('Failed to create driver:', err);
       showError('Erro', err.message || 'Falha ao cadastrar motorista');
     } finally {
       setLoading(false);
