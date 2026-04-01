@@ -520,7 +520,7 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
       </div>
 
       {/* Modal: Cadastrar Caminhão */}
-      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Caminhão">
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Caminhão" warnUnsaved>
         <TruckForm onSuccess={handleCreateSuccess} />
       </Modal>
 

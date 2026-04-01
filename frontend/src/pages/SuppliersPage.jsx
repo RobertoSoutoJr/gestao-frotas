@@ -240,7 +240,7 @@ export function SuppliersPage({ suppliers, onRefetch }) {
       </div>
 
       {/* Modal: Cadastrar Fornecedor */}
-      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Fornecedor" size="lg">
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Fornecedor" size="lg" warnUnsaved>
         <SupplierForm onSuccess={handleCreateSuccess} />
       </Modal>
 

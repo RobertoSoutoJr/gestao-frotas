@@ -517,7 +517,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
       </div>
 
       {/* Modal: Registrar Abastecimento */}
-      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Abastecimento">
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Abastecimento" warnUnsaved>
         <FuelForm trucks={trucks} drivers={drivers} onSuccess={handleSuccess} />
       </Modal>
 

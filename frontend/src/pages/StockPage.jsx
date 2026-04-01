@@ -832,7 +832,7 @@ export function StockPage({ onRefetch }) {
       )}
 
       {/* Modal: Nova Entrada */}
-      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Nova Entrada de Estoque" size="xl">
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Nova Entrada de Estoque" size="xl" warnUnsaved>
         {suppliers.length === 0 ? (
           <div className="rounded-lg bg-amber-500/10 p-4 text-sm text-amber-400">
             <p>Cadastre pelo menos um <strong>fornecedor</strong> antes.</p>

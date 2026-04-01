@@ -406,7 +406,7 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
       </div>
 
       {/* Modal: Cadastrar Motorista */}
-      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Motorista">
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Motorista" warnUnsaved>
         <DriverForm onSuccess={handleCreateSuccess} />
       </Modal>
 

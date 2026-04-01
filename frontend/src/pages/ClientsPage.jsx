@@ -330,7 +330,7 @@ export function ClientsPage({ clients, trips, onRefetch }) {
       </div>
 
       {/* Modal: Cadastrar Cliente */}
-      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Cliente" size="lg">
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Cliente" size="lg" warnUnsaved>
         <ClientForm onSuccess={handleCreateSuccess} />
       </Modal>
 

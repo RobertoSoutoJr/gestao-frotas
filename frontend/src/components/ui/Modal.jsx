@@ -1,8 +1,8 @@
-import { useEffect, useRef, useId } from 'react';
+import { useEffect, useRef, useId, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { Button } from './Button';
 
-export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
+export function Modal({ isOpen, onClose, title, children, size = 'md', warnUnsaved = false }) {
   const dialogRef = useRef(null);
   const previousFocusRef = useRef(null);
   const titleId = useId();
@@ -11,23 +11,41 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     if (isOpen) {
       previousFocusRef.current = document.activeElement;
       document.body.style.overflow = 'hidden';
-      // Focus the dialog container
       setTimeout(() => dialogRef.current?.focus(), 50);
     } else {
       document.body.style.overflow = 'unset';
-      // Restore focus to the element that opened the modal
       previousFocusRef.current?.focus();
     }
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
+  const hasFilledInputs = useCallback(() => {
+    if (!warnUnsaved || !dialogRef.current) return false;
+    const inputs = dialogRef.current.querySelectorAll('input, textarea, select');
+    for (const el of inputs) {
+      if (el.type === 'hidden' || el.type === 'submit') continue;
+      if (el.tagName === 'SELECT') {
+        // Skip selects that only have a placeholder selected (first option)
+        if (el.selectedIndex > 0) return true;
+        continue;
+      }
+      if (el.value && el.value.trim()) return true;
+    }
+    return false;
+  }, [warnUnsaved]);
+
+  const handleClose = useCallback(() => {
+    if (hasFilledInputs() && !window.confirm('Existem alterações não salvas. Deseja sair sem salvar?')) return;
+    onClose();
+  }, [onClose, hasFilledInputs]);
+
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) onClose();
+      if (e.key === 'Escape' && isOpen) handleClose();
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   // Focus trap
   useEffect(() => {
@@ -73,7 +91,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 animate-fade-in"
-      onClick={onClose}
+      onClick={handleClose}
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Overlay */}
@@ -98,7 +116,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClose}
+              onClick={handleClose}
               aria-label="Fechar"
               className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:h-8 sm:w-8 p-0 flex items-center justify-center"
             >

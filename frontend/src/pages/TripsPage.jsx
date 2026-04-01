@@ -796,7 +796,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
       </div>
 
       {/* Modal: Cadastrar Viagem */}
-      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Nova Viagem" size="xl">
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Nova Viagem" size="xl" warnUnsaved>
         {clients.length === 0 || suppliers.length === 0 ? (
           <div className="rounded-lg bg-amber-500/10 p-4 text-sm text-amber-400">
             <p className="font-semibold">Pré-requisitos:</p>

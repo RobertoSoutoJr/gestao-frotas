@@ -494,7 +494,7 @@ export function MaintenancePage({ trucks, onRefetch }) {
       </div>
 
       {/* Modal: Registrar Manutenção */}
-      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Manutenção">
+      <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Manutenção" warnUnsaved>
         <MaintenanceForm trucks={trucks} onSuccess={handleSuccess} />
       </Modal>
 
