@@ -8,7 +8,7 @@ import { DriverForm } from '../components/forms/DriverForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
-import { Users, Phone, CreditCard, Edit2, Trash2, Search, Filter, Plus, Route, DollarSign, TrendingUp, Fuel as FuelIcon } from 'lucide-react';
+import { Users, Phone, CreditCard, Edit2, Trash2, Search, Filter, Plus, Route, DollarSign, TrendingUp, Fuel as FuelIcon, X } from 'lucide-react';
 import { formatCPF, formatCurrency, formatNumber, maskCPF, maskPhone } from '../lib/utils';
 import { driversService } from '../services/drivers';
 import { useToast } from '../hooks/useToast';
@@ -308,6 +308,11 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
                   <option value="nome">Nome</option>
                   <option value="cpf">CPF</option>
                 </Select>
+                {searchTerm && (
+                  <Button variant="outline" size="sm" onClick={() => setSearchTerm('')} className="self-end">
+                    <X className="mr-1 h-3.5 w-3.5" /> Limpar Busca
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

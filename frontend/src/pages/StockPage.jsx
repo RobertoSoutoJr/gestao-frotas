@@ -666,6 +666,11 @@ export function StockPage({ onRefetch }) {
               <Select label="Ordenar por" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
                 {SORT_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </Select>
+              {(searchTerm || paymentFilter !== 'todos' || sortOption !== 'newest') && (
+                <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setPaymentFilter('todos'); setSortOption('newest'); }} className="self-end">
+                  <X className="mr-1 h-3.5 w-3.5" /> Limpar Filtros
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

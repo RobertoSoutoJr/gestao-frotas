@@ -7,7 +7,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ClientForm } from '../components/forms/ClientForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Building2, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus, TrendingUp, DollarSign, Route } from 'lucide-react';
+import { Building2, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus, TrendingUp, DollarSign, Route, X } from 'lucide-react';
 
 const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 import { formatCurrency, maskCPFCNPJ, maskPhone } from '../lib/utils';
@@ -235,7 +235,16 @@ export function ClientsPage({ clients, trips, onRefetch }) {
         {showFilters && (
           <Card className="mb-6">
             <CardContent className="p-4">
-              <Input icon={Search} placeholder="Buscar por nome, CPF/CNPJ, cidade ou telefone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <Input icon={Search} placeholder="Buscar por nome, CPF/CNPJ, cidade ou telefone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                </div>
+                {searchTerm && (
+                  <Button variant="outline" size="sm" onClick={() => setSearchTerm('')}>
+                    <X className="mr-1 h-3.5 w-3.5" /> Limpar
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}

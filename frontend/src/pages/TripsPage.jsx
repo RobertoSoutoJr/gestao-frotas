@@ -22,7 +22,7 @@ import { clientsService } from '../services/clients';
 import { suppliersService } from '../services/suppliers';
 import { stockService } from '../services/stock';
 import { useToast } from '../hooks/useToast';
-import { Navigation, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Navigation, AlertTriangle, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { validarFreteANTT, getEixosOptions } from '../lib/anttFreight';
 import { PageSkeleton } from '../components/ui/Skeleton';
 import { usePagination } from '../hooks/usePagination';
@@ -630,6 +630,11 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                   <option value="cadastrada">Cadastradas</option>
                   <option value="finalizada">Finalizadas</option>
                 </Select>
+                {(searchTerm || statusFilter !== 'todas') && (
+                  <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter('todas'); }} className="self-end">
+                    <X className="mr-1 h-3.5 w-3.5" /> Limpar Filtros
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

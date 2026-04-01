@@ -12,7 +12,7 @@ import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
 import { PageSkeleton } from '../components/ui/Skeleton';
-import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench, Camera, Calendar, DollarSign, ChevronRight } from 'lucide-react';
+import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench, Camera, Calendar, DollarSign, ChevronRight, X } from 'lucide-react';
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { trucksService } from '../services/trucks';
 import { fuelService } from '../services/fuel';
@@ -378,6 +378,11 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
                   <option value="ano">Ano (mais novo)</option>
                   <option value="km">Quilometragem (maior)</option>
                 </Select>
+                {searchTerm && (
+                  <Button variant="outline" size="sm" onClick={() => setSearchTerm('')} className="self-end">
+                    <X className="mr-1 h-3.5 w-3.5" /> Limpar Busca
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

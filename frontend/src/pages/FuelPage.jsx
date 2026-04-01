@@ -8,7 +8,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { FuelForm } from '../components/forms/FuelForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown, Plus, X } from 'lucide-react';
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
@@ -424,6 +424,11 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
                   <option value="month">Este mês</option>
                   <option value="3months">Últimos 3 meses</option>
                 </Select>
+                {activeFilterCount > 0 && (
+                  <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setFilterTruck(''); setFilterPeriod('all'); }} className="self-end">
+                    <X className="mr-1 h-3.5 w-3.5" /> Limpar Filtros
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
