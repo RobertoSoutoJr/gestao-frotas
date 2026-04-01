@@ -10,7 +10,7 @@ import { Select } from '../components/ui/Select';
 import { Building2, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus, TrendingUp, DollarSign, Route } from 'lucide-react';
 
 const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, maskCPFCNPJ, maskPhone } from '../lib/utils';
 import { clientsService } from '../services/clients';
 import { useToast } from '../hooks/useToast';
 import { usePagination } from '../hooks/usePagination';
@@ -54,7 +54,10 @@ function EditClientModal({ client, isOpen, onClose, onSuccess }) {
   };
 
   const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    let { name, value } = e.target;
+    if (name === 'cpf_cnpj') value = maskCPFCNPJ(value);
+    if (name === 'telefone') value = maskPhone(value);
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (

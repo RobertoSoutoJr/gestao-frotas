@@ -580,7 +580,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                         </td>
                         <td className="px-3 py-2 text-[var(--color-text)]">{record.descricao || '-'}</td>
                         <td className="px-3 py-2 text-[var(--color-text-secondary)]">{record.oficina || '-'}</td>
-                        <td className="px-3 py-2 text-right font-medium text-red-500">{formatCurrency(record.valor_total || record.custo)}</td>
+                        <td className="px-3 py-2 text-right font-medium text-red-500">{formatCurrency(record.valor_total)}</td>
                         <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_manutencao ? formatNumber(record.km_manutencao, 0) : '-'}</td>
                       </tr>
                     );

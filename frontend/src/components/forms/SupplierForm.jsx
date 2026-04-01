@@ -4,6 +4,7 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { suppliersService } from '../../services/suppliers';
 import { useToast } from '../../hooks/useToast';
+import { maskCPFCNPJ, maskPhone } from '../../lib/utils';
 
 const LocationPicker = lazy(() => import('../ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 
@@ -26,6 +27,7 @@ export function SupplierForm({ onSuccess }) {
     setLoading(true);
     try {
       await suppliersService.create(formData);
+      success('Sucesso!', 'Fornecedor cadastrado com sucesso');
       setFormData({ nome: '', cpf_cnpj: '', telefone: '', email: '', endereco: '', cidade: '', estado: '', cep: '', observacoes: '', latitude: null, longitude: null });
       onSuccess?.();
     } catch (err) {
@@ -36,7 +38,10 @@ export function SupplierForm({ onSuccess }) {
   };
 
   const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    let { name, value } = e.target;
+    if (name === 'cpf_cnpj') value = maskCPFCNPJ(value);
+    if (name === 'telefone') value = maskPhone(value);
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (

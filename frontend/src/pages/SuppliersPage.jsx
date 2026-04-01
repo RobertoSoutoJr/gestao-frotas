@@ -12,6 +12,7 @@ import { Factory, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus } fro
 const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 import { suppliersService } from '../services/suppliers';
 import { useToast } from '../hooks/useToast';
+import { maskCPFCNPJ, maskPhone } from '../lib/utils';
 import { usePagination } from '../hooks/usePagination';
 import { Pagination } from '../components/ui/Pagination';
 
@@ -53,7 +54,10 @@ function EditSupplierModal({ supplier, isOpen, onClose, onSuccess }) {
   };
 
   const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    let { name, value } = e.target;
+    if (name === 'cpf_cnpj') value = maskCPFCNPJ(value);
+    if (name === 'telefone') value = maskPhone(value);
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (

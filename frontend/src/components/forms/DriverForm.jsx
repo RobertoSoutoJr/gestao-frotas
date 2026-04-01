@@ -3,6 +3,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { driversService } from '../../services/drivers';
 import { useToast } from '../../hooks/useToast';
+import { maskCPF, maskPhone } from '../../lib/utils';
 
 export function DriverForm({ onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -32,10 +33,10 @@ export function DriverForm({ onSuccess }) {
   };
 
   const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    let { name, value } = e.target;
+    if (name === 'cpf') value = maskCPF(value);
+    if (name === 'telefone') value = maskPhone(value);
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (

@@ -9,7 +9,7 @@ import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
 import { Users, Phone, CreditCard, Edit2, Trash2, Search, Filter, Plus, Route, DollarSign, TrendingUp, Fuel as FuelIcon } from 'lucide-react';
-import { formatCPF, formatCurrency, formatNumber } from '../lib/utils';
+import { formatCPF, formatCurrency, formatNumber, maskCPF, maskPhone } from '../lib/utils';
 import { driversService } from '../services/drivers';
 import { useToast } from '../hooks/useToast';
 import { usePagination } from '../hooks/usePagination';
@@ -84,10 +84,10 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
   };
 
   const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    let { name, value } = e.target;
+    if (name === 'cpf') value = maskCPF(value);
+    if (name === 'telefone') value = maskPhone(value);
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
