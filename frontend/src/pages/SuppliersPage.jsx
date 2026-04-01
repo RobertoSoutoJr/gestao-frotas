@@ -178,44 +178,44 @@ export function SuppliersPage({ suppliers, onRefetch }) {
           <div className="space-y-3">
             {pagination.paginatedItems.map(supplier => (
               <Card key={supplier.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="flex items-center justify-between p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
+                <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-amber-500/10">
                       <Factory className="h-5 w-5 text-amber-400" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-[var(--color-text)]">{supplier.nome}</h3>
-                      <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-[var(--color-text)] truncate">{supplier.nome}</h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--color-text-secondary)]">
                         {supplier.cidade && (
                           <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
+                            <MapPin className="h-3 w-3 shrink-0" />
                             {supplier.cidade}{supplier.estado ? `/${supplier.estado}` : ''}
                           </span>
                         )}
                         {supplier.telefone && (
                           <span className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
+                            <Phone className="h-3 w-3 shrink-0" />
                             {supplier.telefone}
                           </span>
                         )}
                         {supplier.email && (
-                          <span className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
+                          <span className="flex items-center gap-1 truncate">
+                            <Mail className="h-3 w-3 shrink-0" />
                             {supplier.email}
                           </span>
                         )}
                       </div>
                       {supplier.endereco && (
-                        <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{supplier.endereco}</p>
+                        <p className="mt-1 text-xs text-[var(--color-text-secondary)] truncate">{supplier.endereco}</p>
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setEditingSupplier(supplier)}>
-                      <Edit2 className="mr-2 h-4 w-4" /> Editar
+                  <div className="flex gap-2 sm:shrink-0 self-end sm:self-center">
+                    <Button variant="outline" size="sm" onClick={() => setEditingSupplier(supplier)} aria-label="Editar fornecedor">
+                      <Edit2 className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Editar</span>
                     </Button>
-                    <Button variant="danger" size="sm" onClick={() => setDeletingSupplier(supplier)}>
-                      <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                    <Button variant="danger" size="sm" onClick={() => setDeletingSupplier(supplier)} aria-label="Excluir fornecedor">
+                      <Trash2 className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Excluir</span>
                     </Button>
                   </div>
                 </CardContent>

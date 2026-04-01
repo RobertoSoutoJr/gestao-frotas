@@ -253,38 +253,38 @@ export function ClientsPage({ clients, trips, onRefetch }) {
           <div className="space-y-3">
             {pagination.paginatedItems.map(client => (
               <Card key={client.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="flex items-center justify-between p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
+                <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/10">
                       <Building2 className="h-5 w-5 text-blue-400" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-[var(--color-text)]">{client.nome}</h3>
-                      <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-[var(--color-text)] truncate">{client.nome}</h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--color-text-secondary)]">
                         {client.cidade && (
                           <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
+                            <MapPin className="h-3 w-3 shrink-0" />
                             {client.cidade}{client.estado ? `/${client.estado}` : ''}
                           </span>
                         )}
                         {client.telefone && (
                           <span className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
+                            <Phone className="h-3 w-3 shrink-0" />
                             {client.telefone}
                           </span>
                         )}
                         {client.email && (
-                          <span className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
+                          <span className="flex items-center gap-1 truncate">
+                            <Mail className="h-3 w-3 shrink-0" />
                             {client.email}
                           </span>
                         )}
                       </div>
                       {client.endereco && (
-                        <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{client.endereco}</p>
+                        <p className="mt-1 text-xs text-[var(--color-text-secondary)] truncate">{client.endereco}</p>
                       )}
                       {profitMap[client.id] && (
-                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                           <span className="flex items-center gap-1 text-[var(--color-text-secondary)]">
                             <Route className="h-3 w-3" />
                             {profitMap[client.id].viagens} viagen{profitMap[client.id].viagens > 1 ? 's' : ''}
@@ -301,12 +301,12 @@ export function ClientsPage({ clients, trips, onRefetch }) {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setEditingClient(client)}>
-                      <Edit2 className="mr-2 h-4 w-4" /> Editar
+                  <div className="flex gap-2 sm:shrink-0 self-end sm:self-center">
+                    <Button variant="outline" size="sm" onClick={() => setEditingClient(client)} aria-label="Editar cliente">
+                      <Edit2 className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Editar</span>
                     </Button>
-                    <Button variant="danger" size="sm" onClick={() => setDeletingClient(client)}>
-                      <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                    <Button variant="danger" size="sm" onClick={() => setDeletingClient(client)} aria-label="Excluir cliente">
+                      <Trash2 className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Excluir</span>
                     </Button>
                   </div>
                 </CardContent>

@@ -337,29 +337,29 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
           <div className="space-y-3">
             {pagination.paginatedItems.map(driver => (
               <Card key={driver.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="flex items-center justify-between p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-surface)]">
+                <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--color-surface)]">
                       <Users className="h-5 w-5 text-[var(--color-text-secondary)]" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-[var(--color-text)]">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-[var(--color-text)] truncate">
                         {driver.nome}
                       </h3>
-                      <div className="mt-1 flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--color-text-secondary)]">
                         <span className="flex items-center gap-1">
-                          <CreditCard className="h-3 w-3" />
+                          <CreditCard className="h-3 w-3 shrink-0" />
                           {formatCPF(driver.cpf)}
                         </span>
                         {driver.telefone && (
                           <span className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
+                            <Phone className="h-3 w-3 shrink-0" />
                             {driver.telefone}
                           </span>
                         )}
                       </div>
                       {perfMap[driver.id] && (
-                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                           <span className="flex items-center gap-1 text-[var(--color-text-secondary)]">
                             <Route className="h-3 w-3" />
                             {perfMap[driver.id].viagens} viagen{perfMap[driver.id].viagens > 1 ? 's' : ''}
@@ -382,22 +382,14 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingDriver(driver)}
-                    >
-                      <Edit2 className="mr-2 h-4 w-4" />
-                      Editar
+                  <div className="flex gap-2 sm:shrink-0 self-end sm:self-center">
+                    <Button variant="outline" size="sm" onClick={() => setEditingDriver(driver)} aria-label="Editar motorista">
+                      <Edit2 className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Editar</span>
                     </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => setDeletingDriver(driver)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Excluir
+                    <Button variant="danger" size="sm" onClick={() => setDeletingDriver(driver)} aria-label="Excluir motorista">
+                      <Trash2 className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Excluir</span>
                     </Button>
                   </div>
                 </CardContent>
