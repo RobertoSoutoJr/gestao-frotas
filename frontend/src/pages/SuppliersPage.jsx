@@ -12,6 +12,8 @@ import { Factory, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus } fro
 const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 import { suppliersService } from '../services/suppliers';
 import { useToast } from '../hooks/useToast';
+import { usePagination } from '../hooks/usePagination';
+import { Pagination } from '../components/ui/Pagination';
 
 const ESTADOS_BR = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
@@ -111,6 +113,8 @@ export function SuppliersPage({ suppliers, onRefetch }) {
     }).sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
   }, [suppliers, searchTerm]);
 
+  const pagination = usePagination(filteredSuppliers);
+
   const handleDelete = async () => {
     if (!deletingSupplier) return;
     setDeleteLoading(true);
@@ -172,7 +176,7 @@ export function SuppliersPage({ suppliers, onRefetch }) {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredSuppliers.map(supplier => (
+            {pagination.paginatedItems.map(supplier => (
               <Card key={supplier.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center gap-4">
@@ -217,6 +221,7 @@ export function SuppliersPage({ suppliers, onRefetch }) {
                 </CardContent>
               </Card>
             ))}
+            <Pagination {...pagination} />
           </div>
         )}
       </div>

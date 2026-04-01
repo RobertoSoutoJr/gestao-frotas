@@ -13,6 +13,8 @@ const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then
 import { formatCurrency } from '../lib/utils';
 import { clientsService } from '../services/clients';
 import { useToast } from '../hooks/useToast';
+import { usePagination } from '../hooks/usePagination';
+import { Pagination } from '../components/ui/Pagination';
 
 const ESTADOS_BR = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
@@ -145,6 +147,8 @@ export function ClientsPage({ clients, trips, onRefetch }) {
     }).sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
   }, [clients, searchTerm]);
 
+  const pagination = usePagination(filteredClients);
+
   const handleDelete = async () => {
     if (!deletingClient) return;
     setDeleteLoading(true);
@@ -247,7 +251,7 @@ export function ClientsPage({ clients, trips, onRefetch }) {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredClients.map(client => (
+            {pagination.paginatedItems.map(client => (
               <Card key={client.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center gap-4">
@@ -308,6 +312,7 @@ export function ClientsPage({ clients, trips, onRefetch }) {
                 </CardContent>
               </Card>
             ))}
+            <Pagination {...pagination} />
           </div>
         )}
       </div>

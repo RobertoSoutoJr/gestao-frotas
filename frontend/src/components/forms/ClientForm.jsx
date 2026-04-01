@@ -3,6 +3,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { clientsService } from '../../services/clients';
+import { useToast } from '../../hooks/useToast';
 
 const LocationPicker = lazy(() => import('../ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 
@@ -12,6 +13,7 @@ const ESTADOS_BR = [
 ];
 
 export function ClientForm({ onSuccess }) {
+  const { success, error: showError } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: '', cpf_cnpj: '', telefone: '', email: '',
@@ -26,9 +28,8 @@ export function ClientForm({ onSuccess }) {
       await clientsService.create(formData);
       setFormData({ nome: '', cpf_cnpj: '', telefone: '', email: '', endereco: '', cidade: '', estado: '', cep: '', observacoes: '', latitude: null, longitude: null });
       onSuccess?.();
-    } catch (error) {
-      console.error('Failed to create client:', error);
-      alert(error.message || 'Falha ao cadastrar cliente');
+    } catch (err) {
+      showError('Erro', err.message || 'Falha ao cadastrar cliente');
     } finally {
       setLoading(false);
     }

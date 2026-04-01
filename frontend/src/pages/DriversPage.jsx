@@ -12,6 +12,8 @@ import { Users, Phone, CreditCard, Edit2, Trash2, Search, Filter, Plus, Route, D
 import { formatCPF, formatCurrency, formatNumber } from '../lib/utils';
 import { driversService } from '../services/drivers';
 import { useToast } from '../hooks/useToast';
+import { usePagination } from '../hooks/usePagination';
+import { Pagination } from '../components/ui/Pagination';
 
 function useDriverPerformance(drivers, trips, fuelRecords) {
   return useMemo(() => {
@@ -196,6 +198,8 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
     return filtered;
   }, [drivers, searchTerm, sortBy]);
 
+  const pagination = usePagination(filteredAndSortedDrivers);
+
   const handleDelete = async () => {
     if (!deletingDriver) return;
 
@@ -331,7 +335,7 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredAndSortedDrivers.map(driver => (
+            {pagination.paginatedItems.map(driver => (
               <Card key={driver.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center gap-4">
@@ -399,6 +403,7 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
                 </CardContent>
               </Card>
             ))}
+            <Pagination {...pagination} />
           </div>
         )}
       </div>
