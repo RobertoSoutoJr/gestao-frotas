@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
+const { PLANS } = require('../config/plans');
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -233,7 +234,7 @@ class AuthService {
   async getProfile(userId) {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, nome, email, empresa, telefone, avatar_url, email_verified, role, owner_id, motorista_id, created_at, updated_at')
+      .select('id, nome, email, empresa, telefone, avatar_url, email_verified, role, owner_id, motorista_id, plano, plano_inicio, created_at, updated_at')
       .eq('id', userId)
       .single();
 
@@ -360,6 +361,42 @@ class AuthService {
 
     if (error || !data) throw new AppError('Conta não encontrada', 404);
     return data;
+  }
+
+  async getPlanUsage(userId) {
+    const { data: user } = await supabase
+      .from('users')
+      .select('plano, plano_inicio')
+      .eq('id', userId)
+      .single();
+
+    const plano = user?.plano || 'free';
+    const plan = PLANS[plano];
+
+    // Count current usage
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+    const [caminhoes, motoristas, viagensMes, motoristaAccounts] = await Promise.all([
+      supabase.from('caminhoes').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+      supabase.from('motoristas').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+      supabase.from('viagens').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', firstDay),
+      supabase.from('users').select('id', { count: 'exact', head: true }).eq('owner_id', userId).eq('role', 'motorista'),
+    ]);
+
+    return {
+      plano,
+      plano_nome: plan.nome,
+      plano_preco: plan.preco,
+      plano_inicio: user?.plano_inicio,
+      recursos: plan.recursos,
+      uso: {
+        caminhoes: { atual: caminhoes.count || 0, limite: plan.limites.caminhoes },
+        motoristas: { atual: motoristas.count || 0, limite: plan.limites.motoristas },
+        viagens_mes: { atual: viagensMes.count || 0, limite: plan.limites.viagens_mes },
+        motorista_accounts: { atual: motoristaAccounts.count || 0, limite: plan.limites.motorista_accounts },
+      },
+    };
   }
 
   async saveRefreshToken(userId, refreshToken) {

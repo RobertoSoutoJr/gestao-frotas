@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const truckController = require('../controllers/truck.controller');
+const { checkPlanLimit } = require('../middlewares/planLimits.middleware');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -15,7 +16,7 @@ const router = express.Router();
 
 router.get('/', truckController.getAll);
 router.get('/:id', truckController.getById);
-router.post('/', truckController.create);
+router.post('/', checkPlanLimit('caminhoes'), truckController.create);
 router.put('/:id', truckController.update);
 router.delete('/:id', truckController.delete);
 router.post('/:id/foto', upload.single('foto'), truckController.uploadFoto);

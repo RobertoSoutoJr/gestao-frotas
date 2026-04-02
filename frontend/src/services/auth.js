@@ -106,6 +106,15 @@ const authService = {
     return await api.patch(`/auth/motoristas/${id}`, { is_active: isActive });
   },
 
+  // SaaS Plans
+  async getPlanInfo() {
+    return await api.get('/auth/plan');
+  },
+
+  async getPlans() {
+    return await api.get('/auth/plans');
+  },
+
   getCurrentUser() {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;

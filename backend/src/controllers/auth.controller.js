@@ -1,5 +1,6 @@
 const authService = require('../services/auth.service');
 const { asyncHandler } = require('../middlewares/errorHandler');
+const { PLANS } = require('../config/plans');
 const {
   registerSchema,
   loginSchema,
@@ -128,4 +129,19 @@ exports.changePassword = asyncHandler(async (req, res) => {
     success: true,
     message: result.message
   });
+});
+
+// Plan info + usage
+exports.getPlanInfo = asyncHandler(async (req, res) => {
+  const usage = await authService.getPlanUsage(req.userId);
+  res.json({ success: true, data: usage });
+});
+
+// List all available plans
+exports.getPlans = asyncHandler(async (req, res) => {
+  const plans = Object.entries(PLANS).map(([key, plan]) => ({
+    id: key,
+    ...plan,
+  }));
+  res.json({ success: true, data: plans });
 });

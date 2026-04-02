@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import authService from '../services/auth';
 import { driversService } from '../services/drivers';
-import { User, Lock, Building2, Phone, Mail, Save, Eye, EyeOff, LogOut, Users, Plus, Power } from 'lucide-react';
+import { User, Lock, Building2, Phone, Mail, Save, Eye, EyeOff, LogOut, Users, Plus, Power, Crown, Zap, Rocket, Check, TrendingUp } from 'lucide-react';
 
 export function SettingsPage() {
   const { user, updateUser, logout } = useAuth();
@@ -237,6 +237,9 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
+      {/* Plan Section (admin only) */}
+      {user?.role !== 'motorista' && <PlanSection />}
+
       {/* Motorista Accounts (admin only) */}
       {user?.role !== 'motorista' && <MotoristaAccountsSection />}
 
@@ -259,6 +262,154 @@ export function SettingsPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function UsageBar({ atual, limite }) {
+  if (limite === -1) return <span className="text-xs text-emerald-400">Ilimitado</span>;
+  const pct = Math.min((atual / limite) * 100, 100);
+  const color = pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-emerald-500';
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-2 rounded-full bg-[var(--color-border)]">
+        <div className={`h-2 rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{atual}/{limite}</span>
+    </div>
+  );
+}
+
+function PlanSection() {
+  const [planInfo, setPlanInfo] = useState(null);
+  const [allPlans, setAllPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showPlans, setShowPlans] = useState(false);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const [info, plans] = await Promise.all([
+          authService.getPlanInfo(),
+          authService.getPlans(),
+        ]);
+        setPlanInfo(info.data);
+        setAllPlans(plans.data);
+      } catch {
+        // silent
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, []);
+
+  if (loading) return (
+    <Card>
+      <CardContent className="p-6">
+        <p className="text-sm text-[var(--color-text-secondary)]">Carregando plano...</p>
+      </CardContent>
+    </Card>
+  );
+
+  if (!planInfo) return null;
+
+  const planIcons = { free: Zap, pro: Rocket, enterprise: Crown };
+  const PlanIcon = planIcons[planInfo.plano] || Zap;
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <PlanIcon className="h-5 w-5 text-amber-400" />
+                Plano {planInfo.plano_nome}
+              </CardTitle>
+              <CardDescription>
+                {planInfo.plano_preco > 0 ? `R$ ${planInfo.plano_preco.toFixed(2)}/mes` : 'Gratuito'}
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setShowPlans(!showPlans)}>
+              <TrendingUp className="mr-1.5 h-4 w-4" />
+              {showPlans ? 'Ocultar planos' : 'Ver planos'}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-[var(--color-text)]">Caminhoes</span>
+              </div>
+              <UsageBar atual={planInfo.uso.caminhoes.atual} limite={planInfo.uso.caminhoes.limite} />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-[var(--color-text)]">Motoristas</span>
+              </div>
+              <UsageBar atual={planInfo.uso.motoristas.atual} limite={planInfo.uso.motoristas.limite} />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-[var(--color-text)]">Viagens este mes</span>
+              </div>
+              <UsageBar atual={planInfo.uso.viagens_mes.atual} limite={planInfo.uso.viagens_mes.limite} />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-[var(--color-text)]">Contas de motorista</span>
+              </div>
+              <UsageBar atual={planInfo.uso.motorista_accounts.atual} limite={planInfo.uso.motorista_accounts.limite} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Plans comparison */}
+      {showPlans && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {allPlans.map(plan => {
+            const Icon = planIcons[plan.id] || Zap;
+            const isCurrent = plan.id === planInfo.plano;
+            return (
+              <Card key={plan.id} className={isCurrent ? 'border-amber-500/50 ring-1 ring-amber-500/20' : ''}>
+                <CardHeader className="text-center">
+                  <Icon className={`mx-auto h-8 w-8 mb-2 ${isCurrent ? 'text-amber-400' : 'text-[var(--color-text-secondary)]'}`} />
+                  <CardTitle className="text-lg">{plan.nome}</CardTitle>
+                  <CardDescription>
+                    {plan.preco > 0 ? (
+                      <span className="text-2xl font-bold text-[var(--color-text)]">R$ {plan.preco.toFixed(2)}<span className="text-sm font-normal text-[var(--color-text-secondary)]">/mes</span></span>
+                    ) : (
+                      <span className="text-2xl font-bold text-[var(--color-text)]">Gratis</span>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {plan.recursos.map((r, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-[var(--color-text-secondary)]">
+                        <Check className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4">
+                    {isCurrent ? (
+                      <Button variant="outline" className="w-full" disabled>Plano atual</Button>
+                    ) : (
+                      <Button variant={plan.id === 'pro' ? 'primary' : 'outline'} className="w-full" onClick={() => window.open('https://wa.me/5500000000000?text=Quero+fazer+upgrade+para+o+plano+' + plan.nome, '_blank')}>
+                        {plan.preco > planInfo.plano_preco ? 'Fazer upgrade' : 'Selecionar'}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </>
   );
 }
 
