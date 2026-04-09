@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import authService from '../services/auth';
+import { setApiSilentMode } from '../services/api';
 
 export const AuthContext = createContext({});
 
@@ -10,15 +11,32 @@ export function AuthProvider({ children }) {
   const [pendingVerification, setPendingVerification] = useState(null); // email aguardando verificação
 
   useEffect(() => {
-    const loadUser = () => {
+    const loadUser = async () => {
       const storedUser = authService.getCurrentUser();
       const token = localStorage.getItem('accessToken');
 
-      if (storedUser && token) {
-        setUser(storedUser);
-        setIsAuthenticated(true);
+      if (!storedUser || !token) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      // Validate the stored token by fetching the profile. If both the
+      // access token and the refresh token are dead, the api interceptor
+      // will silently clear storage (silentMode prevents the page reload
+      // mid-boot) and we just stay logged out — no toast, no flicker.
+      setApiSilentMode(true);
+      try {
+        const response = await authService.getProfile();
+        const freshUser = response?.data || storedUser;
+        setUser(freshUser);
+        setIsAuthenticated(true);
+      } catch {
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setApiSilentMode(false);
+        setLoading(false);
+      }
     };
 
     loadUser();
