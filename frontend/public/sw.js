@@ -1,6 +1,8 @@
-const CACHE_NAME = 'fueltrack-v1';
+// Bump this when the SW logic itself changes to force old caches to be wiped.
+const CACHE_NAME = 'fueltrack-v2';
+// Do NOT precache '/' — index.html is network-first below so the latest
+// JS bundle hashes are always picked up after a deploy.
 const STATIC_ASSETS = [
-  '/',
   '/icon-192.svg',
   '/manifest.json',
 ];
@@ -58,7 +60,10 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Fetch: network-first for API, cache-first for assets
+// Fetch:
+//   - API: network-first (with cache fallback for offline)
+//   - HTML / navigation: network-first (so JS bundle hashes are always fresh)
+//   - Hashed static assets: cache-first (immutable, big perf win)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -81,13 +86,32 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: cache-first, fallback to network
+  // HTML / SPA navigation: network-first so the latest index.html (with the
+  // current JS bundle hashes) is always picked up after a deploy. Falls back
+  // to cache when offline.
+  const isNavigation =
+    request.mode === 'navigate' ||
+    (request.headers.get('accept') || '').includes('text/html') ||
+    url.pathname === '/';
+  if (isNavigation) {
+    event.respondWith(
+      fetch(request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          return res;
+        })
+        .catch(() => caches.match(request).then((c) => c || caches.match('/')))
+    );
+    return;
+  }
+
+  // Hashed static assets (js/css/images/fonts): cache-first
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
       return fetch(request).then((res) => {
-        // Cache successful responses for assets
-        if (res.ok && (url.pathname.match(/\.(js|css|svg|png|jpg|webp|woff2?)$/) || url.pathname === '/')) {
+        if (res.ok && url.pathname.match(/\.(js|css|svg|png|jpg|webp|woff2?)$/)) {
           const clone = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
