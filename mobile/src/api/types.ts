@@ -92,6 +92,7 @@ export interface Viagem {
   custo_pedagio?: number;
   custo_manutencao?: number;
   custo_outros?: number;
+  created_at?: string;
 }
 
 export interface Manutencao {
