@@ -104,4 +104,8 @@ export interface Manutencao {
   valor_total: number;
   data_manutencao: string;
   km_manutencao?: number;
+  oficina?: string | null;
+  status?: 'pendente' | 'em_andamento' | 'concluida';
+  created_at?: string;
+  caminhoes?: { placa: string; modelo: string };
 }

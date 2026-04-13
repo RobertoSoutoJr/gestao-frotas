@@ -71,6 +71,16 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="manutencoes"
+        options={{
+          title: 'Manutenção',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="construct-outline" size={size} color={color} />
+          ),
+          href: isMotorista ? '/(app)/manutencoes' : null,
+        }}
+      />
+      <Tabs.Screen
         name="frota"
         options={{
           title: 'Frota',
