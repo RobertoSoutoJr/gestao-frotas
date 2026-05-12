@@ -7,7 +7,12 @@ export default function ManutencoesLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.bg },
+        animation: 'fade',
       }}
-    />
+    >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="new" />
+      <Stack.Screen name="edit" />
+    </Stack>
   );
 }

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -10,11 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { manutencoesApi } from '../../../src/api/manutencoes';
+import { useToast } from '../../../src/contexts/ToastContext';
 import type { Manutencao } from '../../../src/api/types';
 import { colors, fontSize, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
@@ -31,10 +33,39 @@ const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export default function ManutencoesListScreen() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
   const query = useQuery({
     queryKey: ['manutencoes'],
     queryFn: () => manutencoesApi.list(),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => manutencoesApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['manutencoes'] });
+      showToast('Manutenção excluída', 'success');
+    },
+    onError: (err: any) => {
+      showToast(err?.message || 'Erro ao excluir', 'error');
+    },
+  });
+
+  const handleDelete = (id: number) => {
+    Alert.alert(
+      'Excluir manutenção',
+      'Tem certeza que deseja excluir este registro?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => deleteMutation.mutate(id),
+        },
+      ],
+    );
+  };
 
   const records = useMemo(() => {
     return (query.data ?? []).sort(
@@ -47,15 +78,16 @@ export default function ManutencoesListScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Ionicons name="construct" size={28} color={colors.accent} />
-        <Text style={styles.title}>Manutenções</Text>
+        <View>
+          <Text style={styles.title}>Manutenções</Text>
+          <Text style={styles.subtitle}>{records.length} registros</Text>
+        </View>
+        <Button
+          title="+ Nova"
+          onPress={() => router.push('/(app)/manutencoes/new')}
+          style={styles.newBtn}
+        />
       </View>
-
-      <Button
-        title="+ Nova Manutenção"
-        onPress={() => router.push('/(app)/manutencoes/new')}
-        style={styles.newBtn}
-      />
 
       {query.isLoading ? (
         <View style={styles.loading}>
@@ -78,11 +110,22 @@ export default function ManutencoesListScreen() {
               <Ionicons name="construct-outline" size={48} color={colors.textDim} />
               <Text style={styles.emptyTitle}>Nenhuma manutenção</Text>
               <Text style={styles.emptyText}>
-                Registre manutenções e reparos dos caminhões.
+                Toque em "+ Nova" para registrar uma manutenção.
               </Text>
             </View>
           }
-          renderItem={({ item }) => <MaintenanceCard record={item} />}
+          renderItem={({ item }) => (
+            <MaintenanceCard
+              record={item}
+              onEdit={() =>
+                router.push({
+                  pathname: '/(app)/manutencoes/edit',
+                  params: { id: item.id },
+                })
+              }
+              onDelete={() => handleDelete(item.id)}
+            />
+          )}
           ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         />
       )}
@@ -90,7 +133,15 @@ export default function ManutencoesListScreen() {
   );
 }
 
-function MaintenanceCard({ record }: { record: Manutencao }) {
+function MaintenanceCard({
+  record,
+  onEdit,
+  onDelete,
+}: {
+  record: Manutencao;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const icon = TYPE_ICONS[record.tipo_manutencao] || 'build-outline';
 
   return (
@@ -113,14 +164,25 @@ function MaintenanceCard({ record }: { record: Manutencao }) {
 
       <View style={styles.cardFooter}>
         {record.caminhoes ? (
-          <Text style={styles.placa}>
-            {record.caminhoes.placa}
-          </Text>
+          <Text style={styles.placa}>{record.caminhoes.placa}</Text>
         ) : null}
         {record.oficina ? (
-          <Text style={styles.oficina}>{record.oficina}</Text>
+          <Text style={styles.oficina} numberOfLines={1}>{record.oficina}</Text>
         ) : null}
         <Text style={styles.valor}>{formatCurrency(record.valor_total)}</Text>
+      </View>
+
+      <View style={styles.cardActions}>
+        <Pressable style={styles.actionBtn} onPress={onEdit}>
+          <Ionicons name="create-outline" size={18} color={colors.accent} />
+          <Text style={styles.actionText}>Editar</Text>
+        </Pressable>
+        <Pressable style={styles.actionBtn} onPress={onDelete}>
+          <Ionicons name="trash-outline" size={18} color={colors.danger} />
+          <Text style={[styles.actionText, { color: colors.danger }]}>
+            Excluir
+          </Text>
+        </Pressable>
       </View>
     </Card>
   );
@@ -130,20 +192,25 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: spacing.sm,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
     color: colors.text,
-    flex: 1,
+  },
+  subtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
   newBtn: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: {
@@ -217,5 +284,23 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     fontWeight: '700',
     color: colors.warning,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionText: {
+    fontSize: fontSize.sm,
+    color: colors.accent,
+    fontWeight: '500',
   },
 });
