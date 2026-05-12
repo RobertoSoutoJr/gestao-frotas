@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Alert,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,37 +11,58 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Input } from '../../src/components/Input';
-import { Button } from '../../src/components/Button';
-import { Picker, PickerOption } from '../../src/components/Picker';
-import { Card } from '../../src/components/Card';
-import { useAuth } from '../../src/contexts/AuthContext';
-import { caminhoesApi } from '../../src/api/caminhoes';
-import {
-  abastecimentosApi,
-  CreateAbastecimentoPayload,
-} from '../../src/api/abastecimentos';
-import { colors, fontSize, radius, spacing } from '../../src/lib/theme';
+import { Input } from '../../../src/components/Input';
+import { Button } from '../../../src/components/Button';
+import { Picker, PickerOption } from '../../../src/components/Picker';
+import { Card } from '../../../src/components/Card';
+import { useToast } from '../../../src/contexts/ToastContext';
+import { caminhoesApi } from '../../../src/api/caminhoes';
+import { abastecimentosApi } from '../../../src/api/abastecimentos';
+import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 
-const INITIAL_FORM = {
-  caminhao_id: null as number | null,
-  litros: '',
-  valor_total: '',
-  km_registro: '',
-  posto: '',
-};
-
-export default function AbastecerScreen() {
-  const { user } = useAuth();
+export default function EditAbastecimentoScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const recordId = Number(id);
   const queryClient = useQueryClient();
-  const [form, setForm] = useState(INITIAL_FORM);
+  const { showToast } = useToast();
+
+  const [form, setForm] = useState({
+    caminhao_id: null as number | null,
+    litros: '',
+    valor_total: '',
+    km_registro: '',
+    posto: '',
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loaded, setLoaded] = useState(false);
+
+  const recordQuery = useQuery({
+    queryKey: ['abastecimentos', recordId],
+    queryFn: () => abastecimentosApi.getById(recordId),
+    enabled: !!recordId,
+  });
 
   const caminhoesQuery = useQuery({
     queryKey: ['caminhoes'],
     queryFn: () => caminhoesApi.list(),
   });
+
+  // Populate form when data loads
+  useEffect(() => {
+    if (recordQuery.data && !loaded) {
+      const r = recordQuery.data;
+      setForm({
+        caminhao_id: r.caminhao_id,
+        litros: String(r.litros),
+        valor_total: String(r.valor_total),
+        km_registro: r.km_registro ? String(r.km_registro) : '',
+        posto: r.posto || '',
+      });
+      setLoaded(true);
+    }
+  }, [recordQuery.data, loaded]);
 
   const caminhaoOptions: PickerOption[] = (caminhoesQuery.data ?? []).map(
     (c) => ({
@@ -50,16 +72,15 @@ export default function AbastecerScreen() {
   );
 
   const mutation = useMutation({
-    mutationFn: (data: CreateAbastecimentoPayload) =>
-      abastecimentosApi.create(data),
+    mutationFn: (data: Parameters<typeof abastecimentosApi.update>[1]) =>
+      abastecimentosApi.update(recordId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['abastecimentos'] });
-      Alert.alert('Sucesso', 'Abastecimento registrado!');
-      setForm(INITIAL_FORM);
-      setErrors({});
+      showToast('Abastecimento atualizado', 'success');
+      router.back();
     },
     onError: (err: any) => {
-      Alert.alert('Erro', err?.message || 'Falha ao registrar abastecimento');
+      showToast(err?.message || 'Erro ao atualizar', 'error');
     },
   });
 
@@ -79,7 +100,6 @@ export default function AbastecerScreen() {
     if (!validate()) return;
     mutation.mutate({
       caminhao_id: form.caminhao_id!,
-      motorista_id: user?.motorista_id ?? 0,
       litros: Number(form.litros),
       valor_total: Number(form.valor_total),
       km_registro: Number(form.km_registro),
@@ -87,10 +107,19 @@ export default function AbastecerScreen() {
     });
   };
 
-  // Auto-calculate preço/litro
   const litrosNum = Number(form.litros) || 0;
   const valorNum = Number(form.valor_total) || 0;
   const precoLitro = litrosNum > 0 && valorNum > 0 ? valorNum / litrosNum : 0;
+
+  if (recordQuery.isLoading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={colors.accent} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -103,8 +132,11 @@ export default function AbastecerScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Ionicons name="water" size={28} color={colors.accent} />
-            <Text style={styles.title}>Novo Abastecimento</Text>
+            <Pressable onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={22} color={colors.text} />
+            </Pressable>
+            <Ionicons name="create" size={28} color={colors.accent} />
+            <Text style={styles.title}>Editar Abastecimento</Text>
           </View>
 
           <Picker
@@ -137,7 +169,10 @@ export default function AbastecerScreen() {
             keyboardType="decimal-pad"
             value={form.litros}
             onChangeText={(v) => {
-              setForm((p) => ({ ...p, litros: v.replace(/[^0-9.,]/g, '').replace(',', '.') }));
+              setForm((p) => ({
+                ...p,
+                litros: v.replace(/[^0-9.,]/g, '').replace(',', '.'),
+              }));
               setErrors((p) => ({ ...p, litros: '' }));
             }}
             error={errors.litros}
@@ -149,7 +184,10 @@ export default function AbastecerScreen() {
             keyboardType="decimal-pad"
             value={form.valor_total}
             onChangeText={(v) => {
-              setForm((p) => ({ ...p, valor_total: v.replace(/[^0-9.,]/g, '').replace(',', '.') }));
+              setForm((p) => ({
+                ...p,
+                valor_total: v.replace(/[^0-9.,]/g, '').replace(',', '.'),
+              }));
               setErrors((p) => ({ ...p, valor_total: '' }));
             }}
             error={errors.valor_total}
@@ -174,7 +212,7 @@ export default function AbastecerScreen() {
           )}
 
           <Button
-            title={mutation.isPending ? 'Registrando...' : 'Registrar Abastecimento'}
+            title={mutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
             onPress={handleSubmit}
             loading={mutation.isPending}
             disabled={mutation.isPending}
@@ -189,12 +227,27 @@ export default function AbastecerScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     marginBottom: spacing.xl,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.md,
+    backgroundColor: colors.bgCard,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   title: {
     fontSize: fontSize.xxl,

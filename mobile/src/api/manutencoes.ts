@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from './client';
+import { apiGet, apiPost, apiPut, apiDelete } from './client';
 import type { Manutencao } from './types';
 
 export const MAINTENANCE_TYPES = [
@@ -28,4 +28,7 @@ export const manutencoesApi = {
   getById: (id: number) => apiGet<Manutencao>(`/manutencoes/${id}`),
   create: (data: CreateManutencaoPayload) =>
     apiPost<Manutencao>('/manutencoes', data),
+  update: (id: number, data: Partial<CreateManutencaoPayload>) =>
+    apiPut<Manutencao>(`/manutencoes/${id}`, data),
+  delete: (id: number) => apiDelete<void>(`/manutencoes/${id}`),
 };

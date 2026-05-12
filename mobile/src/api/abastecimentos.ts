@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from './client';
+import { apiGet, apiPost, apiPut, apiDelete } from './client';
 import type { Abastecimento } from './types';
 
 export interface CreateAbastecimentoPayload {
@@ -12,6 +12,10 @@ export interface CreateAbastecimentoPayload {
 
 export const abastecimentosApi = {
   list: () => apiGet<Abastecimento[]>('/abastecimentos'),
+  getById: (id: number) => apiGet<Abastecimento>(`/abastecimentos/${id}`),
   create: (data: CreateAbastecimentoPayload) =>
     apiPost<Abastecimento>('/abastecimentos', data),
+  update: (id: number, data: Partial<CreateAbastecimentoPayload>) =>
+    apiPut<Abastecimento>(`/abastecimentos/${id}`, data),
+  delete: (id: number) => apiDelete<void>(`/abastecimentos/${id}`),
 };
