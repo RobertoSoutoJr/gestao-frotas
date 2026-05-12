@@ -7,7 +7,12 @@ export default function ViagensLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.bg },
+        animation: 'fade',
       }}
-    />
+    >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="[id]" />
+      <Stack.Screen name="edit" />
+    </Stack>
   );
 }
