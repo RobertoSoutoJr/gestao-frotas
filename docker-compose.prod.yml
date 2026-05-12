@@ -8,7 +8,7 @@ services:
       - traefik-net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frotapro.rule=Host(`srv1443418.hstgr.cloud`)"
+      - "traefik.http.routers.frotapro.rule=Host(`srv1665848.hstgr.cloud`)"
       - "traefik.http.routers.frotapro.entrypoints=websecure"
       - "traefik.http.routers.frotapro.tls=true"
       - "traefik.http.routers.frotapro.tls.certresolver=mytlschallenge"
@@ -27,7 +27,7 @@ services:
       - traefik-net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frotapro-api.rule=Host(`srv1443418.hstgr.cloud`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.frotapro-api.rule=Host(`srv1665848.hstgr.cloud`) && PathPrefix(`/api`)"
       - "traefik.http.routers.frotapro-api.entrypoints=websecure"
       - "traefik.http.routers.frotapro-api.tls=true"
       - "traefik.http.routers.frotapro-api.tls.certresolver=mytlschallenge"

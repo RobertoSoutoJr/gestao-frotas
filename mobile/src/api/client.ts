@@ -4,7 +4,7 @@ import { storage } from '../lib/storage';
 
 const API_URL =
   (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
-  'https://srv1443418.hstgr.cloud/api';
+  'https://srv1665848.hstgr.cloud/api';
 
 export const api = axios.create({
   baseURL: API_URL,
