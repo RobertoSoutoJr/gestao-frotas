@@ -11,6 +11,8 @@ const tripRoutes = require('./trip.routes');
 const tripCostRoutes = require('./tripCost.routes');
 const stockRoutes = require('./stock.routes');
 const documentRoutes = require('./document.routes');
+const oficinaRoutes = require('./oficina.routes');
+const postoRoutes = require('./posto.routes');
 const { protect } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -35,5 +37,7 @@ router.use('/viagens', protect, tripRoutes);
 router.use('/viagens', protect, tripCostRoutes);
 router.use('/estoque', protect, stockRoutes);
 router.use('/documentos', protect, documentRoutes);
+router.use('/oficinas', protect, oficinaRoutes);
+router.use('/postos', protect, postoRoutes);
 
 module.exports = router;

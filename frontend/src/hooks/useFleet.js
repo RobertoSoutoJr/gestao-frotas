@@ -7,6 +7,8 @@ import { clientsService } from '../services/clients';
 import { suppliersService } from '../services/suppliers';
 import { tripsService } from '../services/trips';
 import { stockService } from '../services/stock';
+import { oficinasService } from '../services/oficinas';
+import { postosService } from '../services/postos';
 
 export function useFleet() {
   const [trucks, setTrucks] = useState([]);
@@ -17,6 +19,8 @@ export function useFleet() {
   const [suppliers, setSuppliers] = useState([]);
   const [trips, setTrips] = useState([]);
   const [stockRecords, setStockRecords] = useState([]);
+  const [oficinas, setOficinas] = useState([]);
+  const [postos, setPostos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -25,7 +29,7 @@ export function useFleet() {
       if (!silent) setLoading(true);
       setError(null);
 
-      const [trucksRes, driversRes, fuelRes, maintenanceRes, clientsRes, suppliersRes, tripsRes, stockRes] = await Promise.all([
+      const [trucksRes, driversRes, fuelRes, maintenanceRes, clientsRes, suppliersRes, tripsRes, stockRes, oficinasRes, postosRes] = await Promise.all([
         trucksService.getAll(),
         driversService.getAll(),
         fuelService.getAll(),
@@ -33,7 +37,9 @@ export function useFleet() {
         clientsService.getAll(),
         suppliersService.getAll(),
         tripsService.getAll(),
-        stockService.getAll()
+        stockService.getAll(),
+        oficinasService.getAll(),
+        postosService.getAll()
       ]);
 
       setTrucks(trucksRes.data || []);
@@ -44,6 +50,8 @@ export function useFleet() {
       setSuppliers(suppliersRes.data || []);
       setTrips(tripsRes.data || []);
       setStockRecords(stockRes.data || []);
+      setOficinas(oficinasRes.data || []);
+      setPostos(postosRes.data || []);
     } catch (err) {
       setError(err.message);
       console.error('Failed to fetch fleet data:', err);
@@ -65,6 +73,8 @@ export function useFleet() {
     suppliers,
     trips,
     stockRecords,
+    oficinas,
+    postos,
     loading,
     error,
     refetch: () => fetchData(true)

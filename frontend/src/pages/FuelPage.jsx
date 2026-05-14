@@ -89,7 +89,7 @@ function FuelSummaryCards({ records }) {
   );
 }
 
-function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
+function EditFuelModal({ fuel, trucks, drivers, postos = [], isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
   const [formData, setFormData] = useState({
@@ -98,7 +98,7 @@ function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
     km_registro: fuel.km_registro || '',
     litros: fuel.litros || '',
     valor_total: fuel.valor_total || '',
-    posto: fuel.posto || ''
+    posto_id: fuel.posto_id || ''
   });
 
   const pricePerLiter = formData.litros && formData.valor_total
@@ -116,7 +116,7 @@ function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
         km_registro: Number(formData.km_registro),
         litros: Number(formData.litros),
         valor_total: Number(formData.valor_total),
-        posto: formData.posto || undefined
+        posto_id: formData.posto_id ? Number(formData.posto_id) : null
       };
 
       await fuelService.update(fuel.id, data);
@@ -204,13 +204,17 @@ function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
             required
           />
 
-          <Input
-            name="posto"
+          <Select
+            name="posto_id"
             label="Posto"
-            placeholder="Shell"
-            value={formData.posto}
+            value={formData.posto_id}
             onChange={handleChange}
-          />
+          >
+            <option value="">Nenhum posto</option>
+            {postos.map(p => (
+              <option key={p.id} value={p.id}>{p.nome}</option>
+            ))}
+          </Select>
         </div>
 
         {pricePerLiter && (
@@ -244,7 +248,7 @@ function EditFuelModal({ fuel, trucks, drivers, isOpen, onClose, onSuccess }) {
   );
 }
 
-export function FuelPage({ trucks, drivers, onRefetch }) {
+export function FuelPage({ trucks, drivers, postos = [], onRefetch }) {
   const { success, error } = useToast();
   const [fuelRecords, setFuelRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -518,7 +522,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
 
       {/* Modal: Registrar Abastecimento */}
       <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Abastecimento" warnUnsaved>
-        <FuelForm trucks={trucks} drivers={drivers} onSuccess={handleSuccess} />
+        <FuelForm trucks={trucks} drivers={drivers} postos={postos} onSuccess={handleSuccess} />
       </Modal>
 
       {editingFuel && (
@@ -526,6 +530,7 @@ export function FuelPage({ trucks, drivers, onRefetch }) {
           fuel={editingFuel}
           trucks={trucks}
           drivers={drivers}
+          postos={postos}
           isOpen={!!editingFuel}
           onClose={() => setEditingFuel(null)}
           onSuccess={handleSuccess}

@@ -5,7 +5,7 @@ import { Select } from '../ui/Select';
 import { fuelService } from '../../services/fuel';
 import { useToast } from '../../hooks/useToast';
 
-export function FuelForm({ trucks, drivers, onSuccess, preselectedTruckId }) {
+export function FuelForm({ trucks, drivers, postos = [], onSuccess, preselectedTruckId }) {
   const [loading, setLoading] = useState(false);
   const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
@@ -14,7 +14,7 @@ export function FuelForm({ trucks, drivers, onSuccess, preselectedTruckId }) {
     km_registro: '',
     litros: '',
     valor_total: '',
-    posto: ''
+    posto_id: ''
   });
 
   const pricePerLiter = formData.litros && formData.valor_total
@@ -32,7 +32,7 @@ export function FuelForm({ trucks, drivers, onSuccess, preselectedTruckId }) {
         km_registro: Number(formData.km_registro),
         litros: Number(formData.litros),
         valor_total: Number(formData.valor_total),
-        posto: formData.posto || undefined
+        posto_id: formData.posto_id ? Number(formData.posto_id) : null
       };
 
       await fuelService.create(data);
@@ -43,7 +43,7 @@ export function FuelForm({ trucks, drivers, onSuccess, preselectedTruckId }) {
         km_registro: '',
         litros: '',
         valor_total: '',
-        posto: ''
+        posto_id: ''
       });
       onSuccess?.();
     } catch (err) {
@@ -126,13 +126,17 @@ export function FuelForm({ trucks, drivers, onSuccess, preselectedTruckId }) {
           required
         />
 
-        <Input
-          name="posto"
+        <Select
+          name="posto_id"
           label="Posto"
-          placeholder="Shell"
-          value={formData.posto}
+          value={formData.posto_id}
           onChange={handleChange}
-        />
+        >
+          <option value="">Nenhum posto</option>
+          {postos.map(p => (
+            <option key={p.id} value={p.id}>{p.nome}</option>
+          ))}
+        </Select>
       </div>
 
       {pricePerLiter && (

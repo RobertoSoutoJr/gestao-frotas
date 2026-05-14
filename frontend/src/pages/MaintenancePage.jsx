@@ -39,7 +39,7 @@ const TYPE_COLORS = {
   Outros:     'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]'
 };
 
-function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess }) {
+function EditMaintenanceModal({ maintenance, trucks, oficinas = [], isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
   const [formData, setFormData] = useState({
@@ -49,7 +49,8 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
     valor_total: maintenance.valor_total || '',
     km_manutencao: maintenance.km_manutencao || '',
     data_manutencao: maintenance.data_manutencao ? maintenance.data_manutencao.split('T')[0] : '',
-    status: maintenance.status || 'concluida'
+    status: maintenance.status || 'concluida',
+    oficina_id: maintenance.oficina_id || ''
   });
 
   const handleSubmit = async (e) => {
@@ -64,7 +65,8 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
         valor_total: Number(formData.valor_total),
         km_manutencao: Number(formData.km_manutencao),
         data_manutencao: formData.data_manutencao,
-        status: formData.status
+        status: formData.status,
+        oficina_id: formData.oficina_id ? Number(formData.oficina_id) : null
       };
 
       await maintenanceService.update(maintenance.id, data);
@@ -170,8 +172,19 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
             value={formData.data_manutencao}
             onChange={handleChange}
             required
-            className="md:col-span-2"
           />
+
+          <Select
+            name="oficina_id"
+            label="Oficina"
+            value={formData.oficina_id}
+            onChange={handleChange}
+          >
+            <option value="">Nenhuma oficina</option>
+            {oficinas.map(o => (
+              <option key={o.id} value={o.id}>{o.nome}</option>
+            ))}
+          </Select>
         </div>
 
         <div className="flex gap-3">
@@ -203,7 +216,7 @@ function EditMaintenanceModal({ maintenance, trucks, isOpen, onClose, onSuccess 
   );
 }
 
-export function MaintenancePage({ trucks, onRefetch }) {
+export function MaintenancePage({ trucks, oficinas = [], onRefetch }) {
   const { success, error } = useToast();
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -495,13 +508,14 @@ export function MaintenancePage({ trucks, onRefetch }) {
 
       {/* Modal: Registrar Manutenção */}
       <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Manutenção" warnUnsaved>
-        <MaintenanceForm trucks={trucks} onSuccess={handleSuccess} />
+        <MaintenanceForm trucks={trucks} oficinas={oficinas} onSuccess={handleSuccess} />
       </Modal>
 
       {editingMaintenance && (
         <EditMaintenanceModal
           maintenance={editingMaintenance}
           trucks={trucks}
+          oficinas={oficinas}
           isOpen={!!editingMaintenance}
           onClose={() => setEditingMaintenance(null)}
           onSuccess={handleSuccess}

@@ -8,7 +8,8 @@ class MaintenanceService {
       .from('manutencoes')
       .select(`
         *,
-        caminhoes:caminhao_id(placa, modelo)
+        caminhoes:caminhao_id(placa, modelo),
+        oficinas:oficina_id(id, nome)
       `)
       .eq('user_id', userId)
       .order('data_manutencao', { ascending: false });
@@ -22,7 +23,8 @@ class MaintenanceService {
       .from('manutencoes')
       .select(`
         *,
-        caminhoes:caminhao_id(placa, modelo)
+        caminhoes:caminhao_id(placa, modelo),
+        oficinas:oficina_id(id, nome)
       `)
       .eq('id', id)
       .eq('user_id', userId)

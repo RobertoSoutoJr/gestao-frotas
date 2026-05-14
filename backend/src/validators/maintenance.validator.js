@@ -12,6 +12,7 @@ const createMaintenanceSchema = z.object({
   km_manutencao: z.number().nonnegative('Quilometragem não pode ser negativa').optional().default(0),
   data_manutencao: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido').optional().nullable(),
   oficina: z.string().max(200).optional().nullable(),
+  oficina_id: z.number().int().positive().optional().nullable(),
   status: z.enum(['pendente', 'em_andamento', 'concluida']).optional().default('concluida')
 });
 

@@ -4,7 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useAuth } from './hooks/useAuth';
 import { Header } from './components/layout/Header';
-import { TabNavigation } from './components/layout/TabNavigation';
+import { Sidebar } from './components/layout/Sidebar';
 import { LoadingScreen } from './components/ui/Spinner';
 import { PageSkeleton } from './components/ui/Skeleton';
 import { Button } from './components/ui/Button';
@@ -25,6 +25,8 @@ const StockPage = lazy(() => import('./pages/StockPage').then(m => ({ default: m
 const FuelPage = lazy(() => import('./pages/FuelPage').then(m => ({ default: m.FuelPage })));
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage').then(m => ({ default: m.MaintenancePage })));
 const ReportsPage = lazy(() => import('./pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
+const OficinasPage = lazy(() => import('./pages/OficinasPage').then(m => ({ default: m.OficinasPage })));
+const PostosPage = lazy(() => import('./pages/PostosPage').then(m => ({ default: m.PostosPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.AuthPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
@@ -35,7 +37,7 @@ const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ defaul
 function AuthenticatedContent() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, trips, stockRecords, loading, error, refetch } = useFleet();
+  const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, trips, stockRecords, oficinas, postos, loading, error, refetch } = useFleet();
   const { toasts, dismiss } = useToast();
   const isAdmin = user?.role !== 'motorista';
   const [showOnboarding, setShowOnboarding] = useState(!isOnboardingDone());
@@ -75,9 +77,9 @@ function AuthenticatedContent() {
       <div className="linear-grid" />
 
       <Header searchData={{ trucks, drivers, clients, suppliers, trips }} />
-      <TabNavigation />
+      <Sidebar />
 
-      <main className="relative z-10 container mx-auto px-4 py-6 md:py-8 pb-safe-bottom md:pb-8">
+      <main className="relative z-10 lg:ml-56 container mx-auto px-4 py-6 md:py-8 pb-safe-bottom md:pb-8">
         <Suspense fallback={<div className="py-8"><PageSkeleton /></div>}>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -109,7 +111,7 @@ function AuthenticatedContent() {
               <TripsPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
             } />
             <Route path="/fuel" element={
-              <FuelPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
+              <FuelPage trucks={trucks} drivers={drivers} postos={postos} onRefetch={refetch} />
             } />
             <Route path="/settings" element={<SettingsPage />} />
 
@@ -132,7 +134,13 @@ function AuthenticatedContent() {
                   <StockPage onRefetch={refetch} />
                 } />
                 <Route path="/maintenance" element={
-                  <MaintenancePage trucks={trucks} onRefetch={refetch} />
+                  <MaintenancePage trucks={trucks} oficinas={oficinas} onRefetch={refetch} />
+                } />
+                <Route path="/oficinas" element={
+                  <OficinasPage oficinas={oficinas} onRefetch={refetch} />
+                } />
+                <Route path="/postos" element={
+                  <PostosPage postos={postos} onRefetch={refetch} />
                 } />
                 <Route path="/reports" element={
                   <ReportsPage

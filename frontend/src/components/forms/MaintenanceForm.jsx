@@ -16,7 +16,7 @@ const MAINTENANCE_TYPES = [
   'Outros'
 ];
 
-export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
+export function MaintenanceForm({ trucks, oficinas = [], onSuccess, preselectedTruckId }) {
   const [loading, setLoading] = useState(false);
   const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
@@ -26,7 +26,8 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
     valor_total: '',
     km_manutencao: '',
     data_manutencao: '',
-    status: 'concluida'
+    status: 'concluida',
+    oficina_id: ''
   });
 
   const handleSubmit = async (e) => {
@@ -41,7 +42,8 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
         valor_total: Number(formData.valor_total),
         km_manutencao: formData.km_manutencao ? Number(formData.km_manutencao) : undefined,
         data_manutencao: formData.data_manutencao || undefined,
-        status: formData.status
+        status: formData.status,
+        oficina_id: formData.oficina_id ? Number(formData.oficina_id) : null
       };
 
       await maintenanceService.create(data);
@@ -153,8 +155,19 @@ export function MaintenanceForm({ trucks, onSuccess, preselectedTruckId }) {
           value={formData.data_manutencao}
           onChange={handleChange}
           required
-          className="md:col-span-2"
         />
+
+        <Select
+          name="oficina_id"
+          label="Oficina"
+          value={formData.oficina_id}
+          onChange={handleChange}
+        >
+          <option value="">Nenhuma oficina</option>
+          {oficinas.map(o => (
+            <option key={o.id} value={o.id}>{o.nome}</option>
+          ))}
+        </Select>
       </div>
 
       <Button type="submit" variant="primary" loading={loading} className="w-full">

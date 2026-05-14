@@ -9,7 +9,8 @@ class FuelService {
       .select(`
         *,
         caminhoes:caminhao_id(placa, modelo),
-        motoristas:motorista_id(nome)
+        motoristas:motorista_id(nome),
+        postos:posto_id(id, nome)
       `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -24,7 +25,8 @@ class FuelService {
       .select(`
         *,
         caminhoes:caminhao_id(placa, modelo),
-        motoristas:motorista_id(nome)
+        motoristas:motorista_id(nome),
+        postos:posto_id(id, nome)
       `)
       .eq('id', id)
       .eq('user_id', userId)
