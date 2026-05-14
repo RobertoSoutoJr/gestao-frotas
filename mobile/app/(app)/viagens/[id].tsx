@@ -188,15 +188,15 @@ export default function ViagemDetailScreen() {
           <Text style={styles.sectionTitle}>Localização GPS</Text>
           <GpsRow
             label="Origem"
-            lat={trip.lat_origem}
-            lng={trip.lng_origem}
+            lat={trip.origem_lat}
+            lng={trip.origem_lng}
             capturing={capturingGps === 'origem'}
             onCapture={isActive ? () => captureGps('origem') : undefined}
           />
           <GpsRow
             label="Destino"
-            lat={trip.lat_destino}
-            lng={trip.lng_destino}
+            lat={trip.destino_lat}
+            lng={trip.destino_lng}
             capturing={capturingGps === 'destino'}
             onCapture={isActive ? () => captureGps('destino') : undefined}
           />

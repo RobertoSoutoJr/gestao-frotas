@@ -99,7 +99,8 @@ export default function NewManutencaoScreen() {
     if (!form.tipo_manutencao) e.tipo_manutencao = 'Selecione o tipo';
     if (!form.descricao || form.descricao.length < 3)
       e.descricao = 'Descrição muito curta';
-    if (!form.valor_total || Number(form.valor_total) < 0)
+    const valor = Number(form.valor_total);
+    if (!form.valor_total || isNaN(valor) || valor < 0)
       e.valor_total = 'Valor inválido';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -154,8 +155,8 @@ export default function NewManutencaoScreen() {
       valor_total: Number(form.valor_total),
       km_manutencao: Number(form.km_manutencao) || 0,
       data_manutencao: today,
-      oficina: form.oficina || null,
       status: 'concluida',
+      ...(form.oficina ? { oficina: form.oficina } : {}),
     });
   };
 

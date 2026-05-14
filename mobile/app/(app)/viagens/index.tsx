@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -11,11 +10,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../../../src/components/Card';
+import { Button } from '../../../src/components/Button';
 import { useAuth } from '../../../src/contexts/AuthContext';
-import { useToast } from '../../../src/contexts/ToastContext';
 import { viagensApi } from '../../../src/api/viagens';
 import type { Viagem } from '../../../src/api/types';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
@@ -23,40 +22,12 @@ import { formatCurrency, formatDate } from '../../../src/lib/format';
 
 export default function ViagensListScreen() {
   const { user } = useAuth();
-  const { showToast } = useToast();
-  const queryClient = useQueryClient();
   const isMotorista = user?.role === 'motorista';
 
   const query = useQuery({
     queryKey: ['viagens'],
     queryFn: () => viagensApi.list(),
   });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => viagensApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['viagens'] });
-      showToast('Viagem excluída', 'success');
-    },
-    onError: (err: any) => {
-      showToast(err?.message || 'Erro ao excluir', 'error');
-    },
-  });
-
-  const handleDelete = (id: number) => {
-    Alert.alert(
-      'Excluir viagem',
-      'Tem certeza que deseja excluir esta viagem?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(id),
-        },
-      ],
-    );
-  };
 
   const myTrips = useMemo(() => {
     const all = query.data ?? [];
@@ -82,6 +53,14 @@ export default function ViagensListScreen() {
           <Text style={styles.badgeText}>{active.length} ativas</Text>
         </View>
       </View>
+
+      {isMotorista && (
+        <Button
+          title="+ Nova Viagem"
+          onPress={() => router.push('/(app)/viagens/new')}
+          style={styles.newBtn}
+        />
+      )}
 
       {query.isLoading ? (
         <View style={styles.loading}>
@@ -114,18 +93,7 @@ export default function ViagensListScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => (
-            <TripCard
-              trip={item}
-              onEdit={() =>
-                router.push({
-                  pathname: '/(app)/viagens/edit',
-                  params: { id: item.id },
-                })
-              }
-              onDelete={() => handleDelete(item.id)}
-            />
-          )}
+          renderItem={({ item }) => <TripCard trip={item} />}
           ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         />
       )}
@@ -133,15 +101,7 @@ export default function ViagensListScreen() {
   );
 }
 
-function TripCard({
-  trip,
-  onEdit,
-  onDelete,
-}: {
-  trip: Viagem;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
+function TripCard({ trip }: { trip: Viagem }) {
   const isActive = trip.status === 'cadastrada';
   const custoTotal =
     (Number(trip.custo_combustivel) || 0) +
@@ -214,31 +174,6 @@ function TripCard({
           )}
           <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
         </View>
-
-        <View style={styles.cardActions}>
-          <Pressable
-            style={styles.actionBtn}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              onEdit();
-            }}
-          >
-            <Ionicons name="create-outline" size={18} color={colors.accent} />
-            <Text style={styles.actionText}>Editar</Text>
-          </Pressable>
-          <Pressable
-            style={styles.actionBtn}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              onDelete();
-            }}
-          >
-            <Ionicons name="trash-outline" size={18} color={colors.danger} />
-            <Text style={[styles.actionText, { color: colors.danger }]}>
-              Excluir
-            </Text>
-          </Pressable>
-        </View>
       </Card>
     </Pressable>
   );
@@ -269,6 +204,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     fontWeight: '600',
     color: colors.warning,
+  },
+  newBtn: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
   },
   loading: {
     flex: 1,
@@ -360,23 +299,5 @@ const styles = StyleSheet.create({
   lucro: {
     fontSize: fontSize.sm,
     fontWeight: '600',
-  },
-  cardActions: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  actionText: {
-    fontSize: fontSize.sm,
-    color: colors.accent,
-    fontWeight: '500',
   },
 });

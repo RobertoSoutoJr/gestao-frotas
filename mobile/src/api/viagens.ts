@@ -1,5 +1,21 @@
-import { apiGet, apiPut, apiPatch, apiDelete } from './client';
+import { apiGet, apiPatch, apiPost } from './client';
 import type { Viagem } from './types';
+
+export interface CreateViagemPayload {
+  fornecedor_id: number;
+  cliente_id: number;
+  caminhao_id: number;
+  motorista_id: number;
+  produto: string;
+  quantidade_sacas: number;
+  preco_produto_saca: number;
+  preco_frete_saca: number;
+  distancia_km?: number | null;
+  data_viagem?: string | null;
+  observacoes?: string | null;
+  origem_lat?: number | null;
+  origem_lng?: number | null;
+}
 
 export interface UpdateLocationPayload {
   field: 'origem' | 'destino';
@@ -15,23 +31,12 @@ export interface FinalizeViagemPayload {
   custo_outros?: number;
 }
 
-export interface UpdateViagemPayload {
-  produto?: string;
-  quantidade_sacas?: number;
-  preco_frete_saca?: number;
-  valor_total_frete?: number;
-  distancia_km?: number;
-  observacoes?: string;
-}
-
 export const viagensApi = {
   list: () => apiGet<Viagem[]>('/viagens'),
   getById: (id: number) => apiGet<Viagem>(`/viagens/${id}`),
-  update: (id: number, data: UpdateViagemPayload) =>
-    apiPut<Viagem>(`/viagens/${id}`, data),
+  create: (data: CreateViagemPayload) => apiPost<Viagem>('/viagens', data),
   updateLocation: (id: number, data: UpdateLocationPayload) =>
     apiPatch<Viagem>(`/viagens/${id}/location`, data),
   finalize: (id: number, data: FinalizeViagemPayload) =>
     apiPatch<Viagem>(`/viagens/${id}/finalizar`, data),
-  delete: (id: number) => apiDelete<void>(`/viagens/${id}`),
 };

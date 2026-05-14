@@ -84,10 +84,10 @@ export interface Viagem {
   data_viagem?: string;
   forma_pagamento?: string;
   observacoes?: string;
-  lat_origem?: number | null;
-  lng_origem?: number | null;
-  lat_destino?: number | null;
-  lng_destino?: number | null;
+  origem_lat?: number | null;
+  origem_lng?: number | null;
+  destino_lat?: number | null;
+  destino_lng?: number | null;
   custo_combustivel?: number;
   custo_pedagio?: number;
   custo_manutencao?: number;

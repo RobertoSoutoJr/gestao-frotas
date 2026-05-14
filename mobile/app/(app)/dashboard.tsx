@@ -50,7 +50,7 @@ export default function DashboardScreen() {
   };
 
   // Motorista stats
-  const motoristaStats = useMemo(() => {
+  const motoristaStats = useMemo((): MotoristaStats | null => {
     if (!isMotorista || !user?.motorista_id) {
       return null;
     }
@@ -163,11 +163,18 @@ export default function DashboardScreen() {
   );
 }
 
-function MotoristaView({
-  stats,
-}: {
-  stats: ReturnType<typeof useMemo> extends infer R ? any : never;
-}) {
+interface MotoristaStats {
+  activeTrips: number;
+  completedTrips: number;
+  totalKm: number;
+  totalLitros: number;
+  totalGasto: number;
+  totalFrete: number;
+  lucroTotal: number;
+  kmPerLiter: number;
+}
+
+function MotoristaView({ stats }: { stats: MotoristaStats | null }) {
   if (!stats) {
     return (
       <Card>
