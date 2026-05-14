@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { Button } from '../../../src/components/Button';
 import { Card } from '../../../src/components/Card';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { useToast } from '../../../src/contexts/ToastContext';
@@ -82,6 +83,14 @@ export default function ViagensListScreen() {
           <Text style={styles.badgeText}>{active.length} ativas</Text>
         </View>
       </View>
+
+      {isMotorista && (
+        <Button
+          title="+ Nova Viagem"
+          onPress={() => router.push('/(app)/viagens/new')}
+          style={styles.newBtn}
+        />
+      )}
 
       {query.isLoading ? (
         <View style={styles.loading}>
@@ -269,6 +278,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     fontWeight: '600',
     color: colors.warning,
+  },
+  newBtn: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
   },
   loading: {
     flex: 1,
