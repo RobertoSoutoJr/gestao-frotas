@@ -135,17 +135,10 @@ Todas as tabelas possuem:
 - CHECK constraints para validacao no banco (status, tipos, valores)
 - RLS habilitado (Row Level Security)
 
-## Limitacoes conhecidas
-
-- Sem paginacao nas listas (pode ficar lento com muitos registros)
-- Navegacao por estado React, sem rotas na URL (refresh volta ao dashboard)
-- Sem upload real de fotos dos caminhoes (apenas placeholder)
-- Sem notificacoes push ou email
-
 ## Licenca
 
 MIT
 
 ---
 
-Desenvolvido por Roberto Souto Jr — Projeto academico, 2025/2026
+Desenvolvido por Roberto Souto Jr, Felipe Rodrigues, Mabelly e Joao Victor Fernandes — Projeto academico, 2025/2026
