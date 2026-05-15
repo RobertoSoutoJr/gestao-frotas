@@ -22,6 +22,7 @@ import { useAuth } from '../../../src/contexts/AuthContext';
 import { caminhoesApi } from '../../../src/api/caminhoes';
 import { clientesApi } from '../../../src/api/clientes';
 import { fornecedoresApi } from '../../../src/api/fornecedores';
+import { motoristasApi } from '../../../src/api/motoristas';
 import { viagensApi, CreateViagemPayload } from '../../../src/api/viagens';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatCurrency } from '../../../src/lib/format';
@@ -30,6 +31,7 @@ const INITIAL_FORM = {
   fornecedor_id: null as number | null,
   cliente_id: null as number | null,
   caminhao_id: null as number | null,
+  motorista_id: null as number | null,
   produto: '',
   quantidade_sacas: '',
   preco_produto_saca: '',
@@ -41,6 +43,7 @@ const INITIAL_FORM = {
 export default function NovaViagemScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isAdmin = user?.role !== 'motorista';
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,6 +53,7 @@ export default function NovaViagemScreen() {
   const caminhoesQuery = useQuery({ queryKey: ['caminhoes'], queryFn: () => caminhoesApi.list() });
   const clientesQuery = useQuery({ queryKey: ['clientes'], queryFn: () => clientesApi.list() });
   const fornecedoresQuery = useQuery({ queryKey: ['fornecedores'], queryFn: () => fornecedoresApi.list() });
+  const motoristasQuery = useQuery({ queryKey: ['motoristas'], queryFn: () => motoristasApi.list(), enabled: isAdmin });
 
   const caminhaoOptions: PickerOption[] = (caminhoesQuery.data ?? []).map((c) => ({
     label: `${c.placa} — ${c.modelo}`,
@@ -62,6 +66,10 @@ export default function NovaViagemScreen() {
   const fornecedorOptions: PickerOption[] = (fornecedoresQuery.data ?? []).map((f) => ({
     label: f.nome,
     value: f.id,
+  }));
+  const motoristaOptions: PickerOption[] = (motoristasQuery.data ?? []).map((m) => ({
+    label: m.nome,
+    value: m.id,
   }));
 
   const sacasNum = Number(form.quantidade_sacas) || 0;
@@ -93,6 +101,9 @@ export default function NovaViagemScreen() {
     if (!form.fornecedor_id) e.fornecedor_id = 'Selecione o fornecedor';
     if (!form.cliente_id) e.cliente_id = 'Selecione o cliente';
     if (!form.caminhao_id) e.caminhao_id = 'Selecione um caminhao';
+    if (isAdmin && !form.motorista_id) e.motorista_id = 'Selecione o motorista';
+    if (!isAdmin && !user?.motorista_id)
+      e.motorista_id = 'Seu usuario nao esta vinculado a um motorista';
     if (!form.produto.trim()) e.produto = 'Informe o produto';
     if (!form.quantidade_sacas || Number(form.quantidade_sacas) <= 0)
       e.quantidade_sacas = 'Informe a quantidade de sacas';
@@ -101,8 +112,6 @@ export default function NovaViagemScreen() {
     const frete = Number(form.preco_frete_saca);
     if (!form.preco_frete_saca || isNaN(frete) || frete <= 0)
       e.preco_frete_saca = 'Informe o valor do frete por saca';
-    if (!user?.motorista_id)
-      e.motorista_id = 'Seu usuario nao esta vinculado a um motorista';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -132,7 +141,7 @@ export default function NovaViagemScreen() {
       fornecedor_id: form.fornecedor_id!,
       cliente_id: form.cliente_id!,
       caminhao_id: form.caminhao_id!,
-      motorista_id: user!.motorista_id!,
+      motorista_id: isAdmin ? form.motorista_id! : user!.motorista_id!,
       produto: form.produto.trim(),
       quantidade_sacas: Number(form.quantidade_sacas),
       preco_produto_saca: Number(form.preco_produto_saca),
@@ -166,13 +175,24 @@ export default function NovaViagemScreen() {
             <Text style={styles.title}>Nova Viagem</Text>
           </View>
 
-          {!user?.motorista_id && (
+          {!isAdmin && !user?.motorista_id && (
             <Card style={styles.alertCard}>
               <Ionicons name="warning-outline" size={18} color={colors.warning} />
               <Text style={styles.alertText}>
                 Seu usuario nao esta vinculado a um cadastro de motorista. Fale com o gestor para liberar o acesso.
               </Text>
             </Card>
+          )}
+
+          {isAdmin && (
+            <Picker
+              label="Motorista *"
+              placeholder="Selecione o motorista"
+              options={motoristaOptions}
+              value={form.motorista_id}
+              onSelect={(v) => { setForm((p) => ({ ...p, motorista_id: v as number })); setErrors((p) => ({ ...p, motorista_id: '' })); }}
+              error={errors.motorista_id}
+            />
           )}
 
           <Picker
@@ -298,7 +318,7 @@ export default function NovaViagemScreen() {
             title={mutation.isPending ? 'Registrando...' : 'Registrar Viagem'}
             onPress={handleSubmit}
             loading={mutation.isPending}
-            disabled={mutation.isPending || !user?.motorista_id}
+            disabled={mutation.isPending || (!isAdmin && !user?.motorista_id)}
             style={styles.submitBtn}
           />
         </ScrollView>

@@ -62,8 +62,12 @@ export interface Abastecimento {
   litros: number;
   valor_total: number;
   km_registro?: number;
-  posto?: string;
+  posto?: string | null;
+  posto_id?: number | null;
   created_at: string;
+  caminhoes?: { placa: string; modelo: string };
+  motoristas?: { nome: string } | null;
+  postos?: { id: number; nome: string } | null;
 }
 
 export interface Viagem {
@@ -105,7 +109,9 @@ export interface Manutencao {
   data_manutencao: string;
   km_manutencao?: number;
   oficina?: string | null;
+  oficina_id?: number | null;
   status?: 'pendente' | 'em_andamento' | 'concluida';
   created_at?: string;
   caminhoes?: { placa: string; modelo: string };
+  oficinas?: { id: number; nome: string } | null;
 }

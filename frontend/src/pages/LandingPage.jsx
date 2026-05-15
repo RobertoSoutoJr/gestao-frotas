@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Fuel, Truck, Route, BarChart3, Shield, Smartphone, ArrowRight, Check } from 'lucide-react';
+import logoLight from '../assets/images/logoFuelTrack_light-removebg.png';
+import logoDark from '../assets/images/logoFuelTrack_black-removebg.png';
 
 const FEATURES = [
   {
@@ -69,14 +71,8 @@ export function LandingPage() {
       {/* Nav */}
       <nav className="border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#5E6AD2]/15 border border-[#5E6AD2]/25">
-              <Fuel className="h-4 w-4 text-[#5E6AD2]" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">
-              <span className="text-white">Fuel</span>
-              <span className="text-[#5E6AD2]">Track</span>
-            </span>
+          <div className="flex items-center">
+            <img src={logoDark} alt="FuelTrack" className="h-20 w-auto" />
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -233,12 +229,8 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="py-10 border-t border-white/5">
         <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Fuel className="h-4 w-4 text-[#5E6AD2]" />
-            <span className="font-bold">
-              <span className="text-white">Fuel</span>
-              <span className="text-[#5E6AD2]">Track</span>
-            </span>
+          <div className="flex items-center justify-center mb-4">
+            <img src={logoDark} alt="FuelTrack" className="h-9 w-auto" />
           </div>
           <p className="text-sm text-white/30">
             Gestao de frotas inteligente para transportadoras.

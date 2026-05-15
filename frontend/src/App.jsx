@@ -13,6 +13,8 @@ import { useFleet } from './hooks/useFleet';
 import { useToast } from './hooks/useToast';
 import { OnboardingWizard, isOnboardingDone } from './components/ui/OnboardingWizard';
 
+const DEV_BYPASS = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+
 // Lazy-loaded pages (code splitting)
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const DriverDashboardPage = lazy(() => import('./pages/DriverDashboardPage').then(m => ({ default: m.DriverDashboardPage })));
@@ -50,7 +52,7 @@ function AuthenticatedContent() {
     return <LoadingScreen />;
   }
 
-  if (error) {
+  if (error && !DEV_BYPASS) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)]">
         <div className="linear-bg" />
@@ -163,7 +165,7 @@ function AuthenticatedContent() {
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
 
-      {showOnboarding && isAdmin && trucks.length === 0 && (
+      {showOnboarding && isAdmin && trucks.length === 0 && !DEV_BYPASS && (
         <OnboardingWizard onComplete={() => { setShowOnboarding(false); refetch(); }} />
       )}
     </div>

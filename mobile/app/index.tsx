@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../src/contexts/AuthContext';
 import { colors, fontSize } from '../src/lib/theme';
+
+const logoDark = require('../assets/images/logoFuelTrack_black-removebg.png');
 
 // Splash/gate: branded loading screen → redirect based on auth state
 export default function Index() {
@@ -44,13 +45,7 @@ export default function Index() {
       <Animated.View
         style={[styles.content, { opacity, transform: [{ scale }] }]}
       >
-        <View style={styles.iconCircle}>
-          <Ionicons name="water" size={36} color={colors.accent} />
-        </View>
-        <Text style={styles.brand}>
-          <Text style={styles.brandWhite}>Fuel</Text>
-          <Text style={styles.brandAccent}>Track</Text>
-        </Text>
+        <Image source={logoDark} style={styles.logo} resizeMode="contain" />
         <Text style={styles.tagline}>Gestão Inteligente de Frotas</Text>
       </Animated.View>
     </View>
@@ -67,26 +62,10 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
   },
-  iconCircle: {
-    width: 72,
+  logo: {
+    width: 220,
     height: 72,
-    borderRadius: 20,
-    backgroundColor: colors.accent + '20',
-    borderWidth: 1,
-    borderColor: colors.accent + '40',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  brand: {
-    fontSize: fontSize.xxxl,
-    fontWeight: '700',
-  },
-  brandWhite: {
-    color: colors.text,
-  },
-  brandAccent: {
-    color: colors.accent,
+    marginBottom: 8,
   },
   tagline: {
     fontSize: fontSize.sm,

@@ -31,10 +31,13 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -56,10 +59,14 @@
         }
       ]
     ],
+    "updates": {
+      "enabled": false
+    },
     "extra": {
       "apiUrl": "https://srv1665848.hstgr.cloud/api",
+      "router": {},
       "eas": {
-        "projectId": "fueltrack-mobile"
+        "projectId": "f157a24c-ac08-44c8-9fff-aa77e51a9e2c"
       }
     }
   }

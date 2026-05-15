@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { colors } from '../../../src/lib/theme';
 
-export default function FrotaLayout() {
+export default function MotoristasLayout() {
   return (
     <Stack
       screenOptions={{
@@ -10,9 +10,7 @@ export default function FrotaLayout() {
         animation: 'fade',
       }}
     >
-      <Stack.Screen name="index" />
       <Stack.Screen name="new" />
-      <Stack.Screen name="[id]" />
     </Stack>
   );
 }

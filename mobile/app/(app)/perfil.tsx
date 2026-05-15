@@ -1,5 +1,6 @@
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
@@ -8,6 +9,7 @@ import { colors, fontSize, radius, spacing } from '../../src/lib/theme';
 
 export default function PerfilScreen() {
   const { user, logout } = useAuth();
+  const isAdmin = user?.role !== 'motorista';
 
   const handleLogout = () => {
     Alert.alert('Sair', 'Tem certeza que deseja sair?', [
@@ -53,6 +55,14 @@ export default function PerfilScreen() {
             value={user?.is_active ? 'Ativo' : 'Inativo'}
           />
         </Card>
+
+        {isAdmin && (
+          <Button
+            title="+ Cadastrar Motorista"
+            onPress={() => router.push('/(app)/motoristas/new')}
+            style={styles.actionButton}
+          />
+        )}
 
         <Button
           title="Sair"
@@ -140,7 +150,10 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '500',
   },
-  logoutButton: {
+  actionButton: {
     marginTop: spacing.xl,
+  },
+  logoutButton: {
+    marginTop: spacing.sm,
   },
 });

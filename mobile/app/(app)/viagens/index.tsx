@@ -84,13 +84,11 @@ export default function ViagensListScreen() {
         </View>
       </View>
 
-      {isMotorista && (
-        <Button
-          title="+ Nova Viagem"
-          onPress={() => router.push('/(app)/viagens/new')}
-          style={styles.newBtn}
-        />
-      )}
+      <Button
+        title="+ Nova Viagem"
+        onPress={() => router.push('/(app)/viagens/new')}
+        style={styles.newBtn}
+      />
 
       {query.isLoading ? (
         <View style={styles.loading}>
@@ -119,7 +117,7 @@ export default function ViagensListScreen() {
               <Text style={styles.emptyText}>
                 {isMotorista
                   ? 'Viagens atribuídas a você aparecerão aqui.'
-                  : 'Crie viagens pelo painel web.'}
+                  : 'Toque em "+ Nova Viagem" para cadastrar.'}
               </Text>
             </View>
           }

@@ -166,8 +166,10 @@ function MaintenanceCard({
         {record.caminhoes ? (
           <Text style={styles.placa}>{record.caminhoes.placa}</Text>
         ) : null}
-        {record.oficina ? (
-          <Text style={styles.oficina} numberOfLines={1}>{record.oficina}</Text>
+        {(record.oficinas?.nome || record.oficina) ? (
+          <Text style={styles.oficina} numberOfLines={1}>
+            {record.oficinas?.nome || record.oficina}
+          </Text>
         ) : null}
         <Text style={styles.valor}>{formatCurrency(record.valor_total)}</Text>
       </View>

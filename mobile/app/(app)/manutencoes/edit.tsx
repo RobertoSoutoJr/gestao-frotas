@@ -66,7 +66,7 @@ export default function EditManutencaoScreen() {
         descricao: r.descricao || '',
         valor_total: String(r.valor_total),
         km_manutencao: r.km_manutencao ? String(r.km_manutencao) : '',
-        oficina: r.oficina || '',
+        oficina: r.oficinas?.nome || r.oficina || '',
       });
       setLoaded(true);
     }

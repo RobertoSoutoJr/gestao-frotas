@@ -3,13 +3,17 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Fuel, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import logoLight from '../assets/images/logoFuelTrack_light-removebg.png';
+import logoDark from '../assets/images/logoFuelTrack_black-removebg.png';
 
 export function LoginPage({ onToggle }) {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const { error: showError, success } = useToast();
+  const { isDark } = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,17 +43,12 @@ export function LoginPage({ onToggle }) {
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[var(--color-accent)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col px-16 max-w-xl">
-          <div className="flex items-center gap-3 mb-12">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/25">
-              <Fuel className="h-6 w-6 text-[var(--color-accent)]" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                <span className="text-[var(--color-text)]">Fuel</span>
-                <span className="text-[var(--color-accent)]">Track</span>
-              </h1>
-              <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Gestão Inteligente de Frotas</p>
-            </div>
+          <div className="flex items-center mb-12">
+            <img
+              src={isDark ? logoDark : logoLight}
+              alt="FuelTrack"
+              className="h-28 w-auto"
+            />
           </div>
 
           <h2 className="text-5xl font-bold leading-tight mb-6 text-[var(--color-text)]">
@@ -78,14 +77,12 @@ export function LoginPage({ onToggle }) {
       <div className="flex-1 flex items-center justify-center px-8 py-12 relative z-10">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/25">
-              <Fuel className="h-4 w-4 text-[var(--color-accent)]" />
-            </div>
-            <span className="text-2xl font-bold">
-              <span className="text-[var(--color-text)]">Fuel</span>
-              <span className="text-[var(--color-accent)]">Track</span>
-            </span>
+          <div className="lg:hidden flex justify-center mb-8">
+            <img
+              src={isDark ? logoDark : logoLight}
+              alt="FuelTrack"
+              className="h-16 w-auto"
+            />
           </div>
 
           {/* Form Card */}

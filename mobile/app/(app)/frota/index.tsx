@@ -13,12 +13,17 @@ import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../../../src/components/Card';
+import { Button } from '../../../src/components/Button';
+import { useAuth } from '../../../src/contexts/AuthContext';
 import { caminhoesApi } from '../../../src/api/caminhoes';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatNumber } from '../../../src/lib/format';
 import type { Caminhao } from '../../../src/api/types';
 
 export default function FrotaListScreen() {
+  const { user } = useAuth();
+  const isAdmin = user?.role !== 'motorista';
+
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['caminhoes'],
     queryFn: () => caminhoesApi.list(),
@@ -74,10 +79,19 @@ export default function FrotaListScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Frota</Text>
-        <Text style={styles.subtitle}>
-          {trucks.length} caminhão{trucks.length !== 1 ? 'ões' : ''}
-        </Text>
+        <View>
+          <Text style={styles.title}>Frota</Text>
+          <Text style={styles.subtitle}>
+            {trucks.length} caminhão{trucks.length !== 1 ? 'ões' : ''}
+          </Text>
+        </View>
+        {isAdmin && (
+          <Button
+            title="+ Novo"
+            onPress={() => router.push('/(app)/frota/new')}
+            style={styles.newBtn}
+          />
+        )}
       </View>
 
       {isLoading ? (
@@ -89,7 +103,9 @@ export default function FrotaListScreen() {
           <Ionicons name="bus-outline" size={48} color={colors.textDim} />
           <Text style={styles.emptyTitle}>Nenhum caminhão</Text>
           <Text style={styles.emptyText}>
-            Cadastre caminhões pelo painel web para vê-los aqui.
+            {isAdmin
+              ? 'Toque em "+ Novo" para cadastrar seu primeiro caminhão.'
+              : 'Nenhum caminhão cadastrado pelo gestor ainda.'}
           </Text>
         </View>
       ) : (
@@ -115,9 +131,16 @@ export default function FrotaListScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
+  },
+  newBtn: {
+    paddingHorizontal: spacing.md,
+    minWidth: 80,
   },
   title: {
     fontSize: fontSize.xxl,

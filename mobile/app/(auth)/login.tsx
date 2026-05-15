@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -8,6 +9,8 @@ import {
   Text,
   View,
 } from 'react-native';
+
+const logoDark = require('../../assets/images/logoFuelTrack_black-removebg.png');
 import { Link, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
@@ -48,7 +51,7 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Text style={styles.logo}>FuelTrack</Text>
+            <Image source={logoDark} style={styles.logo} resizeMode="contain" />
             <Text style={styles.subtitle}>Gestão Inteligente de Frotas</Text>
           </View>
 
@@ -104,9 +107,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxl,
   },
   logo: {
-    fontSize: fontSize.xxxl,
-    fontWeight: '700',
-    color: colors.text,
+    width: 200,
+    height: 60,
     marginBottom: spacing.xs,
   },
   subtitle: {

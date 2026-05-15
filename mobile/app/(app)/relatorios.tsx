@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -24,7 +25,28 @@ import {
 } from '../../src/lib/format';
 import type { Caminhao } from '../../src/api/types';
 
+type Periodo = '7d' | '30d' | '90d' | '1a' | 'tudo';
+
+const PERIODOS: { label: string; value: Periodo }[] = [
+  { label: '7 dias', value: '7d' },
+  { label: '30 dias', value: '30d' },
+  { label: '90 dias', value: '90d' },
+  { label: '1 ano', value: '1a' },
+  { label: 'Tudo', value: 'tudo' },
+];
+
+function getDateFrom(periodo: Periodo): Date | null {
+  if (periodo === 'tudo') return null;
+  const d = new Date();
+  if (periodo === '7d') d.setDate(d.getDate() - 7);
+  else if (periodo === '30d') d.setDate(d.getDate() - 30);
+  else if (periodo === '90d') d.setDate(d.getDate() - 90);
+  else if (periodo === '1a') d.setFullYear(d.getFullYear() - 1);
+  return d;
+}
+
 export default function RelatoriosScreen() {
+  const [periodo, setPeriodo] = useState<Periodo>('tudo');
   const caminhoesQuery = useQuery({
     queryKey: ['caminhoes'],
     queryFn: () => caminhoesApi.list(),
@@ -71,10 +93,17 @@ export default function RelatoriosScreen() {
   // KPIs gerais
   const kpis = useMemo(() => {
     const caminhoes = caminhoesQuery.data ?? [];
-    const fuel = fuelQuery.data ?? [];
-    const maint = maintQuery.data ?? [];
-    const trips = tripsQuery.data ?? [];
     const drivers = driversQuery.data ?? [];
+    const dateFrom = getDateFrom(periodo);
+
+    const inRange = (dateStr?: string | null) => {
+      if (!dateFrom || !dateStr) return true;
+      return new Date(dateStr) >= dateFrom;
+    };
+
+    const fuel = (fuelQuery.data ?? []).filter((r) => inRange(r.created_at));
+    const maint = (maintQuery.data ?? []).filter((r) => inRange(r.data_manutencao));
+    const trips = (tripsQuery.data ?? []).filter((t) => inRange(t.data_viagem ?? t.created_at));
 
     const totalCaminhoes = caminhoes.length;
     const totalMotoristas = drivers.length;
@@ -145,6 +174,7 @@ export default function RelatoriosScreen() {
     maintQuery.data,
     tripsQuery.data,
     driversQuery.data,
+    periodo,
   ]);
 
   return (
@@ -160,7 +190,20 @@ export default function RelatoriosScreen() {
         }
       >
         <Text style={styles.title}>Relatórios</Text>
-        <Text style={styles.subtitle}>Visão geral da frota</Text>
+
+        <View style={styles.periodoRow}>
+          {PERIODOS.map((p) => (
+            <Pressable
+              key={p.value}
+              onPress={() => setPeriodo(p.value)}
+              style={[styles.periodoChip, periodo === p.value && styles.periodoChipActive]}
+            >
+              <Text style={[styles.periodoText, periodo === p.value && styles.periodoTextActive]}>
+                {p.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
 
         {isLoading ? (
           <View style={styles.loading}>
@@ -355,11 +398,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
-  subtitle: {
+  periodoRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
+    flexWrap: 'wrap',
+  },
+  periodoChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgCard,
+  },
+  periodoChipActive: {
+    borderColor: colors.accent,
+    backgroundColor: colors.accent + '20',
+  },
+  periodoText: {
     fontSize: fontSize.sm,
     color: colors.textMuted,
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
+    fontWeight: '500',
+  },
+  periodoTextActive: {
+    color: colors.accent,
+    fontWeight: '700',
   },
   loading: {
     padding: spacing.xxl,

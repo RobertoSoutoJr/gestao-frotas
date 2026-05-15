@@ -58,7 +58,7 @@ export default function EditAbastecimentoScreen() {
         litros: String(r.litros),
         valor_total: String(r.valor_total),
         km_registro: r.km_registro ? String(r.km_registro) : '',
-        posto: r.posto || '',
+        posto: r.postos?.nome || r.posto || '',
       });
       setLoaded(true);
     }

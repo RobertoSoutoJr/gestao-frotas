@@ -123,10 +123,12 @@ export default function AbastecerListScreen() {
               <Text style={styles.metaText}>{formatNumber(item.km_registro, 0)} km</Text>
             </View>
           ) : null}
-          {item.posto ? (
+          {(item.postos?.nome || item.posto) ? (
             <View style={styles.metaItem}>
               <Ionicons name="location-outline" size={14} color={colors.textMuted} />
-              <Text style={styles.metaText} numberOfLines={1}>{item.posto}</Text>
+              <Text style={styles.metaText} numberOfLines={1}>
+                {item.postos?.nome || item.posto}
+              </Text>
             </View>
           ) : null}
         </View>

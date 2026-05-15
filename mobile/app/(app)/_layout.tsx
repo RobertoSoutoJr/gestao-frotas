@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 import { Tabs, router } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { colors } from '../../src/lib/theme';
 
 export default function AppLayout() {
   const { user, loading } = useAuth();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -32,8 +34,8 @@ export default function AppLayout() {
           backgroundColor: colors.bgCard,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom + 4,
           paddingTop: 6,
         },
         tabBarActiveTintColor: colors.accent,
@@ -99,6 +101,10 @@ export default function AppLayout() {
           ),
           href: !isMotorista ? '/(app)/relatorios' : null,
         }}
+      />
+      <Tabs.Screen
+        name="motoristas"
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="perfil"

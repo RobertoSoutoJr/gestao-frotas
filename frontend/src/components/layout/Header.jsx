@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Fuel, LogOut, ChevronDown, Sun, Moon, X, Settings, Search } from 'lucide-react';
+import { LogOut, ChevronDown, Sun, Moon, X, Settings, Search } from 'lucide-react';
+import logoLight from '../../assets/images/logoFuelTrack_light-removebg.png';
+import logoDark from '../../assets/images/logoFuelTrack_black-removebg.png';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
 import { GlobalSearch } from '../ui/GlobalSearch';
@@ -23,17 +25,15 @@ export function Header({ searchData }) {
       className="relative z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-xl transition-colors duration-200"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div className="container mx-auto px-3 py-2 md:px-4 md:py-3">
+      <div className="container mx-auto px-3 py-1 md:px-4 md:py-1">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/25">
-              <Fuel className="h-4 w-4 text-[var(--color-accent)]" />
-            </div>
-            <h1 className="text-xl font-bold tracking-tight hidden sm:block">
-              <span className="text-[var(--color-text)]">Fuel</span>
-              <span className="text-[var(--color-accent)]">Track</span>
-            </h1>
+          <div className="flex items-center">
+            <img
+              src={isDark ? logoDark : logoLight}
+              alt="FuelTrack"
+              className="h-14 w-auto"
+            />
           </div>
 
           {/* Global Search */}
