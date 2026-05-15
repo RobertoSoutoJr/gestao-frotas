@@ -10,8 +10,6 @@ import { stockService } from '../services/stock';
 import { oficinasService } from '../services/oficinas';
 import { postosService } from '../services/postos';
 
-const DEV_BYPASS = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
-
 export function useFleet() {
   const [trucks, setTrucks] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -23,7 +21,7 @@ export function useFleet() {
   const [stockRecords, setStockRecords] = useState([]);
   const [oficinas, setOficinas] = useState([]);
   const [postos, setPostos] = useState([]);
-  const [loading, setLoading] = useState(!DEV_BYPASS);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchData = async (silent = false) => {
@@ -63,7 +61,6 @@ export function useFleet() {
   };
 
   useEffect(() => {
-    if (DEV_BYPASS) return;
     fetchData();
   }, []);
 

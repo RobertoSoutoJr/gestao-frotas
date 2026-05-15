@@ -4,25 +4,13 @@ import { setApiSilentMode } from '../services/api';
 
 export const AuthContext = createContext({});
 
-const DEV_BYPASS = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
-
-const DEV_MOCK_USER = {
-  id: 1,
-  nome: 'Dev Local',
-  email: 'dev@teste.com',
-  role: 'admin',
-  empresa: 'Transportadora Dev',
-};
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(DEV_BYPASS ? DEV_MOCK_USER : null);
-  const [loading, setLoading] = useState(!DEV_BYPASS);
-  const [isAuthenticated, setIsAuthenticated] = useState(DEV_BYPASS);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pendingVerification, setPendingVerification] = useState(null); // email aguardando verificação
 
   useEffect(() => {
-    if (DEV_BYPASS) return;
-
     const loadUser = async () => {
       const storedUser = authService.getCurrentUser();
       const token = localStorage.getItem('accessToken');
