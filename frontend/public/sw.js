@@ -1,5 +1,5 @@
 // Bump this when the SW logic itself changes to force old caches to be wiped.
-const CACHE_NAME = 'fueltrack-v2';
+const CACHE_NAME = 'fueltrack-v3';
 // Do NOT precache '/' — index.html is network-first below so the latest
 // JS bundle hashes are always picked up after a deploy.
 const STATIC_ASSETS = [

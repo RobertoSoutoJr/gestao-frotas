@@ -19,6 +19,7 @@ export function Input({
 }) {
   const autoId = useId();
   const inputId = externalId || autoId;
+  const [focused, setFocused] = useState(false);
 
   const applyMask = (value) => {
     if (!mask) return value;
