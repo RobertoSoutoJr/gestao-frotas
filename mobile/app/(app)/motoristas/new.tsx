@@ -16,7 +16,8 @@ import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
 import { Picker, PickerOption } from '../../../src/components/Picker';
 import { motoristasApi, CreateMotoristaPayload } from '../../../src/api/motoristas';
-import { colors, fontSize, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, spacing } from '../../../src/lib/theme';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 const CNH_OPTIONS: PickerOption[] = [
   { label: 'A', value: 'A' },
@@ -42,6 +43,8 @@ const INITIAL_FORM = {
 
 export default function NovoMotoristaScreen() {
   const queryClient = useQueryClient();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -167,8 +170,8 @@ export default function NovoMotoristaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   headerRow: { flexDirection: 'row', marginBottom: spacing.xs },
@@ -179,11 +182,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.xl,
   },
-  title: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text },
+  title: { fontSize: fontSize.xxl, fontWeight: '700', color: c.text },
   sectionLabel: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.accent,
+    color: c.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: spacing.md,

@@ -19,7 +19,8 @@ import { Picker, PickerOption } from '../../../src/components/Picker';
 import { useToast } from '../../../src/contexts/ToastContext';
 import { useHaptics } from '../../../src/hooks/useHaptics';
 import { motoristasApi } from '../../../src/api/motoristas';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 const CNH_OPTIONS: PickerOption[] = [
   { label: 'A', value: 'A' },
@@ -39,6 +40,8 @@ export default function EditMotoristaScreen() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const haptics = useHaptics();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const [form, setForm] = useState({
     nome: '',
@@ -213,8 +216,8 @@ export default function EditMotoristaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   loading: {
     flex: 1,
@@ -232,21 +235,21 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.md,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
   },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   sectionLabel: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.accent,
+    color: c.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: spacing.md,

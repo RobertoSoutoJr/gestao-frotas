@@ -13,14 +13,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../../src/components/Card';
 import { StatCard } from '../../src/components/StatCard';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { useColors, useStyles } from '../../src/contexts/ThemeContext';
 import { viagensApi } from '../../src/api/viagens';
 import { abastecimentosApi } from '../../src/api/abastecimentos';
 import { caminhoesApi } from '../../src/api/caminhoes';
-import { colors, fontSize, radius, spacing } from '../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../src/lib/theme';
 import { formatCurrency, formatNumber } from '../../src/lib/format';
 
 export default function DashboardScreen() {
   const { user } = useAuth();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const isMotorista = user?.role === 'motorista';
 
   const viagensQuery = useQuery({
@@ -175,6 +178,9 @@ interface MotoristaStats {
 }
 
 function MotoristaView({ stats }: { stats: MotoristaStats | null }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+
   if (!stats) {
     return (
       <Card>
@@ -265,6 +271,9 @@ function MotoristaView({ stats }: { stats: MotoristaStats | null }) {
 }
 
 function AdminView({ stats }: { stats: any }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+
   if (!stats) return null;
 
   return (
@@ -325,18 +334,18 @@ function AdminView({ stats }: { stats: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   header: { marginBottom: spacing.lg },
   greeting: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   role: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: spacing.xs,
   },
   loading: {
@@ -361,22 +370,22 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   infoText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     lineHeight: 20,
   },
   emptyTitle: {
     fontSize: fontSize.lg,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
     marginBottom: spacing.xs,
   },
   emptyText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     lineHeight: 20,
   },
 });

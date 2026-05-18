@@ -4,11 +4,24 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { colors } from '../../src/lib/theme';
+import { type Colors } from '../../src/lib/theme';
+import { useColors, useStyles } from '../../src/contexts/ThemeContext';
 import { useExpirationNotifications } from '../../src/hooks/useExpirationNotifications';
+
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.bg,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
 
 export default function AppLayout() {
   const { user, loading } = useAuth();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const insets = useSafeAreaInsets();
   const isAdmin = user?.role !== 'motorista';
 
@@ -123,12 +136,3 @@ export default function AppLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

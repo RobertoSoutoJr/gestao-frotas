@@ -19,12 +19,13 @@ import { Button } from '../../../src/components/Button';
 import { Picker, PickerOption } from '../../../src/components/Picker';
 import { Card } from '../../../src/components/Card';
 import { useAuth } from '../../../src/contexts/AuthContext';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 import { caminhoesApi } from '../../../src/api/caminhoes';
 import { clientesApi } from '../../../src/api/clientes';
 import { fornecedoresApi } from '../../../src/api/fornecedores';
 import { motoristasApi } from '../../../src/api/motoristas';
 import { viagensApi, CreateViagemPayload } from '../../../src/api/viagens';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatCurrency } from '../../../src/lib/format';
 
 const INITIAL_FORM = {
@@ -44,6 +45,8 @@ export default function NovaViagemScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const isAdmin = user?.role !== 'motorista';
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -327,8 +330,8 @@ export default function NovaViagemScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   headerRow: { flexDirection: 'row', marginBottom: spacing.xs },
@@ -339,38 +342,38 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.xl,
   },
-  title: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text },
+  title: { fontSize: fontSize.xxl, fontWeight: '700', color: c.text },
   alertCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
     marginBottom: spacing.lg,
-    borderColor: colors.warning + '50',
-    backgroundColor: colors.warning + '10',
+    borderColor: c.warning + '50',
+    backgroundColor: c.warning + '10',
   },
-  alertText: { flex: 1, fontSize: fontSize.sm, color: colors.warning, lineHeight: 20 },
-  resumoCard: { marginBottom: spacing.md, borderColor: colors.accent + '40' },
-  resumoTitle: { fontSize: fontSize.sm, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
+  alertText: { flex: 1, fontSize: fontSize.sm, color: c.warning, lineHeight: 20 },
+  resumoCard: { marginBottom: spacing.md, borderColor: c.accent + '40' },
+  resumoTitle: { fontSize: fontSize.sm, fontWeight: '700', color: c.text, marginBottom: spacing.sm },
   resumoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  resumoLabel: { fontSize: fontSize.sm, color: colors.textMuted },
-  resumoValue: { fontSize: fontSize.sm, fontWeight: '700', color: colors.text },
-  resumoSub: { fontSize: fontSize.xs, color: colors.textDim, marginTop: spacing.xs },
-  sectionLabel: { fontSize: fontSize.sm, color: colors.textMuted, fontWeight: '500', marginBottom: spacing.sm },
+  resumoLabel: { fontSize: fontSize.sm, color: c.textMuted },
+  resumoValue: { fontSize: fontSize.sm, fontWeight: '700', color: c.text },
+  resumoSub: { fontSize: fontSize.xs, color: c.textDim, marginTop: spacing.xs },
+  sectionLabel: { fontSize: fontSize.sm, color: c.textMuted, fontWeight: '500', marginBottom: spacing.sm },
   gpsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  gpsBtnDone: { borderColor: colors.success + '60', backgroundColor: colors.success + '10' },
+  gpsBtnDone: { borderColor: c.success + '60', backgroundColor: c.success + '10' },
   gpsBtnText: { flex: 1 },
-  gpsBtnTitle: { fontSize: fontSize.sm, fontWeight: '600', color: colors.accent },
-  gpsBtnCoords: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
+  gpsBtnTitle: { fontSize: fontSize.sm, fontWeight: '600', color: c.accent },
+  gpsBtnCoords: { fontSize: fontSize.xs, color: c.textMuted, marginTop: 2 },
   multiline: { height: 80, textAlignVertical: 'top', paddingTop: spacing.md },
   submitBtn: { marginTop: spacing.sm },
 });

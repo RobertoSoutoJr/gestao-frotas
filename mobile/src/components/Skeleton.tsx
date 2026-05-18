@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
-import { colors, radius, spacing } from '../lib/theme';
+import { type Colors, radius, spacing } from '../lib/theme';
+import { useStyles } from '../contexts/ThemeContext';
 
 // Single shimmer block
 export function SkeletonBox({ width, height, style }: {
@@ -8,6 +9,7 @@ export function SkeletonBox({ width, height, style }: {
   height?: number;
   style?: ViewStyle;
 }) {
+  const styles = useStyles(createStyles);
   const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export function SkeletonBox({ width, height, style }: {
 
 // Skeleton for a typical card row with icon + two text lines
 export function SkeletonCard({ style }: { style?: ViewStyle }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={[styles.card, style]}>
       <SkeletonBox width={48} height={48} style={styles.icon} />
@@ -49,6 +52,7 @@ export function SkeletonCard({ style }: { style?: ViewStyle }) {
 
 // Repeating list of skeleton cards
 export function SkeletonList({ count = 5, style }: { count?: number; style?: ViewStyle }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={[styles.list, style]}>
       {Array.from({ length: count }).map((_, i) => (
@@ -60,6 +64,7 @@ export function SkeletonList({ count = 5, style }: { count?: number; style?: Vie
 
 // Skeleton for the dashboard stat grid (2-column)
 export function SkeletonStatGrid({ count = 4 }: { count?: number }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.statGrid}>
       {Array.from({ length: count }).map((_, i) => (
@@ -73,44 +78,45 @@ export function SkeletonStatGrid({ count = 4 }: { count?: number }) {
   );
 }
 
-const styles = StyleSheet.create({
-  box: {
-    backgroundColor: colors.bgElevated,
-    borderRadius: radius.sm,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.md,
-  },
-  icon: {
-    borderRadius: radius.md,
-    flexShrink: 0,
-  },
-  lines: {
-    flex: 1,
-  },
-  list: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-  },
-  statGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-  },
-  statCard: {
-    width: '47%',
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-});
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    box: {
+      backgroundColor: c.bgElevated,
+      borderRadius: radius.sm,
+    },
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.bgCard,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: c.border,
+      gap: spacing.md,
+    },
+    icon: {
+      borderRadius: radius.md,
+      flexShrink: 0,
+    },
+    lines: {
+      flex: 1,
+    },
+    list: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+    },
+    statGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+      paddingHorizontal: spacing.lg,
+    },
+    statCard: {
+      width: '47%',
+      backgroundColor: c.bgCard,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+  });

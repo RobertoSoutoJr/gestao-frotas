@@ -6,7 +6,8 @@ import {
   Text,
   ViewStyle,
 } from 'react-native';
-import { colors, fontSize, radius, spacing } from '../lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../lib/theme';
+import { useColors, useStyles } from '../contexts/ThemeContext';
 import { useHaptics } from '../hooks/useHaptics';
 
 interface ButtonProps {
@@ -28,6 +29,8 @@ export function Button({
   style,
   haptic = 'light',
 }: ButtonProps) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const haptics = useHaptics();
   const isDisabled = disabled || loading;
 
@@ -70,38 +73,39 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    height: 52,
-    borderRadius: radius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  primary: {
-    backgroundColor: colors.accent,
-  },
-  secondary: {
-    backgroundColor: colors.bgElevated,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  danger: {
-    backgroundColor: colors.danger,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  pressed: {
-    opacity: 0.82,
-    transform: [{ scale: 0.98 }],
-  },
-  text: {
-    color: colors.text,
-    fontSize: fontSize.base,
-    fontWeight: '600',
-  },
-});
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    base: {
+      height: 52,
+      borderRadius: radius.md,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+    },
+    primary: {
+      backgroundColor: c.accent,
+    },
+    secondary: {
+      backgroundColor: c.bgElevated,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    ghost: {
+      backgroundColor: 'transparent',
+    },
+    danger: {
+      backgroundColor: c.danger,
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+    pressed: {
+      opacity: 0.82,
+      transform: [{ scale: 0.98 }],
+    },
+    text: {
+      color: c.text,
+      fontSize: fontSize.base,
+      fontWeight: '600',
+    },
+  });

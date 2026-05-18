@@ -17,14 +17,17 @@ import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
 import { Card } from '../../../src/components/Card';
 import { useToast } from '../../../src/contexts/ToastContext';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 import { viagensApi } from '../../../src/api/viagens';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 
 export default function EditViagemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const [form, setForm] = useState({
     produto: '',
@@ -242,8 +245,8 @@ export default function EditViagemScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   loading: {
     flex: 1,
@@ -261,20 +264,20 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.md,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
   },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   calcCard: {
     marginBottom: spacing.md,
-    borderColor: colors.accent + '40',
+    borderColor: c.accent + '40',
   },
   calcRow: {
     flexDirection: 'row',
@@ -283,16 +286,16 @@ const styles = StyleSheet.create({
   },
   calcLabel: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   calcValue: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.accent,
+    color: c.accent,
   },
   calcHint: {
     fontSize: fontSize.xs,
-    color: colors.accent,
+    color: c.accent,
     marginTop: spacing.xs,
     opacity: 0.7,
   },

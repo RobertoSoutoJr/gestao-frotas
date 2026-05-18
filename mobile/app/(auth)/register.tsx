@@ -13,9 +13,35 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { authApi } from '../../src/api/auth';
-import { colors, fontSize, spacing } from '../../src/lib/theme';
+import { type Colors, fontSize, spacing } from '../../src/lib/theme';
+import { useColors, useStyles } from '../../src/contexts/ThemeContext';
+
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.bg },
+    flex: { flex: 1 },
+    scroll: { flexGrow: 1, padding: spacing.lg },
+    header: { alignItems: 'center', marginVertical: spacing.xl },
+    title: {
+      fontSize: fontSize.xxl,
+      fontWeight: '700',
+      color: c.text,
+      marginBottom: spacing.xs,
+    },
+    subtitle: { fontSize: fontSize.sm, color: c.textMuted },
+    form: { marginBottom: spacing.xl },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: spacing.xs,
+    },
+    footerText: { color: c.textMuted, fontSize: fontSize.sm },
+    link: { color: c.accent, fontSize: fontSize.sm, fontWeight: '600' },
+  });
 
 export default function RegisterScreen() {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -123,25 +149,3 @@ export default function RegisterScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, padding: spacing.lg },
-  header: { alignItems: 'center', marginVertical: spacing.xl },
-  title: {
-    fontSize: fontSize.xxl,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  subtitle: { fontSize: fontSize.sm, color: colors.textMuted },
-  form: { marginBottom: spacing.xl },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  footerText: { color: colors.textMuted, fontSize: fontSize.sm },
-  link: { color: colors.accent, fontSize: fontSize.sm, fontWeight: '600' },
-});

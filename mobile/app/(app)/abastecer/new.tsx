@@ -26,8 +26,9 @@ import {
 } from '../../../src/api/abastecimentos';
 import { postosApi } from '../../../src/api/postos';
 import { enqueueAbastecimento } from '../../../src/lib/offlineQueue';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { useHaptics } from '../../../src/hooks/useHaptics';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 const INITIAL_FORM = {
   caminhao_id: null as number | null,
@@ -42,6 +43,8 @@ export default function AbastecerScreen() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const haptics = useHaptics();
 
@@ -232,8 +235,8 @@ export default function AbastecerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   header: {
@@ -245,11 +248,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   precoCard: {
     marginBottom: spacing.lg,
-    borderColor: colors.accent + '40',
+    borderColor: c.accent + '40',
   },
   precoRow: {
     flexDirection: 'row',
@@ -258,12 +261,12 @@ const styles = StyleSheet.create({
   },
   precoLabel: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   precoValue: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.accent,
+    color: c.accent,
   },
   submitButton: {
     marginTop: spacing.sm,
@@ -272,10 +275,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.md,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
   },
 });

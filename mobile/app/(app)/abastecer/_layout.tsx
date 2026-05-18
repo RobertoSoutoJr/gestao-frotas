@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router';
-import { colors } from '../../../src/lib/theme';
+import { useColors } from '../../../src/contexts/ThemeContext';
 
 export default function AbastecerLayout() {
+  const colors = useColors();
+
   return (
     <Stack
       screenOptions={{

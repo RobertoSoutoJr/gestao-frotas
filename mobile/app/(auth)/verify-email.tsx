@@ -14,11 +14,36 @@ import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { authApi } from '../../src/api/auth';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { colors, fontSize, spacing } from '../../src/lib/theme';
+import { type Colors, fontSize, spacing } from '../../src/lib/theme';
+import { useColors, useStyles } from '../../src/contexts/ThemeContext';
+
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.bg },
+    flex: { flex: 1 },
+    scroll: { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
+    header: { alignItems: 'center', marginBottom: spacing.xl },
+    title: {
+      fontSize: fontSize.xxl,
+      fontWeight: '700',
+      color: c.text,
+      marginBottom: spacing.sm,
+    },
+    subtitle: {
+      fontSize: fontSize.sm,
+      color: c.textMuted,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    email: { color: c.text, fontWeight: '600' },
+    form: { marginBottom: spacing.xl },
+  });
 
 export default function VerifyEmailScreen() {
   const { email } = useLocalSearchParams<{ email: string }>();
   const { refreshProfile } = useAuth();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -100,24 +125,3 @@ export default function VerifyEmailScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
-  header: { alignItems: 'center', marginBottom: spacing.xl },
-  title: {
-    fontSize: fontSize.xxl,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  email: { color: colors.text, fontWeight: '600' },
-  form: { marginBottom: spacing.xl },
-});

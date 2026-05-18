@@ -6,7 +6,8 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
-import { colors, fontSize, radius, spacing } from '../lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../lib/theme';
+import { useColors, useStyles } from '../contexts/ThemeContext';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -15,6 +16,9 @@ interface InputProps extends TextInputProps {
 
 export const Input = forwardRef<TextInput, InputProps>(
   ({ label, error, style, ...props }, ref) => {
+    const colors = useColors();
+    const styles = useStyles(createStyles);
+
     return (
       <View style={styles.container}>
         {label && <Text style={styles.label}>{label}</Text>}
@@ -32,32 +36,33 @@ export const Input = forwardRef<TextInput, InputProps>(
 
 Input.displayName = 'Input';
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    marginBottom: spacing.xs,
-    fontWeight: '500',
-  },
-  input: {
-    height: 52,
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    color: colors.text,
-    fontSize: fontSize.base,
-  },
-  inputError: {
-    borderColor: colors.danger,
-  },
-  error: {
-    fontSize: fontSize.xs,
-    color: colors.danger,
-    marginTop: spacing.xs,
-  },
-});
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: spacing.md,
+    },
+    label: {
+      fontSize: fontSize.sm,
+      color: c.textMuted,
+      marginBottom: spacing.xs,
+      fontWeight: '500',
+    },
+    input: {
+      height: 52,
+      backgroundColor: c.bgCard,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.border,
+      paddingHorizontal: spacing.md,
+      color: c.text,
+      fontSize: fontSize.base,
+    },
+    inputError: {
+      borderColor: c.danger,
+    },
+    error: {
+      fontSize: fontSize.xs,
+      color: c.danger,
+      marginTop: spacing.xs,
+    },
+  });

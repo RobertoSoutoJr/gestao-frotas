@@ -1,14 +1,19 @@
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { colors, fontSize, radius, spacing } from '../../src/lib/theme';
+import { useColors, useStyles } from '../../src/contexts/ThemeContext';
+import { useTheme } from '../../src/contexts/ThemeContext';
+import { type Colors, fontSize, radius, spacing } from '../../src/lib/theme';
 
 export default function PerfilScreen() {
   const { user, logout } = useAuth();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+  const { mode, setMode, isDark } = useTheme();
   const isAdmin = user?.role !== 'motorista';
 
   const handleLogout = () => {
@@ -56,6 +61,34 @@ export default function PerfilScreen() {
           />
         </Card>
 
+        <Card style={styles.card}>
+          <View style={styles.themeRow}>
+            <Ionicons name={isDark ? 'moon' : 'sunny'} size={20} color={colors.accent} />
+            <View style={styles.rowText}>
+              <Text style={styles.rowLabel}>Tema</Text>
+              <Text style={styles.rowValue}>{mode === 'dark' ? 'Escuro' : mode === 'light' ? 'Claro' : 'Sistema'}</Text>
+            </View>
+          </View>
+          <View style={styles.themeOptions}>
+            {(['dark', 'light', 'system'] as const).map((m) => (
+              <Pressable
+                key={m}
+                onPress={() => setMode(m)}
+                style={[styles.themeChip, mode === m && styles.themeChipActive]}
+              >
+                <Ionicons
+                  name={m === 'dark' ? 'moon-outline' : m === 'light' ? 'sunny-outline' : 'phone-portrait-outline'}
+                  size={16}
+                  color={mode === m ? colors.accent : colors.textMuted}
+                />
+                <Text style={[styles.themeChipText, mode === m && styles.themeChipTextActive]}>
+                  {m === 'dark' ? 'Escuro' : m === 'light' ? 'Claro' : 'Sistema'}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </Card>
+
         {isAdmin && (
           <Button
             title="+ Cadastrar Motorista"
@@ -84,6 +117,9 @@ function InfoRow({
   label: string;
   value: string;
 }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+
   return (
     <View style={styles.row}>
       <Ionicons name={icon} size={18} color={colors.accent} />
@@ -95,8 +131,8 @@ function InfoRow({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   header: {
     alignItems: 'center',
@@ -106,7 +142,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.accent,
+    backgroundColor: c.accent,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
@@ -114,16 +150,16 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: fontSize.xxxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   name: {
     fontSize: fontSize.xl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   role: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: spacing.xs,
   },
   card: {
@@ -137,17 +173,17 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: c.border,
   },
   rowText: { flex: 1 },
   rowLabel: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginBottom: 2,
   },
   rowValue: {
     fontSize: fontSize.sm,
-    color: colors.text,
+    color: c.text,
     fontWeight: '500',
   },
   actionButton: {
@@ -155,5 +191,42 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     marginTop: spacing.sm,
+  },
+  themeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  themeOptions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
+  },
+  themeChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: c.border,
+    backgroundColor: c.bgElevated,
+  },
+  themeChipActive: {
+    borderColor: c.accent,
+    backgroundColor: c.accent + '15',
+  },
+  themeChipText: {
+    fontSize: fontSize.xs,
+    fontWeight: '500',
+    color: c.textMuted,
+  },
+  themeChipTextActive: {
+    color: c.accent,
+    fontWeight: '700',
   },
 });

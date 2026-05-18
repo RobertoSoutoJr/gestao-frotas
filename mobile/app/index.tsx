@@ -2,13 +2,39 @@ import { useEffect, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../src/contexts/AuthContext';
-import { colors, fontSize } from '../src/lib/theme';
+import { type Colors, fontSize } from '../src/lib/theme';
+import { useColors, useStyles } from '../src/contexts/ThemeContext';
 
 const logoDark = require('../assets/images/logoFuelTrack_black-removebg.png');
+
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.bg,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    content: {
+      alignItems: 'center',
+    },
+    logo: {
+      width: 220,
+      height: 72,
+      marginBottom: 8,
+    },
+    tagline: {
+      fontSize: fontSize.sm,
+      color: c.textMuted,
+      marginTop: 6,
+    },
+  });
 
 // Splash/gate: branded loading screen → redirect based on auth state
 export default function Index() {
   const { user, loading } = useAuth();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.8)).current;
 
@@ -51,25 +77,3 @@ export default function Index() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    alignItems: 'center',
-  },
-  logo: {
-    width: 220,
-    height: 72,
-    marginBottom: 8,
-  },
-  tagline: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    marginTop: 6,
-  },
-});

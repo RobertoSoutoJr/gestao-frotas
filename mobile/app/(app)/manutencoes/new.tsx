@@ -27,8 +27,9 @@ import {
 } from '../../../src/api/manutencoes';
 import { oficinasApi } from '../../../src/api/oficinas';
 import { documentosApi } from '../../../src/api/documentos';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { useHaptics } from '../../../src/hooks/useHaptics';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 const typeOptions: PickerOption[] = MAINTENANCE_TYPES.map((t) => ({
   label: t,
@@ -52,6 +53,8 @@ export default function NewManutencaoScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [photo, setPhoto] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [uploading, setUploading] = useState(false);
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const caminhoesQuery = useQuery({
     queryKey: ['caminhoes'],
@@ -315,8 +318,8 @@ export default function NewManutencaoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   headerRow: {
@@ -333,7 +336,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   multiline: {
     height: 90,
@@ -342,7 +345,7 @@ const styles = StyleSheet.create({
   },
   photoLabel: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     fontWeight: '500',
     marginBottom: spacing.xs,
   },
@@ -354,10 +357,10 @@ const styles = StyleSheet.create({
   photoBtn: {
     flex: 1,
     height: 56,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -365,7 +368,7 @@ const styles = StyleSheet.create({
   },
   photoBtnText: {
     fontSize: fontSize.sm,
-    color: colors.accent,
+    color: c.accent,
     fontWeight: '600',
   },
   preview: {

@@ -20,8 +20,9 @@ import { useHaptics } from '../../../src/hooks/useHaptics';
 import { SearchBar } from '../../../src/components/SearchBar';
 import { SkeletonList } from '../../../src/components/Skeleton';
 import type { Manutencao } from '../../../src/api/types';
-import { colors, fontSize, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Preventiva: 'shield-checkmark-outline',
@@ -39,6 +40,8 @@ export default function ManutencoesListScreen() {
   const { showToast } = useToast();
   const haptics = useHaptics();
   const [search, setSearch] = useState('');
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const query = useQuery({
     queryKey: ['manutencoes'],
@@ -158,6 +161,8 @@ function MaintenanceCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const icon = TYPE_ICONS[record.tipo_manutencao] || 'build-outline';
 
   return (
@@ -206,8 +211,8 @@ function MaintenanceCard({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -219,11 +224,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   subtitle: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: spacing.xs,
   },
   newBtn: {
@@ -242,11 +247,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fontSize.lg,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   emptyText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
     maxWidth: 260,
   },
@@ -265,15 +270,15 @@ const styles = StyleSheet.create({
   type: {
     fontSize: fontSize.sm,
     fontWeight: '600',
-    color: colors.accent,
+    color: c.accent,
   },
   date: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   descricao: {
     fontSize: fontSize.sm,
-    color: colors.text,
+    color: c.text,
     marginBottom: spacing.sm,
     lineHeight: 20,
   },
@@ -284,9 +289,9 @@ const styles = StyleSheet.create({
   },
   placa: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
     fontWeight: '600',
-    backgroundColor: colors.bgElevated,
+    backgroundColor: c.bgElevated,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -294,13 +299,13 @@ const styles = StyleSheet.create({
   },
   oficina: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
     flex: 1,
   },
   valor: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.warning,
+    color: c.warning,
   },
   cardActions: {
     flexDirection: 'row',
@@ -308,7 +313,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: c.border,
   },
   actionBtn: {
     flexDirection: 'row',
@@ -317,7 +322,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: fontSize.sm,
-    color: colors.accent,
+    color: c.accent,
     fontWeight: '500',
   },
 });

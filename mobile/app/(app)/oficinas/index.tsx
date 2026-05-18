@@ -19,12 +19,15 @@ import { SkeletonList } from '../../../src/components/Skeleton';
 import { useHaptics } from '../../../src/hooks/useHaptics';
 import { useToast } from '../../../src/contexts/ToastContext';
 import { oficinasApi, Oficina } from '../../../src/api/oficinas';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 export default function OficinasListScreen() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const haptics = useHaptics();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const [search, setSearch] = useState('');
 
   const query = useQuery({
@@ -140,6 +143,8 @@ function OficinaCard({
   oficina: Oficina;
   onDelete: () => void;
 }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   return (
     <Card style={styles.card}>
       <View style={styles.cardTop}>
@@ -191,8 +196,8 @@ function OficinaCard({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -204,20 +209,20 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.md,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
   },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
     flex: 1,
   },
   badge: {
-    backgroundColor: colors.accent + '25',
+    backgroundColor: c.accent + '25',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: 999,
@@ -225,7 +230,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: fontSize.xs,
     fontWeight: '600',
-    color: colors.accent,
+    color: c.accent,
   },
   newBtn: {
     marginHorizontal: spacing.lg,
@@ -243,11 +248,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fontSize.lg,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   emptyText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
     maxWidth: 260,
   },
@@ -262,7 +267,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radius.md,
-    backgroundColor: colors.accent + '15',
+    backgroundColor: c.accent + '15',
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
@@ -274,7 +279,7 @@ const styles = StyleSheet.create({
   nome: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   infoRow: {
     flexDirection: 'row',
@@ -283,7 +288,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
     flex: 1,
   },
   cardActions: {
@@ -292,7 +297,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: c.border,
   },
   actionBtn: {
     flexDirection: 'row',

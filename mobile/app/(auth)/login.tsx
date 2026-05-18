@@ -16,10 +16,54 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { colors, fontSize, spacing } from '../../src/lib/theme';
+import { type Colors, fontSize, spacing } from '../../src/lib/theme';
+import { useColors, useStyles } from '../../src/contexts/ThemeContext';
+
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.bg },
+    flex: { flex: 1 },
+    scroll: {
+      flexGrow: 1,
+      padding: spacing.lg,
+      justifyContent: 'center',
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: spacing.xxl,
+    },
+    logo: {
+      width: 200,
+      height: 60,
+      marginBottom: spacing.xs,
+    },
+    subtitle: {
+      fontSize: fontSize.sm,
+      color: c.textMuted,
+    },
+    form: {
+      marginBottom: spacing.xl,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: spacing.xs,
+    },
+    footerText: {
+      color: c.textMuted,
+      fontSize: fontSize.sm,
+    },
+    link: {
+      color: c.accent,
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+    },
+  });
 
 export default function LoginScreen() {
   const { login } = useAuth();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -93,43 +137,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  flex: { flex: 1 },
-  scroll: {
-    flexGrow: 1,
-    padding: spacing.lg,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: spacing.xxl,
-  },
-  logo: {
-    width: 200,
-    height: 60,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-  },
-  form: {
-    marginBottom: spacing.xl,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  footerText: {
-    color: colors.textMuted,
-    fontSize: fontSize.sm,
-  },
-  link: {
-    color: colors.accent,
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-  },
-});

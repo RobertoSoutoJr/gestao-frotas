@@ -16,7 +16,8 @@ import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
 import { useHaptics } from '../../../src/hooks/useHaptics';
 import { postosApi, CreatePostoPayload } from '../../../src/api/postos';
-import { colors, fontSize, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, spacing } from '../../../src/lib/theme';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 const INITIAL_FORM = {
   nome: '',
@@ -28,6 +29,8 @@ const INITIAL_FORM = {
 export default function NovoPostoScreen() {
   const queryClient = useQueryClient();
   const haptics = useHaptics();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -137,8 +140,8 @@ export default function NovoPostoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   headerRow: { flexDirection: 'row', marginBottom: spacing.xs },
@@ -149,6 +152,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.xl,
   },
-  title: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text },
+  title: { fontSize: fontSize.xxl, fontWeight: '700', color: c.text },
   submitBtn: { marginTop: spacing.sm },
 });

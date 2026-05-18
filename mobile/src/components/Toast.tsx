@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSize, radius, spacing } from '../lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../lib/theme';
+import { useColors, useStyles } from '../contexts/ThemeContext';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -19,12 +20,6 @@ const ICON_MAP: Record<ToastType, keyof typeof Ionicons.glyphMap> = {
   info: 'information-circle',
 };
 
-const COLOR_MAP: Record<ToastType, string> = {
-  success: colors.success,
-  error: colors.danger,
-  info: colors.accent,
-};
-
 export function Toast({
   message,
   type = 'info',
@@ -32,8 +27,16 @@ export function Toast({
   onDismiss,
   duration = 3000,
 }: ToastProps) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-20)).current;
+
+  const colorMap: Record<ToastType, string> = {
+    success: colors.success,
+    error: colors.danger,
+    info: colors.accent,
+  };
 
   useEffect(() => {
     if (visible) {
@@ -75,10 +78,10 @@ export function Toast({
     <Animated.View
       style={[
         styles.container,
-        { borderLeftColor: COLOR_MAP[type], opacity, transform: [{ translateY }] },
+        { borderLeftColor: colorMap[type], opacity, transform: [{ translateY }] },
       ]}
     >
-      <Ionicons name={ICON_MAP[type]} size={20} color={COLOR_MAP[type]} />
+      <Ionicons name={ICON_MAP[type]} size={20} color={colorMap[type]} />
       <Text style={styles.message} numberOfLines={2}>
         {message}
       </Text>
@@ -89,32 +92,33 @@ export function Toast({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 60,
-    left: spacing.lg,
-    right: spacing.lg,
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderLeftWidth: 4,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    zIndex: 9999,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  message: {
-    flex: 1,
-    fontSize: fontSize.sm,
-    color: colors.text,
-  },
-});
+const createStyles = (c: Colors) =>
+  StyleSheet.create({
+    container: {
+      position: 'absolute',
+      top: 60,
+      left: spacing.lg,
+      right: spacing.lg,
+      backgroundColor: c.bgCard,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderLeftWidth: 4,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      zIndex: 9999,
+      elevation: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+    message: {
+      flex: 1,
+      fontSize: fontSize.sm,
+      color: c.text,
+    },
+  });

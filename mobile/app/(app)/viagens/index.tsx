@@ -16,9 +16,10 @@ import { Button } from '../../../src/components/Button';
 import { Card } from '../../../src/components/Card';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { useToast } from '../../../src/contexts/ToastContext';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 import { viagensApi } from '../../../src/api/viagens';
 import type { Viagem } from '../../../src/api/types';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
 import { SkeletonList } from '../../../src/components/Skeleton';
 import { SearchBar } from '../../../src/components/SearchBar';
@@ -29,6 +30,8 @@ export default function ViagensListScreen() {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const isMotorista = user?.role === 'motorista';
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const query = useQuery({
     queryKey: ['viagens'],
@@ -166,6 +169,8 @@ function TripCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const isActive = trip.status === 'cadastrada';
   const custoTotal =
     (Number(trip.custo_combustivel) || 0) +
@@ -268,8 +273,8 @@ function TripCard({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -280,11 +285,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
     flex: 1,
   },
   badge: {
-    backgroundColor: colors.warning + '25',
+    backgroundColor: c.warning + '25',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: 999,
@@ -292,7 +297,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: fontSize.xs,
     fontWeight: '600',
-    color: colors.warning,
+    color: c.warning,
   },
   newBtn: {
     marginHorizontal: spacing.lg,
@@ -310,11 +315,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fontSize.lg,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   emptyText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
     maxWidth: 260,
   },
@@ -322,7 +327,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   cardActive: {
-    borderColor: colors.warning + '40',
+    borderColor: c.warning + '40',
   },
   cardTop: {
     flexDirection: 'row',
@@ -349,7 +354,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   cardBody: {
     marginBottom: spacing.sm,
@@ -357,7 +362,7 @@ const styles = StyleSheet.create({
   produto: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
     marginBottom: 4,
   },
   infoRow: {
@@ -367,7 +372,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -377,7 +382,7 @@ const styles = StyleSheet.create({
   frete: {
     fontSize: fontSize.sm,
     fontWeight: '600',
-    color: colors.success,
+    color: c.success,
     flex: 1,
   },
   lucro: {
@@ -390,7 +395,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: c.border,
   },
   actionBtn: {
     flexDirection: 'row',
@@ -399,7 +404,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: fontSize.sm,
-    color: colors.accent,
+    color: c.accent,
     fontWeight: '500',
   },
 });

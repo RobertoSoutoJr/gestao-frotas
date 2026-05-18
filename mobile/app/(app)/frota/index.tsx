@@ -15,7 +15,8 @@ import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { caminhoesApi } from '../../../src/api/caminhoes';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 import { formatNumber } from '../../../src/lib/format';
 import { SkeletonList } from '../../../src/components/Skeleton';
 import { SearchBar } from '../../../src/components/SearchBar';
@@ -24,6 +25,8 @@ import type { Caminhao } from '../../../src/api/types';
 export default function FrotaListScreen() {
   const { user } = useAuth();
   const isAdmin = user?.role !== 'motorista';
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['caminhoes'],
@@ -139,8 +142,8 @@ export default function FrotaListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -156,11 +159,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   subtitle: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: spacing.xs,
   },
   empty: {
@@ -173,11 +176,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fontSize.lg,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   emptyText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
   },
   list: {
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.md,
-    backgroundColor: colors.accent + '20',
+    backgroundColor: c.accent + '20',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -206,12 +209,12 @@ const styles = StyleSheet.create({
   truckPlaca: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
     letterSpacing: 1,
   },
   truckModelo: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: 2,
   },
   truckMeta: {
@@ -226,6 +229,6 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
 });

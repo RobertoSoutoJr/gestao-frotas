@@ -16,8 +16,9 @@ import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { Input } from '../../../src/components/Input';
 import { Picker, PickerOption } from '../../../src/components/Picker';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 import { viagensApi, FinalizeViagemPayload } from '../../../src/api/viagens';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
 
 const PAYMENT_OPTIONS: PickerOption[] = [
@@ -34,6 +35,8 @@ export default function ViagemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
   const queryClient = useQueryClient();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const query = useQuery({
     queryKey: ['viagens', tripId],
@@ -333,6 +336,7 @@ function InfoRow({
   accent?: boolean;
   color?: string;
 }) {
+  const infoStyles = useStyles(createInfoStyles);
   return (
     <View style={infoStyles.row}>
       <Text style={infoStyles.label}>{label}</Text>
@@ -362,6 +366,8 @@ function GpsRow({
   capturing: boolean;
   onCapture?: () => void;
 }) {
+  const colors = useColors();
+  const gpsStyles = useStyles(createGpsStyles);
   const hasCoords = lat != null && lng != null;
   return (
     <View style={gpsStyles.row}>
@@ -393,8 +399,8 @@ function GpsRow({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
@@ -415,12 +421,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
     marginBottom: spacing.md,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: c.border,
     marginVertical: spacing.sm,
   },
   finalizeBtn: {
@@ -434,7 +440,7 @@ const styles = StyleSheet.create({
   flexBtn: { flex: 1 },
 });
 
-const infoStyles = StyleSheet.create({
+const createInfoStyles = (c: Colors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -443,23 +449,23 @@ const infoStyles = StyleSheet.create({
   },
   label: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   value: {
     fontSize: fontSize.sm,
-    color: colors.text,
+    color: c.text,
     fontWeight: '500',
   },
 });
 
-const gpsStyles = StyleSheet.create({
+const createGpsStyles = (c: Colors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: c.border,
   },
   info: {
     flexDirection: 'row',
@@ -469,11 +475,11 @@ const gpsStyles = StyleSheet.create({
   label: {
     fontSize: fontSize.sm,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   coords: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   btn: {
     height: 36,

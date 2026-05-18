@@ -17,7 +17,8 @@ import { caminhoesApi } from '../../../src/api/caminhoes';
 import { abastecimentosApi } from '../../../src/api/abastecimentos';
 import { manutencoesApi } from '../../../src/api/manutencoes';
 import { viagensApi } from '../../../src/api/viagens';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 import {
   formatCurrency,
   formatDate,
@@ -27,6 +28,8 @@ import {
 export default function TruckDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const truckId = Number(id);
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const truckQuery = useQuery({
     queryKey: ['caminhoes', truckId],
@@ -280,6 +283,8 @@ function InfoRow({
   label: string;
   value: string;
 }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.infoRow}>
       <Ionicons name={icon} size={18} color={colors.accent} />
@@ -298,6 +303,7 @@ function SectionHeader({
   iconColor: string;
   title: string;
 }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.sectionHeader}>
       <Ionicons name={icon} size={18} color={iconColor} />
@@ -307,6 +313,7 @@ function SectionHeader({
 }
 
 function EmptySection({ text }: { text: string }) {
+  const styles = useStyles(createStyles);
   return (
     <Card style={styles.recordCard}>
       <Text style={styles.emptyText}>{text}</Text>
@@ -314,8 +321,8 @@ function EmptySection({ text }: { text: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   loading: {
     flex: 1,
@@ -324,7 +331,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: fontSize.base,
-    color: colors.danger,
+    color: c.danger,
   },
   header: {
     flexDirection: 'row',
@@ -336,22 +343,22 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radius.md,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
   },
   headerInfo: { flex: 1 },
   placa: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
     letterSpacing: 1,
   },
   modelo: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: 2,
   },
   infoCard: {
@@ -365,16 +372,16 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: c.border,
   },
   infoLabel: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     flex: 1,
   },
   infoValue: {
     fontSize: fontSize.sm,
-    color: colors.text,
+    color: c.text,
     fontWeight: '600',
   },
   statsRow: {
@@ -392,7 +399,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   recordCard: {
     padding: spacing.md,
@@ -406,21 +413,21 @@ const styles = StyleSheet.create({
   recordTitle: {
     fontSize: fontSize.sm,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   recordSub: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: 2,
   },
   recordValue: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.warning,
+    color: c.warning,
   },
   emptyText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
   },
 });

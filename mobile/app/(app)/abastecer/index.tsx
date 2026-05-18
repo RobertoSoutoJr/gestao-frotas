@@ -18,18 +18,21 @@ import { useAuth } from '../../../src/contexts/AuthContext';
 import { abastecimentosApi } from '../../../src/api/abastecimentos';
 import { caminhoesApi } from '../../../src/api/caminhoes';
 import { useToast } from '../../../src/contexts/ToastContext';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate, formatNumber } from '../../../src/lib/format';
 import { SkeletonList } from '../../../src/components/Skeleton';
 import { SearchBar } from '../../../src/components/SearchBar';
 import { useHaptics } from '../../../src/hooks/useHaptics';
 import { useOfflineSync } from '../../../src/hooks/useOfflineSync';
 import type { Abastecimento, Caminhao } from '../../../src/api/types';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 export default function AbastecerListScreen() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['abastecimentos'],
@@ -233,8 +236,8 @@ export default function AbastecerListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -246,11 +249,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   subtitle: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: spacing.xs,
   },
   newBtn: {
@@ -265,14 +268,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.warning + '20',
+    backgroundColor: c.warning + '20',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.warning + '40',
+    borderColor: c.warning + '40',
   },
   offlineBannerText: {
     fontSize: fontSize.xs,
-    color: colors.warning,
+    color: c.warning,
     fontWeight: '600',
     flex: 1,
   },
@@ -286,11 +289,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fontSize.lg,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
   },
   emptyText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
   },
   list: {
@@ -309,18 +312,18 @@ const styles = StyleSheet.create({
   cardPlaca: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
     letterSpacing: 1,
   },
   cardDate: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: 2,
   },
   cardValor: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.warning,
+    color: c.warning,
   },
   cardMeta: {
     flexDirection: 'row',
@@ -329,7 +332,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: c.border,
   },
   metaItem: {
     flexDirection: 'row',
@@ -338,7 +341,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   cardActions: {
     flexDirection: 'row',
@@ -346,7 +349,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: c.border,
   },
   actionBtn: {
     flexDirection: 'row',
@@ -355,7 +358,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: fontSize.sm,
-    color: colors.accent,
+    color: c.accent,
     fontWeight: '500',
   },
 });

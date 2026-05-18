@@ -13,12 +13,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../../src/components/Card';
 import { StatCard } from '../../src/components/StatCard';
+import { useColors, useStyles } from '../../src/contexts/ThemeContext';
 import { caminhoesApi } from '../../src/api/caminhoes';
 import { abastecimentosApi } from '../../src/api/abastecimentos';
 import { manutencoesApi } from '../../src/api/manutencoes';
 import { viagensApi } from '../../src/api/viagens';
 import { motoristasApi } from '../../src/api/motoristas';
-import { colors, fontSize, radius, spacing } from '../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../src/lib/theme';
 import {
   formatCurrency,
   formatNumber,
@@ -46,6 +47,8 @@ function getDateFrom(periodo: Periodo): Date | null {
 }
 
 export default function RelatoriosScreen() {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const [periodo, setPeriodo] = useState<Periodo>('tudo');
   const caminhoesQuery = useQuery({
     queryKey: ['caminhoes'],
@@ -382,6 +385,9 @@ function SectionLabel({
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
 }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+
   return (
     <View style={styles.sectionLabel}>
       <Ionicons name={icon} size={16} color={colors.accent} />
@@ -390,13 +396,13 @@ function SectionLabel({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   periodoRow: {
     flexDirection: 'row',
@@ -410,20 +416,20 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: c.border,
+    backgroundColor: c.bgCard,
   },
   periodoChipActive: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent + '20',
+    borderColor: c.accent,
+    backgroundColor: c.accent + '20',
   },
   periodoText: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     fontWeight: '500',
   },
   periodoTextActive: {
-    color: colors.accent,
+    color: c.accent,
     fontWeight: '700',
   },
   loading: {
@@ -440,7 +446,7 @@ const styles = StyleSheet.create({
   sectionLabelText: {
     fontSize: fontSize.sm,
     fontWeight: '600',
-    color: colors.accent,
+    color: c.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -461,7 +467,7 @@ const styles = StyleSheet.create({
   },
   rankBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: c.border,
   },
   rankLeft: {
     flexDirection: 'row',
@@ -471,19 +477,19 @@ const styles = StyleSheet.create({
   rankPos: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.textMuted,
+    color: c.textMuted,
     width: 20,
   },
   rankPlaca: {
     fontSize: fontSize.sm,
     fontWeight: '600',
-    color: colors.text,
+    color: c.text,
     letterSpacing: 1,
   },
   rankValue: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.warning,
+    color: c.warning,
   },
   footerCard: {
     marginTop: spacing.lg,
@@ -496,7 +502,7 @@ const styles = StyleSheet.create({
   footerText: {
     flex: 1,
     fontSize: fontSize.sm,
-    color: colors.textMuted,
+    color: c.textMuted,
     lineHeight: 20,
   },
 });

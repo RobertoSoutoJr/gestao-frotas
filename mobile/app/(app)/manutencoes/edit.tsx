@@ -23,7 +23,8 @@ import {
   MAINTENANCE_TYPES,
 } from '../../../src/api/manutencoes';
 import { oficinasApi } from '../../../src/api/oficinas';
-import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
 const typeOptions: PickerOption[] = MAINTENANCE_TYPES.map((t) => ({
   label: t,
@@ -35,6 +36,8 @@ export default function EditManutencaoScreen() {
   const recordId = Number(id);
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const colors = useColors();
+  const styles = useStyles(createStyles);
 
   const [form, setForm] = useState({
     caminhao_id: null as number | null,
@@ -246,8 +249,8 @@ export default function EditManutencaoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const createStyles = (c: Colors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   loading: {
     flex: 1,
@@ -265,16 +268,16 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.md,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
   },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.text,
+    color: c.text,
   },
   multiline: {
     height: 90,
