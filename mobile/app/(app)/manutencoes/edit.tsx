@@ -22,6 +22,7 @@ import {
   manutencoesApi,
   MAINTENANCE_TYPES,
 } from '../../../src/api/manutencoes';
+import { oficinasApi } from '../../../src/api/oficinas';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 
 const typeOptions: PickerOption[] = MAINTENANCE_TYPES.map((t) => ({
@@ -41,7 +42,7 @@ export default function EditManutencaoScreen() {
     descricao: '',
     valor_total: '',
     km_manutencao: '',
-    oficina: '',
+    oficina_id: null as number | null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
@@ -57,6 +58,11 @@ export default function EditManutencaoScreen() {
     queryFn: () => caminhoesApi.list(),
   });
 
+  const oficinasQuery = useQuery({
+    queryKey: ['oficinas'],
+    queryFn: () => oficinasApi.list(),
+  });
+
   useEffect(() => {
     if (recordQuery.data && !loaded) {
       const r = recordQuery.data;
@@ -66,7 +72,7 @@ export default function EditManutencaoScreen() {
         descricao: r.descricao || '',
         valor_total: String(r.valor_total),
         km_manutencao: r.km_manutencao ? String(r.km_manutencao) : '',
-        oficina: r.oficinas?.nome || r.oficina || '',
+        oficina_id: r.oficina_id ?? null,
       });
       setLoaded(true);
     }
@@ -76,6 +82,13 @@ export default function EditManutencaoScreen() {
     (c) => ({
       label: `${c.placa} — ${c.modelo}`,
       value: c.id,
+    }),
+  );
+
+  const oficinaOptions: PickerOption[] = (oficinasQuery.data ?? []).map(
+    (o) => ({
+      label: o.nome,
+      value: o.id,
     }),
   );
 
@@ -112,7 +125,7 @@ export default function EditManutencaoScreen() {
       descricao: form.descricao,
       valor_total: Number(form.valor_total),
       km_manutencao: Number(form.km_manutencao) || 0,
-      oficina: form.oficina || null,
+      oficina_id: form.oficina_id || null,
     });
   };
 
@@ -210,11 +223,14 @@ export default function EditManutencaoScreen() {
             }
           />
 
-          <Input
+          <Picker
             label="Oficina (opcional)"
-            placeholder="Nome da oficina"
-            value={form.oficina}
-            onChangeText={(v) => setForm((p) => ({ ...p, oficina: v }))}
+            placeholder="Selecione a oficina"
+            options={oficinaOptions}
+            value={form.oficina_id}
+            onSelect={(v) =>
+              setForm((p) => ({ ...p, oficina_id: v as number }))
+            }
           />
 
           <Button

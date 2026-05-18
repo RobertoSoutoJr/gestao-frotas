@@ -8,6 +8,7 @@ export interface CreateAbastecimentoPayload {
   valor_total: number;
   km_registro: number;
   posto?: string;
+  posto_id?: number;
 }
 
 export const abastecimentosApi = {

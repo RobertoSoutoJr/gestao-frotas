@@ -25,6 +25,7 @@ import {
   MAINTENANCE_TYPES,
   CreateManutencaoPayload,
 } from '../../../src/api/manutencoes';
+import { oficinasApi } from '../../../src/api/oficinas';
 import { documentosApi } from '../../../src/api/documentos';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { useHaptics } from '../../../src/hooks/useHaptics';
@@ -40,7 +41,7 @@ const INITIAL_FORM = {
   descricao: '',
   valor_total: '',
   km_manutencao: '',
-  oficina: '',
+  oficina_id: null as number | null,
 };
 
 export default function NewManutencaoScreen() {
@@ -57,10 +58,22 @@ export default function NewManutencaoScreen() {
     queryFn: () => caminhoesApi.list(),
   });
 
+  const oficinasQuery = useQuery({
+    queryKey: ['oficinas'],
+    queryFn: () => oficinasApi.list(),
+  });
+
   const caminhaoOptions: PickerOption[] = (caminhoesQuery.data ?? []).map(
     (c) => ({
       label: `${c.placa} — ${c.modelo}`,
       value: c.id,
+    }),
+  );
+
+  const oficinaOptions: PickerOption[] = (oficinasQuery.data ?? []).map(
+    (o) => ({
+      label: o.nome,
+      value: o.id,
     }),
   );
 
@@ -161,7 +174,7 @@ export default function NewManutencaoScreen() {
       km_manutencao: Number(form.km_manutencao) || 0,
       data_manutencao: today,
       status: 'concluida',
-      ...(form.oficina ? { oficina: form.oficina } : {}),
+      ...(form.oficina_id ? { oficina_id: form.oficina_id } : {}),
     });
   };
 
@@ -254,11 +267,14 @@ export default function NewManutencaoScreen() {
             }
           />
 
-          <Input
+          <Picker
             label="Oficina (opcional)"
-            placeholder="Nome da oficina"
-            value={form.oficina}
-            onChangeText={(v) => setForm((p) => ({ ...p, oficina: v }))}
+            placeholder="Selecione a oficina"
+            options={oficinaOptions}
+            value={form.oficina_id}
+            onSelect={(v) =>
+              setForm((p) => ({ ...p, oficina_id: v as number }))
+            }
           />
 
           {/* Photo section */}

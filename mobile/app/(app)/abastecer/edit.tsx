@@ -20,6 +20,7 @@ import { Card } from '../../../src/components/Card';
 import { useToast } from '../../../src/contexts/ToastContext';
 import { caminhoesApi } from '../../../src/api/caminhoes';
 import { abastecimentosApi } from '../../../src/api/abastecimentos';
+import { postosApi } from '../../../src/api/postos';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 
 export default function EditAbastecimentoScreen() {
@@ -33,7 +34,7 @@ export default function EditAbastecimentoScreen() {
     litros: '',
     valor_total: '',
     km_registro: '',
-    posto: '',
+    posto_id: null as number | null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
@@ -49,6 +50,11 @@ export default function EditAbastecimentoScreen() {
     queryFn: () => caminhoesApi.list(),
   });
 
+  const postosQuery = useQuery({
+    queryKey: ['postos'],
+    queryFn: () => postosApi.list(),
+  });
+
   // Populate form when data loads
   useEffect(() => {
     if (recordQuery.data && !loaded) {
@@ -58,7 +64,7 @@ export default function EditAbastecimentoScreen() {
         litros: String(r.litros),
         valor_total: String(r.valor_total),
         km_registro: r.km_registro ? String(r.km_registro) : '',
-        posto: r.postos?.nome || r.posto || '',
+        posto_id: r.posto_id ?? null,
       });
       setLoaded(true);
     }
@@ -68,6 +74,13 @@ export default function EditAbastecimentoScreen() {
     (c) => ({
       label: `${c.placa} — ${c.modelo}`,
       value: c.id,
+    }),
+  );
+
+  const postoOptions: PickerOption[] = (postosQuery.data ?? []).map(
+    (p) => ({
+      label: p.nome,
+      value: p.id,
     }),
   );
 
@@ -103,7 +116,7 @@ export default function EditAbastecimentoScreen() {
       litros: Number(form.litros),
       valor_total: Number(form.valor_total),
       km_registro: Number(form.km_registro),
-      posto: form.posto || undefined,
+      posto_id: form.posto_id || undefined,
     });
   };
 
@@ -193,11 +206,14 @@ export default function EditAbastecimentoScreen() {
             error={errors.valor_total}
           />
 
-          <Input
+          <Picker
             label="Posto (opcional)"
-            placeholder="Nome do posto"
-            value={form.posto}
-            onChangeText={(v) => setForm((p) => ({ ...p, posto: v }))}
+            placeholder="Selecione o posto"
+            options={postoOptions}
+            value={form.posto_id}
+            onSelect={(v) =>
+              setForm((p) => ({ ...p, posto_id: v as number }))
+            }
           />
 
           {precoLitro > 0 && (

@@ -24,6 +24,7 @@ import {
   abastecimentosApi,
   CreateAbastecimentoPayload,
 } from '../../../src/api/abastecimentos';
+import { postosApi } from '../../../src/api/postos';
 import { enqueueAbastecimento } from '../../../src/lib/offlineQueue';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { useHaptics } from '../../../src/hooks/useHaptics';
@@ -33,7 +34,7 @@ const INITIAL_FORM = {
   litros: '',
   valor_total: '',
   km_registro: '',
-  posto: '',
+  posto_id: null as number | null,
 };
 
 export default function AbastecerScreen() {
@@ -49,10 +50,22 @@ export default function AbastecerScreen() {
     queryFn: () => caminhoesApi.list(),
   });
 
+  const postosQuery = useQuery({
+    queryKey: ['postos'],
+    queryFn: () => postosApi.list(),
+  });
+
   const caminhaoOptions: PickerOption[] = (caminhoesQuery.data ?? []).map(
     (c) => ({
       label: `${c.placa} — ${c.modelo}`,
       value: c.id,
+    }),
+  );
+
+  const postoOptions: PickerOption[] = (postosQuery.data ?? []).map(
+    (p) => ({
+      label: p.nome,
+      value: p.id,
     }),
   );
 
@@ -94,7 +107,7 @@ export default function AbastecerScreen() {
       litros: Number(form.litros),
       valor_total: Number(form.valor_total),
       km_registro: Number(form.km_registro),
-      posto: form.posto || undefined,
+      posto_id: form.posto_id || undefined,
     };
 
     const state = await Network.getNetworkStateAsync();
@@ -185,11 +198,14 @@ export default function AbastecerScreen() {
             error={errors.valor_total}
           />
 
-          <Input
+          <Picker
             label="Posto (opcional)"
-            placeholder="Nome do posto"
-            value={form.posto}
-            onChangeText={(v) => setForm((p) => ({ ...p, posto: v }))}
+            placeholder="Selecione o posto"
+            options={postoOptions}
+            value={form.posto_id}
+            onSelect={(v) =>
+              setForm((p) => ({ ...p, posto_id: v as number }))
+            }
           />
 
           {precoLitro > 0 && (

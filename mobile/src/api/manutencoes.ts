@@ -20,6 +20,7 @@ export interface CreateManutencaoPayload {
   km_manutencao?: number;
   data_manutencao?: string | null;
   oficina?: string | null;
+  oficina_id?: number | null;
   status?: 'pendente' | 'em_andamento' | 'concluida';
 }
 
