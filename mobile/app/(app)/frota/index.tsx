@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
@@ -18,6 +17,8 @@ import { useAuth } from '../../../src/contexts/AuthContext';
 import { caminhoesApi } from '../../../src/api/caminhoes';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatNumber } from '../../../src/lib/format';
+import { SkeletonList } from '../../../src/components/Skeleton';
+import { SearchBar } from '../../../src/components/SearchBar';
 import type { Caminhao } from '../../../src/api/types';
 
 export default function FrotaListScreen() {
@@ -29,10 +30,20 @@ export default function FrotaListScreen() {
     queryFn: () => caminhoesApi.list(),
   });
 
+  const [search, setSearch] = useState('');
+
   const trucks = useMemo(() => {
     if (!data) return [];
-    return [...data].sort((a, b) => a.placa.localeCompare(b.placa));
-  }, [data]);
+    const sorted = [...data].sort((a, b) => a.placa.localeCompare(b.placa));
+    if (!search.trim()) return sorted;
+    const q = search.toLowerCase();
+    return sorted.filter(
+      (t) =>
+        t.placa?.toLowerCase().includes(q) ||
+        t.modelo?.toLowerCase().includes(q) ||
+        t.marca?.toLowerCase().includes(q),
+    );
+  }, [data, search]);
 
   const renderTruck = ({ item }: { item: Caminhao }) => {
     const fuelLabel =
@@ -94,10 +105,10 @@ export default function FrotaListScreen() {
         )}
       </View>
 
+      <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por placa ou modelo..." />
+
       {isLoading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <SkeletonList count={4} />
       ) : trucks.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="bus-outline" size={48} color={colors.textDim} />
@@ -151,11 +162,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textMuted,
     marginTop: spacing.xs,
-  },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   empty: {
     flex: 1,

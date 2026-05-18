@@ -462,7 +462,7 @@ function MotoristaAccountsSection() {
       setShowCreate(false);
       fetchData();
     } catch (err) {
-      addToast(err.message || 'Erro ao criar conta', 'error');
+      if (!err.isPlanLimit) addToast(err.message || 'Erro ao criar conta', 'error');
     } finally {
       setCreating(false);
     }

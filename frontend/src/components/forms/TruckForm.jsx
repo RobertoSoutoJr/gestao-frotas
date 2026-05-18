@@ -66,7 +66,7 @@ export function TruckForm({ onSuccess }) {
       setFotoPreview(null);
       onSuccess?.();
     } catch (err) {
-      showError('Erro', err.message || 'Falha ao cadastrar caminhão');
+      if (!err.isPlanLimit) showError('Erro', err.message || 'Falha ao cadastrar caminhão');
     } finally {
       setLoading(false);
     }

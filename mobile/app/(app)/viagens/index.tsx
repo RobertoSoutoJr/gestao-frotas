@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -21,6 +20,9 @@ import { viagensApi } from '../../../src/api/viagens';
 import type { Viagem } from '../../../src/api/types';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
+import { SkeletonList } from '../../../src/components/Skeleton';
+import { SearchBar } from '../../../src/components/SearchBar';
+import { useHaptics } from '../../../src/hooks/useHaptics';
 
 export default function ViagensListScreen() {
   const { user } = useAuth();
@@ -33,18 +35,24 @@ export default function ViagensListScreen() {
     queryFn: () => viagensApi.list(),
   });
 
+  const haptics = useHaptics();
+  const [search, setSearch] = useState('');
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => viagensApi.delete(id),
     onSuccess: () => {
+      haptics.success();
       queryClient.invalidateQueries({ queryKey: ['viagens'] });
       showToast('Viagem excluída', 'success');
     },
     onError: (err: any) => {
+      haptics.error();
       showToast(err?.message || 'Erro ao excluir', 'error');
     },
   });
 
   const handleDelete = (id: number) => {
+    haptics.warning();
     Alert.alert(
       'Excluir viagem',
       'Tem certeza que deseja excluir esta viagem?',
@@ -61,15 +69,24 @@ export default function ViagensListScreen() {
 
   const myTrips = useMemo(() => {
     const all = query.data ?? [];
-    const filtered = isMotorista && user?.motorista_id
+    const byDriver = isMotorista && user?.motorista_id
       ? all.filter((t) => t.motorista_id === user.motorista_id)
       : all;
-    return filtered.sort(
+    const sorted = byDriver.sort(
       (a, b) =>
         new Date(b.data_viagem ?? b.created_at ?? 0).getTime() -
         new Date(a.data_viagem ?? a.created_at ?? 0).getTime(),
     );
-  }, [query.data, isMotorista, user?.motorista_id]);
+    if (!search.trim()) return sorted;
+    const q = search.toLowerCase();
+    return sorted.filter(
+      (t) =>
+        t.produto?.toLowerCase().includes(q) ||
+        t.motoristas?.nome?.toLowerCase().includes(q) ||
+        t.clientes?.nome?.toLowerCase().includes(q) ||
+        t.fornecedores?.nome?.toLowerCase().includes(q),
+    );
+  }, [query.data, isMotorista, user?.motorista_id, search]);
 
   const active = myTrips.filter((t) => t.status === 'cadastrada');
   const completed = myTrips.filter((t) => t.status === 'finalizada');
@@ -90,10 +107,10 @@ export default function ViagensListScreen() {
         style={styles.newBtn}
       />
 
+      <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por produto, motorista..." />
+
       {query.isLoading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <SkeletonList count={5} />
       ) : (
         <FlatList
           data={myTrips}
@@ -280,11 +297,6 @@ const styles = StyleSheet.create({
   newBtn: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
-  },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   list: {
     paddingHorizontal: spacing.lg,

@@ -5,10 +5,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { colors } from '../../src/lib/theme';
+import { useExpirationNotifications } from '../../src/hooks/useExpirationNotifications';
 
 export default function AppLayout() {
   const { user, loading } = useAuth();
   const insets = useSafeAreaInsets();
+  const isAdmin = user?.role !== 'motorista';
+
+  // Check CNH and licensing expiration when admin loads the app
+  useExpirationNotifications(!!user && isAdmin);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -24,7 +29,7 @@ export default function AppLayout() {
     );
   }
 
-  const isMotorista = user.role === 'motorista';
+  const isMotorista = !isAdmin;
 
   return (
     <Tabs

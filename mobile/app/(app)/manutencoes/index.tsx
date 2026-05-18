@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -17,6 +16,9 @@ import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { manutencoesApi } from '../../../src/api/manutencoes';
 import { useToast } from '../../../src/contexts/ToastContext';
+import { useHaptics } from '../../../src/hooks/useHaptics';
+import { SearchBar } from '../../../src/components/SearchBar';
+import { SkeletonList } from '../../../src/components/Skeleton';
 import type { Manutencao } from '../../../src/api/types';
 import { colors, fontSize, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
@@ -35,6 +37,8 @@ const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 export default function ManutencoesListScreen() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const haptics = useHaptics();
+  const [search, setSearch] = useState('');
 
   const query = useQuery({
     queryKey: ['manutencoes'],
@@ -44,15 +48,18 @@ export default function ManutencoesListScreen() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => manutencoesApi.delete(id),
     onSuccess: () => {
+      haptics.success();
       queryClient.invalidateQueries({ queryKey: ['manutencoes'] });
       showToast('Manutenção excluída', 'success');
     },
     onError: (err: any) => {
+      haptics.error();
       showToast(err?.message || 'Erro ao excluir', 'error');
     },
   });
 
   const handleDelete = (id: number) => {
+    haptics.warning();
     Alert.alert(
       'Excluir manutenção',
       'Tem certeza que deseja excluir este registro?',
@@ -68,12 +75,21 @@ export default function ManutencoesListScreen() {
   };
 
   const records = useMemo(() => {
-    return (query.data ?? []).sort(
+    const sorted = (query.data ?? []).sort(
       (a, b) =>
         new Date(b.data_manutencao || b.created_at || 0).getTime() -
         new Date(a.data_manutencao || a.created_at || 0).getTime(),
     );
-  }, [query.data]);
+    if (!search.trim()) return sorted;
+    const q = search.toLowerCase();
+    return sorted.filter(
+      (r) =>
+        r.tipo_manutencao?.toLowerCase().includes(q) ||
+        r.descricao?.toLowerCase().includes(q) ||
+        r.caminhoes?.placa?.toLowerCase().includes(q) ||
+        (r.oficinas?.nome || r.oficina)?.toLowerCase().includes(q),
+    );
+  }, [query.data, search]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -89,10 +105,10 @@ export default function ManutencoesListScreen() {
         />
       </View>
 
+      <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por tipo, placa ou oficina..." />
+
       {query.isLoading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <SkeletonList count={5} />
       ) : (
         <FlatList
           data={records}
@@ -214,7 +230,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,

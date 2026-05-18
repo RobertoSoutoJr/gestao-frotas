@@ -140,7 +140,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
       setSelectedEstoqueId('');
       onSuccess?.();
     } catch (error) {
-      showError('Erro', error.message || 'Falha ao cadastrar viagem');
+      if (!error.isPlanLimit) showError('Erro', error.message || 'Falha ao cadastrar viagem');
     } finally {
       setLoading(false);
     }

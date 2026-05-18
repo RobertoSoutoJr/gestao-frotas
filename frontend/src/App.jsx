@@ -2,6 +2,8 @@ import { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { PlanLimitProvider } from './contexts/PlanLimitContext';
 import { useAuth } from './hooks/useAuth';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
@@ -38,7 +40,6 @@ function AuthenticatedContent() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { trucks, drivers, fuelRecords, maintenanceRecords, clients, suppliers, trips, stockRecords, oficinas, postos, loading, error, refetch } = useFleet();
-  const { toasts, dismiss } = useToast();
   const isAdmin = user?.role !== 'motorista';
   const [showOnboarding, setShowOnboarding] = useState(!isOnboardingDone());
 
@@ -161,8 +162,6 @@ function AuthenticatedContent() {
         </Suspense>
       </main>
 
-      <ToastContainer toasts={toasts} onDismiss={dismiss} />
-
       {showOnboarding && isAdmin && trucks.length === 0 && (
         <OnboardingWizard onComplete={() => { setShowOnboarding(false); refetch(); }} />
       )}
@@ -191,13 +190,23 @@ function AppContent() {
   return <AuthenticatedContent />;
 }
 
+function RootToastContainer() {
+  const { toasts, dismiss } = useToast();
+  return <ToastContainer toasts={toasts} onDismiss={dismiss} />;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
+        <ToastProvider>
+          <PlanLimitProvider>
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
+          </PlanLimitProvider>
+          <RootToastContainer />
+        </ToastProvider>
       </ThemeProvider>
     </BrowserRouter>
   );

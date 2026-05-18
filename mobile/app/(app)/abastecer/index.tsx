@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -21,6 +20,10 @@ import { caminhoesApi } from '../../../src/api/caminhoes';
 import { useToast } from '../../../src/contexts/ToastContext';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate, formatNumber } from '../../../src/lib/format';
+import { SkeletonList } from '../../../src/components/Skeleton';
+import { SearchBar } from '../../../src/components/SearchBar';
+import { useHaptics } from '../../../src/hooks/useHaptics';
+import { useOfflineSync } from '../../../src/hooks/useOfflineSync';
 import type { Abastecimento, Caminhao } from '../../../src/api/types';
 
 export default function AbastecerListScreen() {
@@ -38,13 +41,19 @@ export default function AbastecerListScreen() {
     queryFn: () => caminhoesApi.list(),
   });
 
+  const haptics = useHaptics();
+  const [search, setSearch] = useState('');
+  const { pendingCount, syncing, sync } = useOfflineSync();
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => abastecimentosApi.delete(id),
     onSuccess: () => {
+      haptics.success();
       queryClient.invalidateQueries({ queryKey: ['abastecimentos'] });
       showToast('Abastecimento excluído', 'success');
     },
     onError: (err: any) => {
+      haptics.error();
       showToast(err?.message || 'Erro ao excluir', 'error');
     },
   });
@@ -60,17 +69,24 @@ export default function AbastecerListScreen() {
   const records = useMemo(() => {
     if (!data) return [];
     let list = [...data];
-    // Motorista vê só os dele
     if (user?.role === 'motorista' && user.motorista_id) {
       list = list.filter((r) => r.motorista_id === user.motorista_id);
     }
-    return list.sort(
+    const sorted = list.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
-  }, [data, user]);
+    if (!search.trim()) return sorted;
+    const q = search.toLowerCase();
+    return sorted.filter(
+      (r) =>
+        truckMap[r.caminhao_id]?.placa?.toLowerCase().includes(q) ||
+        r.posto?.toLowerCase().includes(q),
+    );
+  }, [data, user, search, truckMap]);
 
   const handleDelete = (id: number) => {
+    haptics.warning();
     Alert.alert(
       'Excluir abastecimento',
       'Tem certeza que deseja excluir este registro?',
@@ -174,10 +190,21 @@ export default function AbastecerListScreen() {
         />
       </View>
 
+      {pendingCount > 0 && (
+        <Pressable style={styles.offlineBanner} onPress={sync}>
+          <Ionicons name="cloud-upload-outline" size={16} color={colors.warning} />
+          <Text style={styles.offlineBannerText}>
+            {syncing
+              ? 'Sincronizando...'
+              : `${pendingCount} lançamento${pendingCount > 1 ? 's' : ''} offline — toque para sincronizar`}
+          </Text>
+        </Pressable>
+      )}
+
+      <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por placa ou posto..." />
+
       {isLoading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <SkeletonList count={5} />
       ) : records.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="water-outline" size={48} color={colors.textDim} />
@@ -230,10 +257,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
+  offlineBanner: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.warning + '20',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.warning + '40',
+  },
+  offlineBannerText: {
+    fontSize: fontSize.xs,
+    color: colors.warning,
+    fontWeight: '600',
+    flex: 1,
   },
   empty: {
     flex: 1,

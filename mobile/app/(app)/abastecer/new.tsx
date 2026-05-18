@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Network from 'expo-network';
 import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
 import { Picker, PickerOption } from '../../../src/components/Picker';
@@ -23,7 +24,9 @@ import {
   abastecimentosApi,
   CreateAbastecimentoPayload,
 } from '../../../src/api/abastecimentos';
+import { enqueueAbastecimento } from '../../../src/lib/offlineQueue';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { useHaptics } from '../../../src/hooks/useHaptics';
 
 const INITIAL_FORM = {
   caminhao_id: null as number | null,
@@ -38,6 +41,8 @@ export default function AbastecerScreen() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const haptics = useHaptics();
 
   const caminhoesQuery = useQuery({
     queryKey: ['caminhoes'],
@@ -55,12 +60,16 @@ export default function AbastecerScreen() {
     mutationFn: (data: CreateAbastecimentoPayload) =>
       abastecimentosApi.create(data),
     onSuccess: () => {
+      haptics.success();
       queryClient.invalidateQueries({ queryKey: ['abastecimentos'] });
       setForm(INITIAL_FORM);
       setErrors({});
-      router.back();
+      Alert.alert('Abastecimento registrado!', 'O lançamento foi salvo com sucesso.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
     },
     onError: (err: any) => {
+      haptics.error();
       Alert.alert('Erro', err?.message || 'Falha ao registrar abastecimento');
     },
   });
@@ -77,16 +86,32 @@ export default function AbastecerScreen() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    mutation.mutate({
+    const payload: CreateAbastecimentoPayload = {
       caminhao_id: form.caminhao_id!,
       motorista_id: user?.motorista_id ?? 0,
       litros: Number(form.litros),
       valor_total: Number(form.valor_total),
       km_registro: Number(form.km_registro),
       posto: form.posto || undefined,
-    });
+    };
+
+    const state = await Network.getNetworkStateAsync();
+    if (!state.isConnected || !state.isInternetReachable) {
+      await enqueueAbastecimento(payload);
+      haptics.success();
+      setForm(INITIAL_FORM);
+      setErrors({});
+      Alert.alert(
+        'Salvo offline',
+        'Sem conexão — o lançamento foi salvo e será sincronizado automaticamente quando você estiver online.',
+        [{ text: 'OK', onPress: () => router.back() }],
+      );
+      return;
+    }
+
+    mutation.mutate(payload);
   };
 
   // Auto-calculate preço/litro

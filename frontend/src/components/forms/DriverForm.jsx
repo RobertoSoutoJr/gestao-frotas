@@ -26,7 +26,7 @@ export function DriverForm({ onSuccess }) {
       setFormData({ nome: '', cpf: '', telefone: '', numero_cnh: '', validade_cnh: '' });
       onSuccess?.();
     } catch (err) {
-      showError('Erro', err.message || 'Falha ao cadastrar motorista');
+      if (!err.isPlanLimit) showError('Erro', err.message || 'Falha ao cadastrar motorista');
     } finally {
       setLoading(false);
     }

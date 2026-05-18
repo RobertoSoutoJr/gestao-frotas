@@ -113,11 +113,19 @@ api.interceptors.response.use(
 
     const message = error.response?.data?.message || 'An error occurred';
     const errors = error.response?.data?.errors;
+    const status = error.response?.status;
+
+    const isPlanLimit = status === 403 && typeof message === 'string' && message.toLowerCase().includes('limite do plano');
+
+    if (isPlanLimit) {
+      window.dispatchEvent(new CustomEvent('planLimitReached', { detail: { message } }));
+    }
 
     return Promise.reject({
       message,
       errors,
-      status: error.response?.status
+      status,
+      isPlanLimit,
     });
   }
 );

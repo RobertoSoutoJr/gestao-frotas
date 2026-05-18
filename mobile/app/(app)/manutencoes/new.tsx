@@ -27,6 +27,7 @@ import {
 } from '../../../src/api/manutencoes';
 import { documentosApi } from '../../../src/api/documentos';
 import { colors, fontSize, radius, spacing } from '../../../src/lib/theme';
+import { useHaptics } from '../../../src/hooks/useHaptics';
 
 const typeOptions: PickerOption[] = MAINTENANCE_TYPES.map((t) => ({
   label: t,
@@ -45,6 +46,7 @@ const INITIAL_FORM = {
 export default function NewManutencaoScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const haptics = useHaptics();
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [photo, setPhoto] = useState<ImagePicker.ImagePickerAsset | null>(null);
@@ -135,11 +137,14 @@ export default function NewManutencaoScreen() {
       return record;
     },
     onSuccess: () => {
+      haptics.success();
       queryClient.invalidateQueries({ queryKey: ['manutencoes'] });
-      Alert.alert('Sucesso', 'Manutenção registrada!');
-      router.back();
+      Alert.alert('Manutenção registrada!', 'O registro foi salvo com sucesso.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
     },
     onError: (err: any) => {
+      haptics.error();
       Alert.alert('Erro', err?.message || 'Falha ao registrar manutenção');
     },
   });
