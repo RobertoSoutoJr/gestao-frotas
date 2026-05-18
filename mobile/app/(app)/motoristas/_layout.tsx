@@ -10,7 +10,9 @@ export default function MotoristasLayout() {
         animation: 'fade',
       }}
     >
+      <Stack.Screen name="index" />
       <Stack.Screen name="new" />
+      <Stack.Screen name="edit" />
     </Stack>
   );
 }
