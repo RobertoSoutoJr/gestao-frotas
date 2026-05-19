@@ -19,6 +19,7 @@ const router = express.Router();
 
 router.get('/:entidade_tipo/:entidade_id', documentController.getByEntity);
 router.post('/', upload.single('arquivo'), documentController.upload);
+router.post('/extract-fuel-receipt', upload.single('arquivo'), documentController.extractFuelReceipt);
 router.delete('/:id', documentController.delete);
 
 module.exports = router;

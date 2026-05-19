@@ -90,6 +90,19 @@ class DocumentService {
     return { message: 'Documento removido com sucesso' };
   }
 
+  async linkToEntity(documentId, entidadeId, userId) {
+    const { data, error } = await supabase
+      .from('documentos')
+      .update({ entidade_id: entidadeId })
+      .eq('id', documentId)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw new AppError('Falha ao vincular documento', 500, error);
+    return data;
+  }
+
   async countByEntity(entidadeTipo, entidadeId, userId) {
     const { count, error } = await supabase
       .from('documentos')
