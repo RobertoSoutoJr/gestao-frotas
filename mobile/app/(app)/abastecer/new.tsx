@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Pressable,
@@ -18,6 +19,7 @@ import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
 import { Picker, PickerOption } from '../../../src/components/Picker';
 import { Card } from '../../../src/components/Card';
+import { NfceScanner } from '../../../src/components/NfceScanner';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { caminhoesApi } from '../../../src/api/caminhoes';
 import {
@@ -25,10 +27,12 @@ import {
   CreateAbastecimentoPayload,
 } from '../../../src/api/abastecimentos';
 import { postosApi } from '../../../src/api/postos';
+import { ocrApi } from '../../../src/api/ocr';
 import { enqueueAbastecimento } from '../../../src/lib/offlineQueue';
 import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { useHaptics } from '../../../src/hooks/useHaptics';
 import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
+import { useToast } from '../../../src/contexts/ToastContext';
 
 const INITIAL_FORM = {
   caminhao_id: null as number | null,
@@ -41,12 +45,21 @@ const INITIAL_FORM = {
 export default function AbastecerScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const colors = useColors();
   const styles = useStyles(createStyles);
-
   const haptics = useHaptics();
+
+  // NFC-e scanner state
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [ocrResult, setOcrResult] = useState<{
+    confidence: number;
+    method: string;
+    documento_id?: number;
+  } | null>(null);
 
   const caminhoesQuery = useQuery({
     queryKey: ['caminhoes'],
@@ -80,6 +93,7 @@ export default function AbastecerScreen() {
       queryClient.invalidateQueries({ queryKey: ['abastecimentos'] });
       setForm(INITIAL_FORM);
       setErrors({});
+      setOcrResult(null);
       Alert.alert('Abastecimento registrado!', 'O lançamento foi salvo com sucesso.', [
         { text: 'OK', onPress: () => router.back() },
       ]);
@@ -89,6 +103,68 @@ export default function AbastecerScreen() {
       Alert.alert('Erro', err?.message || 'Falha ao registrar abastecimento');
     },
   });
+
+  const handleScanCapture = async (result: { uri: string; qrData?: string }) => {
+    setScannerVisible(false);
+    setScanning(true);
+
+    try {
+      const response = await ocrApi.extractFuelReceipt(result.uri);
+
+      if (response.extracted) {
+        const ext = response.extracted;
+
+        // Auto-fill form fields
+        setForm((prev) => ({
+          ...prev,
+          litros: ext.litros ? String(ext.litros) : prev.litros,
+          valor_total: ext.valor_total ? String(ext.valor_total) : prev.valor_total,
+          // Try to match posto by CNPJ
+          posto_id: prev.posto_id || matchPostoByCnpj(ext.posto_cnpj) || prev.posto_id,
+        }));
+
+        // Try to match caminhão by placa
+        if (ext.placa_veiculo && !form.caminhao_id) {
+          const truck = (caminhoesQuery.data ?? []).find(
+            (c) => c.placa?.replace(/[-\s]/g, '').toUpperCase() ===
+              ext.placa_veiculo?.replace(/[-\s]/g, '').toUpperCase(),
+          );
+          if (truck) {
+            setForm((prev) => ({ ...prev, caminhao_id: truck.id }));
+          }
+        }
+
+        setOcrResult({
+          confidence: response.confidence,
+          method: response.method,
+          documento_id: response.documento_id,
+        });
+
+        haptics.success();
+        showToast(
+          `Dados extraídos (${Math.round(response.confidence * 100)}% confiança)`,
+          response.confidence >= 0.7 ? 'success' : 'info',
+        );
+      } else {
+        haptics.warning();
+        showToast(response.error || 'Não foi possível ler o cupom', 'error');
+      }
+    } catch (err: any) {
+      haptics.error();
+      showToast(err?.message || 'Erro ao processar imagem', 'error');
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const matchPostoByCnpj = (cnpj: string | null): number | null => {
+    if (!cnpj) return null;
+    const clean = cnpj.replace(/[^\d]/g, '');
+    const posto = (postosQuery.data ?? []).find(
+      (p) => p.cnpj?.replace(/[^\d]/g, '') === clean,
+    );
+    return posto?.id ?? null;
+  };
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
@@ -119,6 +195,7 @@ export default function AbastecerScreen() {
       haptics.success();
       setForm(INITIAL_FORM);
       setErrors({});
+      setOcrResult(null);
       Alert.alert(
         'Salvo offline',
         'Sem conexão — o lançamento foi salvo e será sincronizado automaticamente quando você estiver online.',
@@ -134,6 +211,15 @@ export default function AbastecerScreen() {
   const litrosNum = Number(form.litros) || 0;
   const valorNum = Number(form.valor_total) || 0;
   const precoLitro = litrosNum > 0 && valorNum > 0 ? valorNum / litrosNum : 0;
+
+  // Confidence badge color
+  const confColor = ocrResult
+    ? ocrResult.confidence >= 0.7
+      ? colors.success
+      : ocrResult.confidence >= 0.4
+        ? colors.warning
+        : colors.danger
+    : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -152,6 +238,50 @@ export default function AbastecerScreen() {
             <Ionicons name="water" size={28} color={colors.accent} />
             <Text style={styles.title}>Novo Abastecimento</Text>
           </View>
+
+          {/* NFC-e Scanner Button */}
+          <Pressable
+            onPress={() => setScannerVisible(true)}
+            disabled={scanning}
+            style={[styles.scanBtn, scanning && { opacity: 0.6 }]}
+          >
+            {scanning ? (
+              <>
+                <ActivityIndicator size="small" color={colors.accent} />
+                <Text style={styles.scanBtnText}>Lendo cupom fiscal...</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="camera-outline" size={22} color={colors.accent} />
+                <View style={styles.scanBtnContent}>
+                  <Text style={styles.scanBtnText}>Escanear NFC-e</Text>
+                  <Text style={styles.scanBtnHint}>
+                    Tire uma foto do cupom para preencher automaticamente
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </>
+            )}
+          </Pressable>
+
+          {/* OCR confidence badge */}
+          {ocrResult && confColor && (
+            <View style={[styles.ocrBadge, { backgroundColor: confColor + '15', borderColor: confColor + '40' }]}>
+              <Ionicons
+                name={ocrResult.confidence >= 0.7 ? 'checkmark-circle' : 'information-circle'}
+                size={16}
+                color={confColor}
+              />
+              <Text style={[styles.ocrBadgeText, { color: confColor }]}>
+                {ocrResult.confidence >= 0.7
+                  ? 'Dados extraídos com alta confiança'
+                  : ocrResult.confidence >= 0.4
+                    ? 'Dados parciais — revise os valores'
+                    : 'Poucos dados extraídos — preencha manualmente'}
+                {' '}({ocrResult.method === 'qr+vision' ? 'QR + OCR' : ocrResult.method === 'qr' ? 'QR Code' : 'OCR'})
+              </Text>
+            </View>
+          )}
 
           <Picker
             label="Caminhão *"
@@ -231,6 +361,12 @@ export default function AbastecerScreen() {
           />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <NfceScanner
+        visible={scannerVisible}
+        onClose={() => setScannerVisible(false)}
+        onCapture={handleScanCapture}
+      />
     </SafeAreaView>
   );
 }
@@ -249,6 +385,45 @@ const createStyles = (c: Colors) => StyleSheet.create({
     fontSize: fontSize.xxl,
     fontWeight: '700',
     color: c.text,
+  },
+  scanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: c.accent + '10',
+    borderWidth: 1,
+    borderColor: c.accent + '30',
+    borderRadius: radius.lg,
+    borderStyle: 'dashed',
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  scanBtnContent: {
+    flex: 1,
+  },
+  scanBtnText: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: c.accent,
+  },
+  scanBtnHint: {
+    fontSize: fontSize.xs,
+    color: c.textMuted,
+    marginTop: 2,
+  },
+  ocrBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginBottom: spacing.md,
+  },
+  ocrBadgeText: {
+    fontSize: fontSize.xs,
+    fontWeight: '500',
+    flex: 1,
   },
   precoCard: {
     marginBottom: spacing.lg,

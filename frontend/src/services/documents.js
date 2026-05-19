@@ -18,4 +18,13 @@ export const documentsService = {
   },
 
   delete: (id) => api.delete(`/documentos/${id}`),
+
+  extractFuelReceipt: (file) => {
+    const formData = new FormData();
+    formData.append('arquivo', file);
+    return api.post('/documentos/extract-fuel-receipt', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
+    });
+  },
 };
