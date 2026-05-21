@@ -14,6 +14,7 @@ const documentRoutes = require('./document.routes');
 const oficinaRoutes = require('./oficina.routes');
 const postoRoutes = require('./posto.routes');
 const auditRoutes = require('./audit.routes');
+const dashboardController = require('../controllers/dashboard.controller');
 const { protect, requireAdmin } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -25,6 +26,9 @@ router.get('/health', (req, res) => {
 
 // Auth routes (públicas)
 router.use('/auth', authRoutes);
+
+// Dashboard (consolidated — single request)
+router.get('/dashboard', protect, dashboardController.getDashboard);
 
 // API routes (protegidas)
 router.use('/caminhoes', protect, truckRoutes);

@@ -14,10 +14,7 @@ import { StatCard } from '../../src/components/StatCard';
 import { SkeletonStatGrid } from '../../src/components/Skeleton';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useColors, useStyles } from '../../src/contexts/ThemeContext';
-import { viagensApi } from '../../src/api/viagens';
-import { abastecimentosApi } from '../../src/api/abastecimentos';
-import { caminhoesApi } from '../../src/api/caminhoes';
-import { manutencoesApi } from '../../src/api/manutencoes';
+import { dashboardApi, type DashboardData } from '../../src/api/dashboard';
 import { type Colors, fontSize, radius, spacing } from '../../src/lib/theme';
 import { formatCurrency, formatNumber } from '../../src/lib/format';
 
@@ -32,54 +29,21 @@ export default function DashboardScreen() {
   const styles = useStyles(createStyles);
   const isMotorista = user?.role === 'motorista';
 
-  const viagensQuery = useQuery({
-    queryKey: ['viagens'],
-    queryFn: () => viagensApi.list(),
+  // Single consolidated query — replaces 4 separate queries
+  const { data, isLoading, isRefetching, refetch } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: () => dashboardApi.getData(),
+    staleTime: 60_000, // 1 min cache
   });
-
-  const fuelQuery = useQuery({
-    queryKey: ['abastecimentos'],
-    queryFn: () => abastecimentosApi.list(),
-  });
-
-  const caminhoesQuery = useQuery({
-    queryKey: ['caminhoes'],
-    queryFn: () => caminhoesApi.list(),
-  });
-
-  const manutencoesQuery = useQuery({
-    queryKey: ['manutencoes'],
-    queryFn: () => manutencoesApi.list(),
-    enabled: !isMotorista,
-  });
-
-  const isLoading =
-    viagensQuery.isLoading ||
-    fuelQuery.isLoading ||
-    caminhoesQuery.isLoading ||
-    (!isMotorista && manutencoesQuery.isLoading);
-
-  const isRefetching =
-    viagensQuery.isRefetching ||
-    fuelQuery.isRefetching ||
-    caminhoesQuery.isRefetching ||
-    manutencoesQuery.isRefetching;
-
-  const handleRefresh = () => {
-    viagensQuery.refetch();
-    fuelQuery.refetch();
-    caminhoesQuery.refetch();
-    manutencoesQuery.refetch();
-  };
 
   // Motorista stats
   const motoristaStats = useMemo((): MotoristaStats | null => {
-    if (!isMotorista || !user?.motorista_id) return null;
+    if (!isMotorista || !user?.motorista_id || !data) return null;
 
-    const myTrips = (viagensQuery.data ?? []).filter(
+    const myTrips = data.viagens.filter(
       (t) => t.motorista_id === user.motorista_id,
     );
-    const myFuel = (fuelQuery.data ?? []).filter(
+    const myFuel = data.abastecimentos.filter(
       (r) => r.motorista_id === user.motorista_id,
     );
 
@@ -118,16 +82,13 @@ export default function DashboardScreen() {
       lucroTotal,
       kmPerLiter,
     };
-  }, [isMotorista, user?.motorista_id, viagensQuery.data, fuelQuery.data]);
+  }, [isMotorista, user?.motorista_id, data]);
 
   // Admin (gestor) stats
   const adminStats = useMemo(() => {
-    if (isMotorista) return null;
+    if (isMotorista || !data) return null;
 
-    const trips = viagensQuery.data ?? [];
-    const fuel = fuelQuery.data ?? [];
-    const caminhoes = caminhoesQuery.data ?? [];
-    const manut = manutencoesQuery.data ?? [];
+    const { viagens: trips, abastecimentos: fuel, caminhoes, manutencoes: manut } = data;
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -166,7 +127,7 @@ export default function DashboardScreen() {
       inProgressMaintenance,
       mesAtual: MESES[now.getMonth()],
     };
-  }, [isMotorista, viagensQuery.data, fuelQuery.data, caminhoesQuery.data, manutencoesQuery.data]);
+  }, [isMotorista, data]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -175,7 +136,7 @@ export default function DashboardScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={handleRefresh}
+            onRefresh={refetch}
             tintColor={colors.accent}
           />
         }
