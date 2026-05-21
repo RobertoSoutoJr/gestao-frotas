@@ -6,6 +6,7 @@ import { AuthProvider } from '../src/contexts/AuthContext';
 import { ToastProvider } from '../src/contexts/ToastContext';
 import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
 import { OfflineSyncProvider } from '../src/contexts/OfflineSyncContext';
+import { useOTAUpdates } from '../src/hooks/useOTAUpdates';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,6 +22,7 @@ const queryClient = new QueryClient({
 
 function InnerLayout() {
   const { colors, isDark } = useTheme();
+  useOTAUpdates();
 
   return (
     <>

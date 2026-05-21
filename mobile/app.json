@@ -45,6 +45,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-updates",
       "expo-router",
       "expo-secure-store",
       [
@@ -75,8 +76,14 @@
         }
       ]
     ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "updates": {
-      "enabled": false
+      "enabled": true,
+      "url": "https://u.expo.dev/f157a24c-ac08-44c8-9fff-aa77e51a9e2c",
+      "fallbackToCacheTimeout": 3000,
+      "checkAutomatically": "ON_LOAD"
     },
     "extra": {
       "apiUrl": "https://srv1665848.hstgr.cloud/api",
