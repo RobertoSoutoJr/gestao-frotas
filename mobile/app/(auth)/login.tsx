@@ -22,8 +22,8 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { type Colors, fontSize, radius, spacing } from '../../src/lib/theme';
 import { useColors, useStyles, useTheme } from '../../src/contexts/ThemeContext';
 
-const logoDark = require('../../assets/images/logoFuelTrack_light-removebg.png');
-const logoLight = require('../../assets/images/logoFuelTrack_black-removebg.png');
+const logoDark = require('../../assets/images/logoFuelTrack_black-removebg.png');
+const logoLight = require('../../assets/images/logoFuelTrack_light-removebg.png');
 
 const REMEMBER_EMAIL_KEY = '@fueltrack:remember_email';
 const REMEMBER_ENABLED_KEY = '@fueltrack:remember_enabled';
@@ -106,9 +106,6 @@ export default function LoginScreen() {
           <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
             {/* Logo Section */}
             <View style={styles.logoSection}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="water" size={40} color={colors.accent} />
-              </View>
               <Image
                 source={isDark ? logoDark : logoLight}
                 style={styles.logo}
@@ -232,19 +229,10 @@ const createStyles = (c: Colors) =>
       alignItems: 'center',
       marginBottom: spacing.xl,
     },
-    iconCircle: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: c.accent + '15',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: spacing.md,
-    },
     logo: {
-      width: 260,
-      height: 80,
-      marginBottom: spacing.xs,
+      width: 320,
+      height: 110,
+      marginBottom: spacing.sm,
     },
     subtitle: {
       fontSize: fontSize.sm,
