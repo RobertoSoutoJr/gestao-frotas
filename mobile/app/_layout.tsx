@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { ToastProvider } from '../src/contexts/ToastContext';
 import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
+import { OfflineSyncProvider } from '../src/contexts/OfflineSyncContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,7 +47,9 @@ export default function RootLayout() {
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
-              <InnerLayout />
+              <OfflineSyncProvider>
+                <InnerLayout />
+              </OfflineSyncProvider>
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>

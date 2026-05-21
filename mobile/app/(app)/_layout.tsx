@@ -7,6 +7,8 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { type Colors } from '../../src/lib/theme';
 import { useColors, useStyles } from '../../src/contexts/ThemeContext';
 import { useExpirationNotifications } from '../../src/hooks/useExpirationNotifications';
+import { useTripAssignmentNotifications } from '../../src/hooks/useTripAssignmentNotifications';
+import { useOfflineSync } from '../../src/hooks/useOfflineSync';
 
 const createStyles = (c: Colors) =>
   StyleSheet.create({
@@ -23,10 +25,15 @@ export default function AppLayout() {
   const colors = useColors();
   const styles = useStyles(createStyles);
   const insets = useSafeAreaInsets();
-  const isAdmin = user?.role !== 'motorista';
 
-  // Check CNH and licensing expiration when admin loads the app
+  // Define roles before any hook that depends on them
+  const isAdmin = user?.role !== 'motorista';
+  const isMotorista = !isAdmin;
+
+  const { pendingCount } = useOfflineSync();
+
   useExpirationNotifications(!!user && isAdmin);
+  useTripAssignmentNotifications(isMotorista ? user?.motorista_id : null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -41,8 +48,6 @@ export default function AppLayout() {
       </View>
     );
   }
-
-  const isMotorista = !isAdmin;
 
   return (
     <Tabs
@@ -87,6 +92,8 @@ export default function AppLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="water-outline" size={size} color={color} />
           ),
+          tabBarBadge: pendingCount > 0 ? pendingCount : undefined,
+          tabBarBadgeStyle: { fontSize: 10 },
           href: isMotorista ? '/(app)/abastecer' : null,
         }}
       />
@@ -121,9 +128,18 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name="motoristas"
-        options={{ href: null }}
+        name="cadastros"
+        options={{
+          title: 'Cadastros',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="grid-outline" size={size} color={color} />
+          ),
+        }}
       />
+      {/* postos e oficinas são acessadas via tela Cadastros — sem tab própria */}
+      <Tabs.Screen name="postos" options={{ href: null }} />
+      <Tabs.Screen name="oficinas" options={{ href: null }} />
+      <Tabs.Screen name="motoristas" options={{ href: null }} />
       <Tabs.Screen
         name="perfil"
         options={{
