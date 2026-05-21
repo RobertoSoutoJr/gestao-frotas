@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -199,18 +200,20 @@ function RootToastContainer() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <ThemeProvider>
-        <ToastProvider>
-          <PlanLimitProvider>
-            <AuthProvider>
-              <AppContent />
-            </AuthProvider>
-          </PlanLimitProvider>
-          <RootToastContainer />
-        </ToastProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ThemeProvider>
+          <ToastProvider>
+            <PlanLimitProvider>
+              <AuthProvider>
+                <AppContent />
+              </AuthProvider>
+            </PlanLimitProvider>
+            <RootToastContainer />
+          </ToastProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

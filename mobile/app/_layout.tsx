@@ -6,6 +6,7 @@ import { AuthProvider } from '../src/contexts/AuthContext';
 import { ToastProvider } from '../src/contexts/ToastContext';
 import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
 import { OfflineSyncProvider } from '../src/contexts/OfflineSyncContext';
+import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { useOTAUpdates } from '../src/hooks/useOTAUpdates';
 
 const queryClient = new QueryClient({
@@ -44,18 +45,20 @@ function InnerLayout() {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <AuthProvider>
-            <ToastProvider>
-              <OfflineSyncProvider>
-                <InnerLayout />
-              </OfflineSyncProvider>
-            </ToastProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <ToastProvider>
+                <OfflineSyncProvider>
+                  <InnerLayout />
+                </OfflineSyncProvider>
+              </ToastProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
