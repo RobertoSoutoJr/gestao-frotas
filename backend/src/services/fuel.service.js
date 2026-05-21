@@ -16,21 +16,6 @@ class FuelService {
       .order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar registros de abastecimento', 500, error);
-
-    // Check which records have linked NFC-e documents
-    if (data && data.length > 0) {
-      const ids = data.map(r => r.id);
-      const { data: docs } = await supabase
-        .from('documentos')
-        .select('entidade_id')
-        .eq('user_id', userId)
-        .eq('entidade_tipo', 'abastecimento')
-        .in('entidade_id', ids);
-
-      const docSet = new Set((docs || []).map(d => d.entidade_id));
-      data.forEach(r => { r.has_nfce = docSet.has(r.id); });
-    }
-
     return data;
   }
 
@@ -64,8 +49,15 @@ class FuelService {
   }
 
   async create(fuelData, userId) {
-    // Verify truck and driver exist
-    await truckService.getById(fuelData.caminhao_id, userId);
+    // Verify truck exists and validate KM before inserting
+    const truck = await truckService.getById(fuelData.caminhao_id, userId);
+
+    if (truck.km_atual && fuelData.km_registro < truck.km_atual) {
+      throw new AppError(
+        `Quilometragem inválida: registro atual do veículo é ${truck.km_atual} km`,
+        400
+      );
+    }
 
     const { data, error } = await supabase
       .from('abastecimentos')
@@ -75,10 +67,33 @@ class FuelService {
 
     if (error) throw new AppError('Falha ao criar registro de abastecimento', 500, error);
 
-    // Update truck mileage
-    await truckService.updateMileage(fuelData.caminhao_id, fuelData.km_registro, userId);
+    // Update truck mileage (validation already passed above)
+    await truckService.update(fuelData.caminhao_id, { km_atual: fuelData.km_registro, updated_at: new Date().toISOString() }, userId);
 
     return data;
+  }
+
+  async update(id, fuelData, userId) {
+    const { data, error } = await supabase
+      .from('abastecimentos')
+      .update({ ...fuelData, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw new AppError('Registro de abastecimento não encontrado', 404, error);
+    return data;
+  }
+
+  async delete(id, userId) {
+    const { error } = await supabase
+      .from('abastecimentos')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw new AppError('Falha ao excluir registro de abastecimento', 500, error);
   }
 
   async calculateConsumption(truckId, userId) {

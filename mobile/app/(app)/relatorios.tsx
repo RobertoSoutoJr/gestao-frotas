@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -13,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../../src/components/Card';
 import { StatCard } from '../../src/components/StatCard';
+import { SkeletonStatGrid } from '../../src/components/Skeleton';
 import { useColors, useStyles } from '../../src/contexts/ThemeContext';
 import { caminhoesApi } from '../../src/api/caminhoes';
 import { abastecimentosApi } from '../../src/api/abastecimentos';
@@ -209,9 +209,7 @@ export default function RelatoriosScreen() {
         </View>
 
         {isLoading ? (
-          <View style={styles.loading}>
-            <ActivityIndicator size="large" color={colors.accent} />
-          </View>
+          <SkeletonStatGrid count={8} />
         ) : (
           <>
             {/* Frota */}
@@ -431,10 +429,6 @@ const createStyles = (c: Colors) => StyleSheet.create({
   periodoTextActive: {
     color: c.accent,
     fontWeight: '700',
-  },
-  loading: {
-    padding: spacing.xxl,
-    alignItems: 'center',
   },
   sectionLabel: {
     flexDirection: 'row',

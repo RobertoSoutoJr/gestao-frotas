@@ -24,6 +24,8 @@ import { SkeletonList } from '../../../src/components/Skeleton';
 import { SearchBar } from '../../../src/components/SearchBar';
 import { useHaptics } from '../../../src/hooks/useHaptics';
 import { useOfflineSync } from '../../../src/hooks/useOfflineSync';
+import { PeriodFilter, getDateFrom, type Periodo } from '../../../src/components/PeriodFilter';
+import { SwipeableRow } from '../../../src/components/SwipeableRow';
 import type { Abastecimento, Caminhao } from '../../../src/api/types';
 import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
@@ -44,8 +46,10 @@ export default function AbastecerListScreen() {
     queryFn: () => caminhoesApi.list(),
   });
 
+  const isAdmin = user?.role !== 'motorista';
   const haptics = useHaptics();
   const [search, setSearch] = useState('');
+  const [periodo, setPeriodo] = useState<Periodo>('tudo');
   const { pendingCount, syncing, sync } = useOfflineSync();
 
   const deleteMutation = useMutation({
@@ -75,6 +79,10 @@ export default function AbastecerListScreen() {
     if (user?.role === 'motorista' && user.motorista_id) {
       list = list.filter((r) => r.motorista_id === user.motorista_id);
     }
+    const dateFrom = getDateFrom(periodo);
+    if (dateFrom) {
+      list = list.filter((r) => new Date(r.created_at) >= dateFrom);
+    }
     const sorted = list.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
@@ -86,7 +94,7 @@ export default function AbastecerListScreen() {
         truckMap[r.caminhao_id]?.placa?.toLowerCase().includes(q) ||
         r.posto?.toLowerCase().includes(q),
     );
-  }, [data, user, search, truckMap]);
+  }, [data, user, search, truckMap, periodo]);
 
   const handleDelete = (id: number) => {
     haptics.warning();
@@ -112,6 +120,10 @@ export default function AbastecerListScreen() {
         : 0;
 
     return (
+      <SwipeableRow
+        onDelete={isAdmin ? () => handleDelete(item.id) : undefined}
+        onEdit={isAdmin ? () => router.push({ pathname: '/(app)/abastecer/edit', params: { id: item.id } }) : undefined}
+      >
       <Card style={styles.card}>
         <View style={styles.cardTop}>
           <View style={styles.cardInfo}>
@@ -152,30 +164,33 @@ export default function AbastecerListScreen() {
           ) : null}
         </View>
 
-        <View style={styles.cardActions}>
-          <Pressable
-            style={styles.actionBtn}
-            onPress={() =>
-              router.push({
-                pathname: '/(app)/abastecer/edit',
-                params: { id: item.id },
-              })
-            }
-          >
-            <Ionicons name="create-outline" size={18} color={colors.accent} />
-            <Text style={styles.actionText}>Editar</Text>
-          </Pressable>
-          <Pressable
-            style={styles.actionBtn}
-            onPress={() => handleDelete(item.id)}
-          >
-            <Ionicons name="trash-outline" size={18} color={colors.danger} />
-            <Text style={[styles.actionText, { color: colors.danger }]}>
-              Excluir
-            </Text>
-          </Pressable>
-        </View>
+        {isAdmin && (
+          <View style={styles.cardActions}>
+            <Pressable
+              style={styles.actionBtn}
+              onPress={() =>
+                router.push({
+                  pathname: '/(app)/abastecer/edit',
+                  params: { id: item.id },
+                })
+              }
+            >
+              <Ionicons name="create-outline" size={18} color={colors.accent} />
+              <Text style={styles.actionText}>Editar</Text>
+            </Pressable>
+            <Pressable
+              style={styles.actionBtn}
+              onPress={() => handleDelete(item.id)}
+            >
+              <Ionicons name="trash-outline" size={18} color={colors.danger} />
+              <Text style={[styles.actionText, { color: colors.danger }]}>
+                Excluir
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </Card>
+      </SwipeableRow>
     );
   };
 
@@ -204,6 +219,7 @@ export default function AbastecerListScreen() {
         </Pressable>
       )}
 
+      <PeriodFilter value={periodo} onChange={setPeriodo} />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por placa ou posto..." />
 
       {isLoading ? (
@@ -224,8 +240,11 @@ export default function AbastecerListScreen() {
           contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
+              refreshing={isRefetching || syncing}
+              onRefresh={async () => {
+                await sync();
+                refetch();
+              }}
               tintColor={colors.accent}
             />
           }

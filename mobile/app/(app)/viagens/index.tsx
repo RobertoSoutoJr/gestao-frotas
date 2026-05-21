@@ -24,6 +24,8 @@ import { formatCurrency, formatDate } from '../../../src/lib/format';
 import { SkeletonList } from '../../../src/components/Skeleton';
 import { SearchBar } from '../../../src/components/SearchBar';
 import { useHaptics } from '../../../src/hooks/useHaptics';
+import { PeriodFilter, getDateFrom, type Periodo } from '../../../src/components/PeriodFilter';
+import { SwipeableRow } from '../../../src/components/SwipeableRow';
 
 export default function ViagensListScreen() {
   const { user } = useAuth();
@@ -40,6 +42,7 @@ export default function ViagensListScreen() {
 
   const haptics = useHaptics();
   const [search, setSearch] = useState('');
+  const [periodo, setPeriodo] = useState<Periodo>('tudo');
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => viagensApi.delete(id),
@@ -75,10 +78,17 @@ export default function ViagensListScreen() {
     const byDriver = isMotorista && user?.motorista_id
       ? all.filter((t) => t.motorista_id === user.motorista_id)
       : all;
-    const sorted = byDriver.sort(
+    const dateFrom = getDateFrom(periodo);
+    const byPeriod = dateFrom
+      ? byDriver.filter((t) => {
+          const d = t.data_viagem ?? (t as any).created_at;
+          return d && new Date(d) >= dateFrom;
+        })
+      : byDriver;
+    const sorted = byPeriod.sort(
       (a, b) =>
-        new Date(b.data_viagem ?? b.created_at ?? 0).getTime() -
-        new Date(a.data_viagem ?? a.created_at ?? 0).getTime(),
+        new Date(b.data_viagem ?? (b as any).created_at ?? 0).getTime() -
+        new Date(a.data_viagem ?? (a as any).created_at ?? 0).getTime(),
     );
     if (!search.trim()) return sorted;
     const q = search.toLowerCase();
@@ -89,7 +99,7 @@ export default function ViagensListScreen() {
         t.clientes?.nome?.toLowerCase().includes(q) ||
         t.fornecedores?.nome?.toLowerCase().includes(q),
     );
-  }, [query.data, isMotorista, user?.motorista_id, search]);
+  }, [query.data, isMotorista, user?.motorista_id, search, periodo]);
 
   const active = myTrips.filter((t) => t.status === 'cadastrada');
   const completed = myTrips.filter((t) => t.status === 'finalizada');
@@ -110,6 +120,7 @@ export default function ViagensListScreen() {
         style={styles.newBtn}
       />
 
+      <PeriodFilter value={periodo} onChange={setPeriodo} />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por produto, motorista..." />
 
       {query.isLoading ? (
@@ -142,16 +153,21 @@ export default function ViagensListScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <TripCard
-              trip={item}
-              onEdit={() =>
-                router.push({
-                  pathname: '/(app)/viagens/edit',
-                  params: { id: item.id },
-                })
-              }
+            <SwipeableRow
               onDelete={() => handleDelete(item.id)}
-            />
+              onEdit={() => router.push({ pathname: '/(app)/viagens/edit', params: { id: item.id } })}
+            >
+              <TripCard
+                trip={item}
+                onEdit={() =>
+                  router.push({
+                    pathname: '/(app)/viagens/edit',
+                    params: { id: item.id },
+                  })
+                }
+                onDelete={() => handleDelete(item.id)}
+              />
+            </SwipeableRow>
           )}
           ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         />

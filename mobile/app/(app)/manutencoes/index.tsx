@@ -19,6 +19,8 @@ import { useToast } from '../../../src/contexts/ToastContext';
 import { useHaptics } from '../../../src/hooks/useHaptics';
 import { SearchBar } from '../../../src/components/SearchBar';
 import { SkeletonList } from '../../../src/components/Skeleton';
+import { PeriodFilter, getDateFrom, type Periodo } from '../../../src/components/PeriodFilter';
+import { SwipeableRow } from '../../../src/components/SwipeableRow';
 import type { Manutencao } from '../../../src/api/types';
 import { type Colors, fontSize, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
@@ -40,6 +42,7 @@ export default function ManutencoesListScreen() {
   const { showToast } = useToast();
   const haptics = useHaptics();
   const [search, setSearch] = useState('');
+  const [periodo, setPeriodo] = useState<Periodo>('tudo');
   const colors = useColors();
   const styles = useStyles(createStyles);
 
@@ -78,10 +81,16 @@ export default function ManutencoesListScreen() {
   };
 
   const records = useMemo(() => {
-    const sorted = (query.data ?? []).sort(
+    const dateFrom = getDateFrom(periodo);
+    let list = (query.data ?? []).filter((r) => {
+      if (!dateFrom) return true;
+      const d = r.data_manutencao || (r as any).created_at;
+      return d && new Date(d) >= dateFrom;
+    });
+    const sorted = list.sort(
       (a, b) =>
-        new Date(b.data_manutencao || b.created_at || 0).getTime() -
-        new Date(a.data_manutencao || a.created_at || 0).getTime(),
+        new Date(b.data_manutencao || (b as any).created_at || 0).getTime() -
+        new Date(a.data_manutencao || (a as any).created_at || 0).getTime(),
     );
     if (!search.trim()) return sorted;
     const q = search.toLowerCase();
@@ -92,7 +101,7 @@ export default function ManutencoesListScreen() {
         r.caminhoes?.placa?.toLowerCase().includes(q) ||
         (r.oficinas?.nome || r.oficina)?.toLowerCase().includes(q),
     );
-  }, [query.data, search]);
+  }, [query.data, search, periodo]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -108,6 +117,7 @@ export default function ManutencoesListScreen() {
         />
       </View>
 
+      <PeriodFilter value={periodo} onChange={setPeriodo} />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por tipo, placa ou oficina..." />
 
       {query.isLoading ? (
@@ -134,16 +144,21 @@ export default function ManutencoesListScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <MaintenanceCard
-              record={item}
-              onEdit={() =>
-                router.push({
-                  pathname: '/(app)/manutencoes/edit',
-                  params: { id: item.id },
-                })
-              }
+            <SwipeableRow
               onDelete={() => handleDelete(item.id)}
-            />
+              onEdit={() => router.push({ pathname: '/(app)/manutencoes/edit', params: { id: item.id } })}
+            >
+              <MaintenanceCard
+                record={item}
+                onEdit={() =>
+                  router.push({
+                    pathname: '/(app)/manutencoes/edit',
+                    params: { id: item.id },
+                  })
+                }
+                onDelete={() => handleDelete(item.id)}
+              />
+            </SwipeableRow>
           )}
           ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         />
