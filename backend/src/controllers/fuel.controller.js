@@ -1,6 +1,7 @@
 const fuelService = require('../services/fuel.service');
 const { createFuelRecordSchema } = require('../validators/fuel.validator');
 const { asyncHandler } = require('../middlewares/errorHandler');
+const { logAudit } = require('../middlewares/audit.middleware');
 
 exports.getAll = asyncHandler(async (req, res) => {
   const records = await fuelService.getAll(req.userId);
@@ -20,6 +21,7 @@ exports.getByTruck = asyncHandler(async (req, res) => {
 exports.create = asyncHandler(async (req, res) => {
   const validatedData = createFuelRecordSchema.parse(req.body);
   const record = await fuelService.create(validatedData, req.userId);
+  await logAudit(req, 'criar', 'abastecimento', record.id, null, validatedData);
   res.status(201).json({ success: true, data: record });
 });
 

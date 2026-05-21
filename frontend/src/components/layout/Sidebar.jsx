@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import {
   LayoutDashboard, Truck, Users, Fuel, Wrench, BarChart3, Building2, Factory, Route, Warehouse,
-  ChevronDown, ChevronRight, MoreHorizontal, X, FolderOpen, Store
+  ChevronDown, ChevronRight, MoreHorizontal, X, FolderOpen, Store, ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -28,6 +28,7 @@ const MENU_ITEMS = [
   },
   { id: 'stock', label: 'Estoque', icon: Warehouse, path: '/stock', roles: ['admin'] },
   { id: 'reports', label: 'Relatorios', icon: BarChart3, path: '/reports', roles: ['admin'] },
+  { id: 'audit', label: 'Auditoria', icon: ClipboardList, path: '/audit', roles: ['admin'] },
 ];
 
 export function Sidebar() {

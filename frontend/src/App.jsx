@@ -30,6 +30,7 @@ const ReportsPage = lazy(() => import('./pages/ReportsPage').then(m => ({ defaul
 const OficinasPage = lazy(() => import('./pages/OficinasPage').then(m => ({ default: m.OficinasPage })));
 const PostosPage = lazy(() => import('./pages/PostosPage').then(m => ({ default: m.PostosPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const AuditPage = lazy(() => import('./pages/AuditPage').then(m => ({ default: m.AuditPage })));
 const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.AuthPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
@@ -143,6 +144,7 @@ function AuthenticatedContent() {
                 <Route path="/postos" element={
                   <PostosPage postos={postos} onRefetch={refetch} />
                 } />
+                <Route path="/audit" element={<AuditPage />} />
                 <Route path="/reports" element={
                   <ReportsPage
                     trucks={trucks}

@@ -13,7 +13,8 @@ const stockRoutes = require('./stock.routes');
 const documentRoutes = require('./document.routes');
 const oficinaRoutes = require('./oficina.routes');
 const postoRoutes = require('./posto.routes');
-const { protect } = require('../middlewares/auth.middleware');
+const auditRoutes = require('./audit.routes');
+const { protect, requireAdmin } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
@@ -39,5 +40,6 @@ router.use('/estoque', protect, stockRoutes);
 router.use('/documentos', protect, documentRoutes);
 router.use('/oficinas', protect, oficinaRoutes);
 router.use('/postos', protect, postoRoutes);
+router.use('/audit-logs', protect, requireAdmin, auditRoutes);
 
 module.exports = router;

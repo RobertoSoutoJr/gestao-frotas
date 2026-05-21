@@ -1,6 +1,7 @@
 const tripService = require('../services/trip.service');
 const { createTripSchema, updateTripSchema, finalizeTripSchema } = require('../validators/trip.validator');
 const { asyncHandler } = require('../middlewares/errorHandler');
+const { logAudit } = require('../middlewares/audit.middleware');
 
 exports.getAll = asyncHandler(async (req, res) => {
   const trips = await tripService.getAll(req.userId);
@@ -15,18 +16,23 @@ exports.getById = asyncHandler(async (req, res) => {
 exports.create = asyncHandler(async (req, res) => {
   const validatedData = createTripSchema.parse(req.body);
   const trip = await tripService.create(validatedData, req.userId);
+  await logAudit(req, 'criar', 'viagem', trip.id, null, validatedData);
   res.status(201).json({ success: true, data: trip });
 });
 
 exports.update = asyncHandler(async (req, res) => {
   const validatedData = updateTripSchema.parse(req.body);
+  const before = await tripService.getById(req.params.id, req.userId);
   const trip = await tripService.update(req.params.id, validatedData, req.userId);
+  await logAudit(req, 'editar', 'viagem', trip.id, before, validatedData);
   res.json({ success: true, data: trip });
 });
 
 exports.finalize = asyncHandler(async (req, res) => {
   const validatedData = finalizeTripSchema.parse(req.body);
+  const before = await tripService.getById(req.params.id, req.userId);
   const trip = await tripService.finalize(req.params.id, validatedData, req.userId);
+  await logAudit(req, 'finalizar', 'viagem', trip.id, before, validatedData);
   res.json({ success: true, data: trip });
 });
 
@@ -58,6 +64,8 @@ exports.batchSyncLocations = asyncHandler(async (req, res) => {
 });
 
 exports.delete = asyncHandler(async (req, res) => {
+  const before = await tripService.getById(req.params.id, req.userId);
   const result = await tripService.delete(req.params.id, req.userId);
+  await logAudit(req, 'excluir', 'viagem', Number(req.params.id), before, null);
   res.json({ success: true, ...result });
 });

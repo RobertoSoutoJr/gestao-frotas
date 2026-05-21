@@ -1,6 +1,7 @@
 const truckService = require('../services/truck.service');
 const { createTruckSchema, updateTruckSchema } = require('../validators/truck.validator');
 const { asyncHandler } = require('../middlewares/errorHandler');
+const { logAudit } = require('../middlewares/audit.middleware');
 
 exports.getAll = asyncHandler(async (req, res) => {
   const trucks = await truckService.getAll(req.userId);
@@ -15,17 +16,22 @@ exports.getById = asyncHandler(async (req, res) => {
 exports.create = asyncHandler(async (req, res) => {
   const validatedData = createTruckSchema.parse(req.body);
   const truck = await truckService.create(validatedData, req.userId);
+  await logAudit(req, 'criar', 'caminhao', truck.id, null, validatedData);
   res.status(201).json({ success: true, data: truck });
 });
 
 exports.update = asyncHandler(async (req, res) => {
   const validatedData = updateTruckSchema.parse(req.body);
+  const before = await truckService.getById(req.params.id, req.userId);
   const truck = await truckService.update(req.params.id, validatedData, req.userId);
+  await logAudit(req, 'editar', 'caminhao', truck.id, before, validatedData);
   res.json({ success: true, data: truck });
 });
 
 exports.delete = asyncHandler(async (req, res) => {
+  const before = await truckService.getById(req.params.id, req.userId);
   const result = await truckService.delete(req.params.id, req.userId);
+  await logAudit(req, 'excluir', 'caminhao', Number(req.params.id), before, null);
   res.json({ success: true, ...result });
 });
 
