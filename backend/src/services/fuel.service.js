@@ -3,8 +3,8 @@ const { AppError } = require('../middlewares/errorHandler');
 const truckService = require('./truck.service');
 
 class FuelService {
-  async getAll(userId) {
-    const { data, error } = await supabase
+  async getAll(userId, filters = {}) {
+    let query = supabase
       .from('abastecimentos')
       .select(`
         *,
@@ -12,8 +12,14 @@ class FuelService {
         motoristas:motorista_id(nome),
         postos:posto_id(id, nome)
       `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
+
+    // Motorista scope: only their truck
+    if (filters.caminhaoId) {
+      query = query.eq('caminhao_id', filters.caminhaoId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar registros de abastecimento', 500, error);
 

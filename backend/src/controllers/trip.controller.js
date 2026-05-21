@@ -4,7 +4,11 @@ const { asyncHandler } = require('../middlewares/errorHandler');
 const { logAudit } = require('../middlewares/audit.middleware');
 
 exports.getAll = asyncHandler(async (req, res) => {
-  const trips = await tripService.getAll(req.userId);
+  const filters = {};
+  if (req.userRole === 'motorista' && req.motoristaId) {
+    filters.motoristaId = req.motoristaId;
+  }
+  const trips = await tripService.getAll(req.userId, filters);
   res.json({ success: true, data: trips });
 });
 
@@ -31,6 +35,12 @@ exports.update = asyncHandler(async (req, res) => {
 exports.finalize = asyncHandler(async (req, res) => {
   const validatedData = finalizeTripSchema.parse(req.body);
   const before = await tripService.getById(req.params.id, req.userId);
+
+  // Motorista can only finalize their own trips
+  if (req.userRole === 'motorista' && req.motoristaId && before.motorista_id !== req.motoristaId) {
+    return res.status(403).json({ success: false, message: 'Você só pode finalizar suas próprias viagens.' });
+  }
+
   const trip = await tripService.finalize(req.params.id, validatedData, req.userId);
   await logAudit(req, 'finalizar', 'viagem', trip.id, before, validatedData);
   res.json({ success: true, data: trip });
@@ -41,6 +51,15 @@ exports.updateLocation = asyncHandler(async (req, res) => {
   if (!['origem', 'destino'].includes(field) || lat == null || lng == null) {
     return res.status(400).json({ success: false, message: 'field (origem|destino), lat e lng sao obrigatorios' });
   }
+
+  // Motorista can only update location on their own trips
+  if (req.userRole === 'motorista' && req.motoristaId) {
+    const tripCheck = await tripService.getById(req.params.id, req.userId);
+    if (tripCheck.motorista_id !== req.motoristaId) {
+      return res.status(403).json({ success: false, message: 'Você só pode atualizar localização das suas viagens.' });
+    }
+  }
+
   const trip = await tripService.updateLocation(req.params.id, field, lat, lng, req.userId);
   res.json({ success: true, data: trip });
 });

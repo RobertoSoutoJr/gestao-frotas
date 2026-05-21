@@ -1,17 +1,19 @@
 const express = require('express');
 const stockController = require('../controllers/stock.controller');
+const { requireAdmin } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-router.get('/', stockController.getAll);
-router.get('/:id', stockController.getById);
-router.post('/', stockController.create);
-router.put('/:id', stockController.update);
-router.patch('/:id/pagar', stockController.markAsPaid);
-router.patch('/:id/toggle-pago', stockController.togglePaid);
-router.post('/:id/pagamento', stockController.makePartialPayment);
-router.get('/:id/pagamentos', stockController.getPaymentHistory);
-router.get('/:id/cheques', stockController.getCheques);
-router.delete('/:id', stockController.delete);
+// All stock management is admin-only
+router.get('/', requireAdmin, stockController.getAll);
+router.get('/:id', requireAdmin, stockController.getById);
+router.post('/', requireAdmin, stockController.create);
+router.put('/:id', requireAdmin, stockController.update);
+router.patch('/:id/pagar', requireAdmin, stockController.markAsPaid);
+router.patch('/:id/toggle-pago', requireAdmin, stockController.togglePaid);
+router.post('/:id/pagamento', requireAdmin, stockController.makePartialPayment);
+router.get('/:id/pagamentos', requireAdmin, stockController.getPaymentHistory);
+router.get('/:id/cheques', requireAdmin, stockController.getCheques);
+router.delete('/:id', requireAdmin, stockController.delete);
 
 module.exports = router;

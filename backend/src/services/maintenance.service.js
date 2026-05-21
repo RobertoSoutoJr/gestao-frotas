@@ -3,16 +3,22 @@ const { AppError } = require('../middlewares/errorHandler');
 const truckService = require('./truck.service');
 
 class MaintenanceService {
-  async getAll(userId) {
-    const { data, error } = await supabase
+  async getAll(userId, filters = {}) {
+    let query = supabase
       .from('manutencoes')
       .select(`
         *,
         caminhoes:caminhao_id(placa, modelo),
         oficinas:oficina_id(id, nome)
       `)
-      .eq('user_id', userId)
-      .order('data_manutencao', { ascending: false });
+      .eq('user_id', userId);
+
+    // Motorista scope: only their truck
+    if (filters.caminhaoId) {
+      query = query.eq('caminhao_id', filters.caminhaoId);
+    }
+
+    const { data, error } = await query.order('data_manutencao', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar registros de manutenção', 500, error);
     return data;

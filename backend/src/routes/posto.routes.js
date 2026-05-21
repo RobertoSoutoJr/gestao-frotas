@@ -1,12 +1,13 @@
 const express = require('express');
 const postoController = require('../controllers/posto.controller');
+const { requireAdmin } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-router.get('/', postoController.getAll);
+router.get('/', postoController.getAll);                  // motorista: read-only for selection
 router.get('/:id', postoController.getById);
-router.post('/', postoController.create);
-router.put('/:id', postoController.update);
-router.delete('/:id', postoController.delete);
+router.post('/', requireAdmin, postoController.create);
+router.put('/:id', requireAdmin, postoController.update);
+router.delete('/:id', requireAdmin, postoController.delete);
 
 module.exports = router;

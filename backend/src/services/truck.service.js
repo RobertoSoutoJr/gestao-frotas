@@ -2,12 +2,18 @@ const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 
 class TruckService {
-  async getAll(userId) {
-    const { data, error } = await supabase
+  async getAll(userId, filters = {}) {
+    let query = supabase
       .from('caminhoes')
       .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
+
+    // Motorista scope: only their assigned truck
+    if (filters.caminhaoId) {
+      query = query.eq('id', filters.caminhaoId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar caminhões', 500, error);
     return data;

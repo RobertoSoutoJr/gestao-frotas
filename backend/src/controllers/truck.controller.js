@@ -4,7 +4,11 @@ const { asyncHandler } = require('../middlewares/errorHandler');
 const { logAudit } = require('../middlewares/audit.middleware');
 
 exports.getAll = asyncHandler(async (req, res) => {
-  const trucks = await truckService.getAll(req.userId);
+  const filters = {};
+  if (req.userRole === 'motorista' && req.motoristaCaminhaoId) {
+    filters.caminhaoId = req.motoristaCaminhaoId;
+  }
+  const trucks = await truckService.getAll(req.userId, filters);
   res.json({ success: true, data: trucks });
 });
 

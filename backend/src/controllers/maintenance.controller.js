@@ -4,7 +4,11 @@ const { asyncHandler } = require('../middlewares/errorHandler');
 const { logAudit } = require('../middlewares/audit.middleware');
 
 exports.getAll = asyncHandler(async (req, res) => {
-  const records = await maintenanceService.getAll(req.userId);
+  const filters = {};
+  if (req.userRole === 'motorista' && req.motoristaCaminhaoId) {
+    filters.caminhaoId = req.motoristaCaminhaoId;
+  }
+  const records = await maintenanceService.getAll(req.userId, filters);
   res.json({ success: true, data: records });
 });
 
@@ -20,6 +24,14 @@ exports.getByTruck = asyncHandler(async (req, res) => {
 
 exports.create = asyncHandler(async (req, res) => {
   const validatedData = createMaintenanceSchema.parse(req.body);
+
+  // Motorista can only create maintenance for their assigned truck
+  if (req.userRole === 'motorista' && req.motoristaCaminhaoId) {
+    if (validatedData.caminhao_id !== req.motoristaCaminhaoId) {
+      return res.status(403).json({ success: false, message: 'Você só pode registrar manutenções para o seu caminhão.' });
+    }
+  }
+
   const record = await maintenanceService.create(validatedData, req.userId);
   await logAudit(req, 'criar', 'manutencao', record.id, null, validatedData);
   res.status(201).json({ success: true, data: record });

@@ -57,11 +57,22 @@ exports.protect = async (req, res, next) => {
     req.userRole = user?.role || 'admin';
     req.ownerId = user?.owner_id || null;
     req.motoristaId = user?.motorista_id || null;
+    req.motoristaCaminhaoId = null; // populated below for motoristas
 
     // For motorista accounts, scope data to the admin who created them
     if (req.userRole === 'motorista' && req.ownerId) {
       req.userId = req.ownerId; // Data belongs to the admin
       req.realUserId = decoded.userId; // Keep real identity
+
+      // Load the truck assigned to this motorista
+      if (user.motorista_id) {
+        const { data: motorista } = await supabase
+          .from('motoristas')
+          .select('caminhao_id')
+          .eq('id', user.motorista_id)
+          .single();
+        req.motoristaCaminhaoId = motorista?.caminhao_id || null;
+      }
     }
 
     next();

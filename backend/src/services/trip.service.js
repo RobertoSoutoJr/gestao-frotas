@@ -2,12 +2,18 @@ const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 
 class TripService {
-  async getAll(userId) {
-    const { data, error } = await supabase
+  async getAll(userId, filters = {}) {
+    let query = supabase
       .from('viagens')
       .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
+
+    // Motorista scope: only trips assigned to them
+    if (filters.motoristaId) {
+      query = query.eq('motorista_id', filters.motoristaId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar viagens', 500, error);
     return data;

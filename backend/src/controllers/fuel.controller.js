@@ -5,7 +5,11 @@ const { asyncHandler } = require('../middlewares/errorHandler');
 const { logAudit } = require('../middlewares/audit.middleware');
 
 exports.getAll = asyncHandler(async (req, res) => {
-  const records = await fuelService.getAll(req.userId);
+  const filters = {};
+  if (req.userRole === 'motorista' && req.motoristaCaminhaoId) {
+    filters.caminhaoId = req.motoristaCaminhaoId;
+  }
+  const records = await fuelService.getAll(req.userId, filters);
   res.json({ success: true, data: records });
 });
 
@@ -22,6 +26,14 @@ exports.getByTruck = asyncHandler(async (req, res) => {
 exports.create = asyncHandler(async (req, res) => {
   const { documento_id, ...body } = req.body;
   const validatedData = createFuelRecordSchema.parse(body);
+
+  // Motorista can only create fuel records for their assigned truck
+  if (req.userRole === 'motorista' && req.motoristaCaminhaoId) {
+    if (validatedData.caminhao_id !== req.motoristaCaminhaoId) {
+      return res.status(403).json({ success: false, message: 'Você só pode registrar abastecimentos para o seu caminhão.' });
+    }
+  }
+
   const record = await fuelService.create(validatedData, req.userId);
 
   // Link NFC-e document if provided

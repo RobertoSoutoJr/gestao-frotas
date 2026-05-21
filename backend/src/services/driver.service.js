@@ -5,7 +5,7 @@ class DriverService {
   async getAll(userId) {
     const { data, error } = await supabase
       .from('motoristas')
-      .select('*')
+      .select('*, caminhoes:caminhao_id(id, placa, modelo)')
       .eq('user_id', userId)
       .order('nome', { ascending: true });
 
