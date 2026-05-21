@@ -81,7 +81,7 @@
     },
     "updates": {
       "enabled": true,
-      "url": "https://u.expo.dev/f157a24c-ac08-44c8-9fff-aa77e51a9e2c",
+      "url": "https://u.expo.dev/2006f5c0-7ed6-455c-9dcb-9230560f67ff",
       "fallbackToCacheTimeout": 3000,
       "checkAutomatically": "ON_LOAD"
     },
@@ -89,8 +89,9 @@
       "apiUrl": "https://srv1665848.hstgr.cloud/api",
       "router": {},
       "eas": {
-        "projectId": "f157a24c-ac08-44c8-9fff-aa77e51a9e2c"
+        "projectId": "2006f5c0-7ed6-455c-9dcb-9230560f67ff"
       }
-    }
+    },
+    "owner": "jrsouto"
   }
 }
