@@ -52,6 +52,8 @@ export interface Motorista {
   cnh?: string;
   categoria_cnh?: string;
   vencimento_cnh?: string;
+  caminhao_id?: number | null;
+  caminhoes?: { id: number; placa: string; modelo: string } | null;
 }
 
 export interface Abastecimento {

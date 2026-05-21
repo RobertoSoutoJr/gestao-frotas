@@ -94,7 +94,7 @@ export default function AppLayout() {
           ),
           tabBarBadge: pendingCount > 0 ? pendingCount : undefined,
           tabBarBadgeStyle: { fontSize: 10 },
-          href: isMotorista ? '/(app)/abastecer' : null,
+          // Show for both roles
         }}
       />
       <Tabs.Screen
@@ -104,7 +104,7 @@ export default function AppLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="construct-outline" size={size} color={color} />
           ),
-          href: isMotorista ? '/(app)/manutencoes' : null,
+          // Show for both roles
         }}
       />
       <Tabs.Screen
@@ -134,6 +134,7 @@ export default function AppLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="grid-outline" size={size} color={color} />
           ),
+          href: !isMotorista ? '/(app)/cadastros' : null,
         }}
       />
       {/* postos e oficinas são acessadas via tela Cadastros — sem tab própria */}

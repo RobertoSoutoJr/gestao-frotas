@@ -23,6 +23,7 @@ interface PickerProps {
   value: string | number | null;
   onSelect: (value: string | number) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 export function Picker({
@@ -32,6 +33,7 @@ export function Picker({
   value,
   onSelect,
   error,
+  disabled,
 }: PickerProps) {
   const colors = useColors();
   const styles = useStyles(createStyles);
@@ -42,8 +44,8 @@ export function Picker({
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
       <Pressable
-        onPress={() => setVisible(true)}
-        style={[styles.trigger, error && styles.triggerError]}
+        onPress={() => !disabled && setVisible(true)}
+        style={[styles.trigger, error && styles.triggerError, disabled && { opacity: 0.6 }]}
       >
         <Text
           style={[styles.triggerText, !selected && styles.placeholder]}

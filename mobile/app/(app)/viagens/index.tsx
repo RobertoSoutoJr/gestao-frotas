@@ -114,11 +114,13 @@ export default function ViagensListScreen() {
         </View>
       </View>
 
-      <Button
-        title="+ Nova Viagem"
-        onPress={() => router.push('/(app)/viagens/new')}
-        style={styles.newBtn}
-      />
+      {!isMotorista && (
+        <Button
+          title="+ Nova Viagem"
+          onPress={() => router.push('/(app)/viagens/new')}
+          style={styles.newBtn}
+        />
+      )}
 
       <PeriodFilter value={periodo} onChange={setPeriodo} />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por produto, motorista..." />
@@ -154,18 +156,18 @@ export default function ViagensListScreen() {
           }
           renderItem={({ item }) => (
             <SwipeableRow
-              onDelete={() => handleDelete(item.id)}
-              onEdit={() => router.push({ pathname: '/(app)/viagens/edit', params: { id: item.id } })}
+              onDelete={!isMotorista ? () => handleDelete(item.id) : undefined}
+              onEdit={!isMotorista ? () => router.push({ pathname: '/(app)/viagens/edit', params: { id: item.id } }) : undefined}
             >
               <TripCard
                 trip={item}
-                onEdit={() =>
+                onEdit={!isMotorista ? () =>
                   router.push({
                     pathname: '/(app)/viagens/edit',
                     params: { id: item.id },
-                  })
+                  }) : undefined
                 }
-                onDelete={() => handleDelete(item.id)}
+                onDelete={!isMotorista ? () => handleDelete(item.id) : undefined}
               />
             </SwipeableRow>
           )}
@@ -182,8 +184,8 @@ function TripCard({
   onDelete,
 }: {
   trip: Viagem;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const colors = useColors();
   const styles = useStyles(createStyles);
@@ -260,30 +262,36 @@ function TripCard({
           <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
         </View>
 
-        <View style={styles.cardActions}>
-          <Pressable
-            style={styles.actionBtn}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              onEdit();
-            }}
-          >
-            <Ionicons name="create-outline" size={18} color={colors.accent} />
-            <Text style={styles.actionText}>Editar</Text>
-          </Pressable>
-          <Pressable
-            style={styles.actionBtn}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              onDelete();
-            }}
-          >
-            <Ionicons name="trash-outline" size={18} color={colors.danger} />
-            <Text style={[styles.actionText, { color: colors.danger }]}>
-              Excluir
-            </Text>
-          </Pressable>
-        </View>
+        {(onEdit || onDelete) && (
+          <View style={styles.cardActions}>
+            {onEdit && (
+              <Pressable
+                style={styles.actionBtn}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  onEdit();
+                }}
+              >
+                <Ionicons name="create-outline" size={18} color={colors.accent} />
+                <Text style={styles.actionText}>Editar</Text>
+              </Pressable>
+            )}
+            {onDelete && (
+              <Pressable
+                style={styles.actionBtn}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  onDelete();
+                }}
+              >
+                <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                <Text style={[styles.actionText, { color: colors.danger }]}>
+                  Excluir
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        )}
       </Card>
     </Pressable>
   );

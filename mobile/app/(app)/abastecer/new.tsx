@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -61,10 +61,19 @@ export default function AbastecerScreen() {
     documento_id?: number;
   } | null>(null);
 
+  const isMotorista = user?.role === 'motorista';
+
   const caminhoesQuery = useQuery({
     queryKey: ['caminhoes'],
     queryFn: () => caminhoesApi.list(),
   });
+
+  // Auto-select truck for motorista (only one truck returned from filtered API)
+  useEffect(() => {
+    if (isMotorista && !form.caminhao_id && (caminhoesQuery.data ?? []).length === 1) {
+      setForm((p) => ({ ...p, caminhao_id: caminhoesQuery.data![0].id }));
+    }
+  }, [isMotorista, caminhoesQuery.data]);
 
   const postosQuery = useQuery({
     queryKey: ['postos'],
@@ -285,8 +294,8 @@ export default function AbastecerScreen() {
           )}
 
           <Picker
-            label="Caminhão *"
-            placeholder="Selecione o caminhão"
+            label="Caminhao *"
+            placeholder="Selecione o caminhao"
             options={caminhaoOptions}
             value={form.caminhao_id}
             onSelect={(v) => {
@@ -294,6 +303,7 @@ export default function AbastecerScreen() {
               setErrors((p) => ({ ...p, caminhao_id: '' }));
             }}
             error={errors.caminhao_id}
+            disabled={isMotorista && !!form.caminhao_id}
           />
 
           <Input

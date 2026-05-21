@@ -38,6 +38,40 @@ const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ defaul
 
 // PageSkeleton imported from './components/ui/Skeleton'
 
+function MotoristaBlockScreen({ user }) {
+  const { logout } = useAuth();
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-4">
+      <div className="linear-bg" />
+      <div className="relative z-10 text-center max-w-md">
+        <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border-hover)] rounded-2xl p-8 shadow-lg">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
+            <svg className="w-8 h-8 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+            Acesse pelo aplicativo
+          </h1>
+          <p className="text-[var(--color-text-secondary)] mb-1">
+            Ola, <span className="font-semibold text-[var(--color-text-primary)]">{user?.nome?.split(' ')[0]}</span>
+          </p>
+          <p className="text-[var(--color-text-tertiary)] text-sm mb-6 leading-relaxed">
+            O painel web esta disponivel apenas para gestores.
+            Como motorista, utilize o aplicativo mobile para registrar
+            abastecimentos, manutencoes e acompanhar suas viagens.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button onClick={logout} variant="outline" className="w-full">
+              Sair da conta
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AuthenticatedContent() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -74,6 +108,13 @@ function AuthenticatedContent() {
     );
   }
 
+  // Motorista: block web access, redirect to "use mobile app" screen
+  if (!isAdmin) {
+    return (
+      <MotoristaBlockScreen user={user} />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)] transition-colors duration-300">
       <div className="linear-bg" />
@@ -88,27 +129,17 @@ function AuthenticatedContent() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={
-              isAdmin ? (
-                <DashboardPage
-                  trucks={trucks}
-                  drivers={drivers}
-                  clients={clients}
-                  suppliers={suppliers}
-                  trips={trips}
-                  stockRecords={stockRecords}
-                  fuelRecords={fuelRecords}
-                  maintenanceRecords={maintenanceRecords}
-                  onNavigate={handleNavigate}
-                />
-              ) : (
-                <DriverDashboardPage
-                  trucks={trucks}
-                  drivers={drivers}
-                  trips={trips}
-                  fuelRecords={fuelRecords}
-                  onRefetch={refetch}
-                />
-              )
+              <DashboardPage
+                trucks={trucks}
+                drivers={drivers}
+                clients={clients}
+                suppliers={suppliers}
+                trips={trips}
+                stockRecords={stockRecords}
+                fuelRecords={fuelRecords}
+                maintenanceRecords={maintenanceRecords}
+                onNavigate={handleNavigate}
+              />
             } />
             <Route path="/trips" element={
               <TripsPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
@@ -117,47 +148,41 @@ function AuthenticatedContent() {
               <FuelPage trucks={trucks} drivers={drivers} postos={postos} onRefetch={refetch} />
             } />
             <Route path="/settings" element={<SettingsPage />} />
-
-            {/* Admin-only routes */}
-            {isAdmin && (
-              <>
-                <Route path="/trucks" element={
-                  <TrucksPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
-                } />
-                <Route path="/drivers" element={
-                  <DriversPage drivers={drivers} trips={trips} fuelRecords={fuelRecords} onRefetch={refetch} />
-                } />
-                <Route path="/clients" element={
-                  <ClientsPage clients={clients} trips={trips} onRefetch={refetch} />
-                } />
-                <Route path="/suppliers" element={
-                  <SuppliersPage suppliers={suppliers} onRefetch={refetch} />
-                } />
-                <Route path="/stock" element={
-                  <StockPage onRefetch={refetch} />
-                } />
-                <Route path="/maintenance" element={
-                  <MaintenancePage trucks={trucks} oficinas={oficinas} onRefetch={refetch} />
-                } />
-                <Route path="/oficinas" element={
-                  <OficinasPage oficinas={oficinas} onRefetch={refetch} />
-                } />
-                <Route path="/postos" element={
-                  <PostosPage postos={postos} onRefetch={refetch} />
-                } />
-                <Route path="/audit" element={<AuditPage />} />
-                <Route path="/reports" element={
-                  <ReportsPage
-                    trucks={trucks}
-                    drivers={drivers}
-                    clients={clients}
-                    fuelRecords={fuelRecords}
-                    maintenanceRecords={maintenanceRecords}
-                    trips={trips}
-                  />
-                } />
-              </>
-            )}
+            <Route path="/trucks" element={
+              <TrucksPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
+            } />
+            <Route path="/drivers" element={
+              <DriversPage drivers={drivers} trips={trips} fuelRecords={fuelRecords} onRefetch={refetch} />
+            } />
+            <Route path="/clients" element={
+              <ClientsPage clients={clients} trips={trips} onRefetch={refetch} />
+            } />
+            <Route path="/suppliers" element={
+              <SuppliersPage suppliers={suppliers} onRefetch={refetch} />
+            } />
+            <Route path="/stock" element={
+              <StockPage onRefetch={refetch} />
+            } />
+            <Route path="/maintenance" element={
+              <MaintenancePage trucks={trucks} oficinas={oficinas} onRefetch={refetch} />
+            } />
+            <Route path="/oficinas" element={
+              <OficinasPage oficinas={oficinas} onRefetch={refetch} />
+            } />
+            <Route path="/postos" element={
+              <PostosPage postos={postos} onRefetch={refetch} />
+            } />
+            <Route path="/audit" element={<AuditPage />} />
+            <Route path="/reports" element={
+              <ReportsPage
+                trucks={trucks}
+                drivers={drivers}
+                clients={clients}
+                fuelRecords={fuelRecords}
+                maintenanceRecords={maintenanceRecords}
+                trips={trips}
+              />
+            } />
 
             {/* Fallback: unknown routes go to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
@@ -165,7 +190,7 @@ function AuthenticatedContent() {
         </Suspense>
       </main>
 
-      {showOnboarding && isAdmin && trucks.length === 0 && (
+      {showOnboarding && trucks.length === 0 && (
         <OnboardingWizard onComplete={() => { setShowOnboarding(false); refetch(); }} />
       )}
     </div>

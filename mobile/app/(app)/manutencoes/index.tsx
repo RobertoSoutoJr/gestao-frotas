@@ -14,6 +14,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
+import { useAuth } from '../../../src/contexts/AuthContext';
 import { manutencoesApi } from '../../../src/api/manutencoes';
 import { useToast } from '../../../src/contexts/ToastContext';
 import { useHaptics } from '../../../src/hooks/useHaptics';
@@ -38,6 +39,8 @@ const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export default function ManutencoesListScreen() {
+  const { user } = useAuth();
+  const isAdmin = user?.role !== 'motorista';
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const haptics = useHaptics();
@@ -145,18 +148,18 @@ export default function ManutencoesListScreen() {
           }
           renderItem={({ item }) => (
             <SwipeableRow
-              onDelete={() => handleDelete(item.id)}
-              onEdit={() => router.push({ pathname: '/(app)/manutencoes/edit', params: { id: item.id } })}
+              onDelete={isAdmin ? () => handleDelete(item.id) : undefined}
+              onEdit={isAdmin ? () => router.push({ pathname: '/(app)/manutencoes/edit', params: { id: item.id } }) : undefined}
             >
               <MaintenanceCard
                 record={item}
-                onEdit={() =>
+                onEdit={isAdmin ? () =>
                   router.push({
                     pathname: '/(app)/manutencoes/edit',
                     params: { id: item.id },
-                  })
+                  }) : undefined
                 }
-                onDelete={() => handleDelete(item.id)}
+                onDelete={isAdmin ? () => handleDelete(item.id) : undefined}
               />
             </SwipeableRow>
           )}
@@ -173,8 +176,8 @@ function MaintenanceCard({
   onDelete,
 }: {
   record: Manutencao;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const colors = useColors();
   const styles = useStyles(createStyles);
@@ -210,18 +213,24 @@ function MaintenanceCard({
         <Text style={styles.valor}>{formatCurrency(record.valor_total)}</Text>
       </View>
 
-      <View style={styles.cardActions}>
-        <Pressable style={styles.actionBtn} onPress={onEdit}>
-          <Ionicons name="create-outline" size={18} color={colors.accent} />
-          <Text style={styles.actionText}>Editar</Text>
-        </Pressable>
-        <Pressable style={styles.actionBtn} onPress={onDelete}>
-          <Ionicons name="trash-outline" size={18} color={colors.danger} />
-          <Text style={[styles.actionText, { color: colors.danger }]}>
-            Excluir
-          </Text>
-        </Pressable>
-      </View>
+      {(onEdit || onDelete) && (
+        <View style={styles.cardActions}>
+          {onEdit && (
+            <Pressable style={styles.actionBtn} onPress={onEdit}>
+              <Ionicons name="create-outline" size={18} color={colors.accent} />
+              <Text style={styles.actionText}>Editar</Text>
+            </Pressable>
+          )}
+          {onDelete && (
+            <Pressable style={styles.actionBtn} onPress={onDelete}>
+              <Ionicons name="trash-outline" size={18} color={colors.danger} />
+              <Text style={[styles.actionText, { color: colors.danger }]}>
+                Excluir
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      )}
     </Card>
   );
 }

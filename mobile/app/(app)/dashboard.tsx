@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import {
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -9,12 +10,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Card } from '../../src/components/Card';
 import { StatCard } from '../../src/components/StatCard';
 import { SkeletonStatGrid } from '../../src/components/Skeleton';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useColors, useStyles } from '../../src/contexts/ThemeContext';
-import { dashboardApi, type DashboardData } from '../../src/api/dashboard';
+import { dashboardApi, type DashboardData, type DashboardViagem } from '../../src/api/dashboard';
 import { type Colors, fontSize, radius, spacing } from '../../src/lib/theme';
 import { formatCurrency, formatNumber } from '../../src/lib/format';
 
@@ -29,65 +31,345 @@ export default function DashboardScreen() {
   const styles = useStyles(createStyles);
   const isMotorista = user?.role === 'motorista';
 
-  // Single consolidated query — replaces 4 separate queries
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => dashboardApi.getData(),
-    staleTime: 60_000, // 1 min cache
+    staleTime: 60_000,
   });
 
-  // Motorista stats
-  const motoristaStats = useMemo((): MotoristaStats | null => {
-    if (!isMotorista || !user?.motorista_id || !data) return null;
+  return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={colors.accent}
+          />
+        }
+      >
+        <View style={styles.header}>
+          <Text style={styles.greeting}>
+            Ola, {user?.nome?.split(' ')[0] ?? ''}
+          </Text>
+          <Text style={styles.role}>
+            {isMotorista ? 'Motorista' : 'Gestor'}
+          </Text>
+        </View>
 
-    const myTrips = data.viagens.filter(
-      (t) => t.motorista_id === user.motorista_id,
+        {isLoading ? (
+          <SkeletonStatGrid count={isMotorista ? 4 : 6} />
+        ) : isMotorista ? (
+          <MotoristaView data={data ?? null} />
+        ) : (
+          <AdminView data={data ?? null} />
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+/* ───────────────────── MOTORISTA VIEW ───────────────────── */
+
+function MotoristaView({ data }: { data: DashboardData | null }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+
+  if (!data) return null;
+
+  const { caminhao, viagemAtiva, abastecimentos, viagens, manutencoes } = data;
+
+  // Compute month stats
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const fuelMes = abastecimentos.filter(r => new Date(r.created_at) >= startOfMonth);
+  const litrosMes = fuelMes.reduce((s, r) => s + (Number(r.litros) || 0), 0);
+  const gastoMes = fuelMes.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+
+  const viagensFinalizadas = viagens.filter(v => v.status === 'finalizada');
+  const viagensCadastradas = viagens.filter(v => v.status === 'cadastrada');
+  const totalKm = viagens.reduce((s, v) => s + (Number(v.distancia_km) || 0), 0);
+  const totalLitros = abastecimentos.reduce((s, r) => s + (Number(r.litros) || 0), 0);
+  const kmPerLiter = totalLitros > 0 ? totalKm / totalLitros : 0;
+
+  // Last 5 records (mixed fuel + maintenance) sorted by date
+  const recentRecords = useMemo(() => {
+    const items: Array<{ type: 'fuel' | 'maintenance'; date: string; label: string; value: string; id: number }> = [];
+
+    abastecimentos.slice(0, 5).forEach(r => {
+      items.push({
+        type: 'fuel',
+        date: r.created_at,
+        label: `${formatNumber(r.litros, 1)}L`,
+        value: formatCurrency(r.valor_total),
+        id: r.id,
+      });
+    });
+
+    manutencoes.slice(0, 5).forEach(m => {
+      items.push({
+        type: 'maintenance',
+        date: m.created_at,
+        label: m.tipo_manutencao,
+        value: formatCurrency(m.valor_total),
+        id: m.id,
+      });
+    });
+
+    return items
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  }, [abastecimentos, manutencoes]);
+
+  // No truck assigned
+  if (!caminhao) {
+    return (
+      <Card>
+        <View style={styles.emptyIcon}>
+          <Ionicons name="alert-circle-outline" size={40} color={colors.warning} />
+        </View>
+        <Text style={styles.emptyTitle}>Sem caminhao vinculado</Text>
+        <Text style={styles.emptyText}>
+          Seu perfil ainda nao esta vinculado a um caminhao. Fale com o gestor da frota para liberar o acesso.
+        </Text>
+      </Card>
     );
-    const myFuel = data.abastecimentos.filter(
-      (r) => r.motorista_id === user.motorista_id,
-    );
+  }
 
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const myFuelMes = myFuel.filter((r) => new Date(r.created_at) >= startOfMonth);
+  return (
+    <View>
+      {/* ── Card do Caminhao ── */}
+      <Card style={styles.truckCard}>
+        <View style={styles.truckHeader}>
+          <View style={[styles.truckIconBox, { backgroundColor: colors.accent + '20' }]}>
+            <Ionicons name="bus" size={24} color={colors.accent} />
+          </View>
+          <View style={styles.truckInfo}>
+            <Text style={styles.truckPlaca}>{caminhao.placa}</Text>
+            <Text style={styles.truckModelo}>{caminhao.modelo}{caminhao.marca ? ` - ${caminhao.marca}` : ''}</Text>
+          </View>
+        </View>
+        <View style={styles.truckStats}>
+          <View style={styles.truckStatItem}>
+            <Text style={styles.truckStatValue}>{formatNumber(caminhao.km_atual || 0, 0)}</Text>
+            <Text style={styles.truckStatLabel}>km atual</Text>
+          </View>
+          {caminhao.tipo_combustivel && (
+            <View style={styles.truckStatItem}>
+              <Text style={styles.truckStatValue}>{caminhao.tipo_combustivel}</Text>
+              <Text style={styles.truckStatLabel}>Combustivel</Text>
+            </View>
+          )}
+          {caminhao.capacidade_carga && (
+            <View style={styles.truckStatItem}>
+              <Text style={styles.truckStatValue}>{formatNumber(caminhao.capacidade_carga, 0)}t</Text>
+              <Text style={styles.truckStatLabel}>Capacidade</Text>
+            </View>
+          )}
+        </View>
+      </Card>
 
-    const activeTrips = myTrips.filter((t) => t.status === 'cadastrada');
-    const completedTrips = myTrips.filter((t) => t.status === 'finalizada');
+      {/* ── Viagem Ativa ── */}
+      {viagemAtiva && (
+        <ActiveTripCard trip={viagemAtiva} />
+      )}
 
-    const totalLitros = myFuel.reduce((s, r) => s + (Number(r.litros) || 0), 0);
-    const totalGasto = myFuel.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
-    const gastoMes = myFuelMes.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
-    const totalFrete = completedTrips.reduce((s, t) => s + (Number(t.valor_total_frete) || 0), 0);
-    const totalCustos = completedTrips.reduce(
-      (s, t) =>
-        s +
-        (Number(t.custo_combustivel) || 0) +
-        (Number(t.custo_pedagio) || 0) +
-        (Number(t.custo_manutencao) || 0) +
-        (Number(t.custo_outros) || 0),
-      0,
-    );
-    const lucroTotal = totalFrete - totalCustos;
-    const totalKm = myTrips.reduce((s, t) => s + (Number(t.distancia_km) || 0), 0);
-    const kmPerLiter = totalLitros > 0 ? totalKm / totalLitros : 0;
+      {/* ── Botoes de Acao Rapida (2x2) ── */}
+      <Text style={styles.sectionLabel}>Acoes rapidas</Text>
+      <View style={styles.quickActions}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.quickBtn,
+            { backgroundColor: colors.info + '15', borderColor: colors.info + '30' },
+            pressed && styles.quickBtnPressed,
+          ]}
+          onPress={() => router.push('/(app)/abastecer/new')}
+        >
+          <Ionicons name="water" size={24} color={colors.info} />
+          <Text style={[styles.quickBtnText, { color: colors.info }]}>Abastecer</Text>
+        </Pressable>
 
-    return {
-      activeTrips: activeTrips.length,
-      completedTrips: completedTrips.length,
-      totalKm,
-      totalLitros,
-      totalGasto,
-      gastoMes,
-      totalFrete,
-      lucroTotal,
-      kmPerLiter,
-    };
-  }, [isMotorista, user?.motorista_id, data]);
+        <Pressable
+          style={({ pressed }) => [
+            styles.quickBtn,
+            { backgroundColor: colors.warning + '15', borderColor: colors.warning + '30' },
+            pressed && styles.quickBtnPressed,
+          ]}
+          onPress={() => router.push('/(app)/manutencoes/new')}
+        >
+          <Ionicons name="construct" size={24} color={colors.warning} />
+          <Text style={[styles.quickBtnText, { color: colors.warning }]}>Manutencao</Text>
+        </Pressable>
 
-  // Admin (gestor) stats
-  const adminStats = useMemo(() => {
-    if (isMotorista || !data) return null;
+        <Pressable
+          style={({ pressed }) => [
+            styles.quickBtn,
+            { backgroundColor: colors.success + '15', borderColor: colors.success + '30' },
+            pressed && styles.quickBtnPressed,
+          ]}
+          onPress={() => router.push('/(app)/viagens')}
+        >
+          <Ionicons name="map" size={24} color={colors.success} />
+          <Text style={[styles.quickBtnText, { color: colors.success }]}>Viagens</Text>
+        </Pressable>
 
+        <Pressable
+          style={({ pressed }) => [
+            styles.quickBtn,
+            { backgroundColor: colors.accent + '15', borderColor: colors.accent + '30' },
+            pressed && styles.quickBtnPressed,
+          ]}
+          onPress={() => router.push('/(app)/perfil')}
+        >
+          <Ionicons name="person" size={24} color={colors.accent} />
+          <Text style={[styles.quickBtnText, { color: colors.accent }]}>Perfil</Text>
+        </Pressable>
+      </View>
+
+      {/* ── Resumo do Mes ── */}
+      <Text style={styles.sectionLabel}>{MESES[now.getMonth()]}</Text>
+      <View style={styles.statsRow}>
+        <StatCard
+          icon="water-outline"
+          iconColor={colors.info}
+          value={formatCurrency(gastoMes)}
+          label="Combustivel"
+        />
+        <StatCard
+          icon="flame-outline"
+          iconColor={colors.warning}
+          value={`${formatNumber(litrosMes, 0)}L`}
+          label="Litros abastecidos"
+        />
+      </View>
+
+      {/* ── Totais Gerais ── */}
+      <Text style={styles.sectionLabel}>Geral</Text>
+      <View style={styles.statsRow}>
+        <StatCard
+          icon="navigate-outline"
+          iconColor={colors.success}
+          value={String(viagensCadastradas.length)}
+          label="Viagens ativas"
+        />
+        <StatCard
+          icon="checkmark-circle-outline"
+          iconColor={colors.accent}
+          value={String(viagensFinalizadas.length)}
+          label="Finalizadas"
+        />
+      </View>
+      <View style={styles.statsRow}>
+        <StatCard
+          icon="speedometer-outline"
+          iconColor={colors.warning}
+          value={`${formatNumber(totalKm, 0)} km`}
+          label="km rodados"
+        />
+        <StatCard
+          icon="flash-outline"
+          iconColor={colors.info}
+          value={formatNumber(kmPerLiter, 1)}
+          label="km/litro"
+        />
+      </View>
+
+      {/* ── Ultimos Registros ── */}
+      {recentRecords.length > 0 && (
+        <>
+          <Text style={styles.sectionLabel}>Ultimos registros</Text>
+          <Card>
+            {recentRecords.map((rec, idx) => (
+              <View
+                key={`${rec.type}-${rec.id}`}
+                style={[
+                  styles.recentItem,
+                  idx < recentRecords.length - 1 && styles.recentItemBorder,
+                ]}
+              >
+                <Ionicons
+                  name={rec.type === 'fuel' ? 'water-outline' : 'construct-outline'}
+                  size={18}
+                  color={rec.type === 'fuel' ? colors.info : colors.warning}
+                />
+                <View style={styles.recentInfo}>
+                  <Text style={styles.recentLabel}>{rec.label}</Text>
+                  <Text style={styles.recentDate}>
+                    {new Date(rec.date).toLocaleDateString('pt-BR')}
+                  </Text>
+                </View>
+                <Text style={styles.recentValue}>{rec.value}</Text>
+              </View>
+            ))}
+          </Card>
+        </>
+      )}
+    </View>
+  );
+}
+
+/* ── Active Trip Card ── */
+function ActiveTripCard({ trip }: { trip: DashboardViagem }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+
+  const fornecedor = trip.fornecedores?.nome ?? 'Origem';
+  const cliente = trip.clientes?.nome ?? 'Destino';
+
+  return (
+    <Pressable onPress={() => router.push(`/(app)/viagens/${trip.id}` as any)}>
+      <Card style={[styles.activeTripCard, { borderColor: colors.success + '40' }]}>
+        <View style={styles.activeTripBadge}>
+          <View style={[styles.activeDot, { backgroundColor: colors.success }]} />
+          <Text style={[styles.activeTripBadgeText, { color: colors.success }]}>
+            Viagem ativa
+          </Text>
+        </View>
+
+        <View style={styles.tripRoute}>
+          <View style={styles.tripPoint}>
+            <Ionicons name="location" size={16} color={colors.accent} />
+            <Text style={styles.tripPointText} numberOfLines={1}>{fornecedor}</Text>
+          </View>
+          <Ionicons name="arrow-forward" size={14} color={colors.textMuted} style={{ marginHorizontal: spacing.xs }} />
+          <View style={styles.tripPoint}>
+            <Ionicons name="flag" size={16} color={colors.success} />
+            <Text style={styles.tripPointText} numberOfLines={1}>{cliente}</Text>
+          </View>
+        </View>
+
+        {trip.produto && (
+          <Text style={styles.tripProduct}>{trip.produto}</Text>
+        )}
+
+        <View style={styles.tripFooter}>
+          {trip.valor_total_frete > 0 && (
+            <Text style={styles.tripFrete}>
+              Frete: {formatCurrency(trip.valor_total_frete)}
+            </Text>
+          )}
+          <View style={[styles.tripAction, { backgroundColor: colors.success + '20' }]}>
+            <Text style={[styles.tripActionText, { color: colors.success }]}>
+              Ver detalhes
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color={colors.success} />
+          </View>
+        </View>
+      </Card>
+    </Pressable>
+  );
+}
+
+/* ───────────────────── ADMIN VIEW ───────────────────── */
+
+function AdminView({ data }: { data: DashboardData | null }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+
+  const stats = useMemo(() => {
+    if (!data) return null;
     const { viagens: trips, abastecimentos: fuel, caminhoes, manutencoes: manut } = data;
 
     const now = new Date();
@@ -127,160 +409,7 @@ export default function DashboardScreen() {
       inProgressMaintenance,
       mesAtual: MESES[now.getMonth()],
     };
-  }, [isMotorista, data]);
-
-  return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            tintColor={colors.accent}
-          />
-        }
-      >
-        <View style={styles.header}>
-          <Text style={styles.greeting}>
-            Olá, {user?.nome?.split(' ')[0] ?? ''}
-          </Text>
-          <Text style={styles.role}>
-            {isMotorista ? 'Motorista' : 'Gestor'}
-          </Text>
-        </View>
-
-        {isLoading ? (
-          <SkeletonStatGrid count={isMotorista ? 8 : 6} />
-        ) : isMotorista ? (
-          <MotoristaView stats={motoristaStats} />
-        ) : (
-          <AdminView stats={adminStats} />
-        )}
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-interface MotoristaStats {
-  activeTrips: number;
-  completedTrips: number;
-  totalKm: number;
-  totalLitros: number;
-  totalGasto: number;
-  gastoMes: number;
-  totalFrete: number;
-  lucroTotal: number;
-  kmPerLiter: number;
-}
-
-function MotoristaView({ stats }: { stats: MotoristaStats | null }) {
-  const colors = useColors();
-  const styles = useStyles(createStyles);
-
-  if (!stats) {
-    return (
-      <Card>
-        <Text style={styles.emptyTitle}>Perfil incompleto</Text>
-        <Text style={styles.emptyText}>
-          Seu usuário ainda não está vinculado a um registro de motorista. Fale
-          com o gestor da frota para liberar o acesso.
-        </Text>
-      </Card>
-    );
-  }
-
-  return (
-    <View>
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="navigate-outline"
-          iconColor={colors.info}
-          value={String(stats.activeTrips)}
-          label="Viagens ativas"
-        />
-        <StatCard
-          icon="checkmark-circle-outline"
-          iconColor={colors.success}
-          value={String(stats.completedTrips)}
-          label="Finalizadas"
-        />
-      </View>
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="speedometer-outline"
-          iconColor={colors.warning}
-          value={formatNumber(stats.totalKm, 0)}
-          label="km rodados"
-        />
-        <StatCard
-          icon="flash-outline"
-          iconColor={colors.accent}
-          value={formatNumber(stats.kmPerLiter, 1)}
-          label="km/litro"
-        />
-      </View>
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="cash-outline"
-          iconColor={colors.success}
-          value={formatCurrency(stats.totalFrete)}
-          label="Frete total"
-        />
-        <StatCard
-          icon="water-outline"
-          iconColor={colors.info}
-          value={formatCurrency(stats.gastoMes)}
-          label="Combustível do mês"
-        />
-      </View>
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="trending-up-outline"
-          iconColor={stats.lucroTotal >= 0 ? colors.success : colors.danger}
-          value={formatCurrency(stats.lucroTotal)}
-          label="Lucro líquido"
-        />
-        <StatCard
-          icon="flame-outline"
-          iconColor={colors.warning}
-          value={`${formatNumber(stats.totalLitros, 0)}L`}
-          label="Total litros"
-        />
-      </View>
-
-      <Card style={styles.infoCard}>
-        <View style={styles.infoHeader}>
-          <Ionicons name="information-circle-outline" size={20} color={colors.accent} />
-          <Text style={styles.infoTitle}>Próximos passos</Text>
-        </View>
-        <Text style={styles.infoText}>
-          Use a aba Abastecer para registrar um novo abastecimento ou Viagens
-          para iniciar e finalizar uma viagem com GPS.
-        </Text>
-      </Card>
-    </View>
-  );
-}
-
-interface AdminStats {
-  totalCaminhoes: number;
-  activeTrips: number;
-  completedTrips: number;
-  totalFrete: number;
-  totalGasto: number;
-  gastoMes: number;
-  receitaMes: number;
-  totalKm: number;
-  kmPerLiter: number;
-  pendingMaintenance: number;
-  inProgressMaintenance: number;
-  mesAtual: string;
-}
-
-function AdminView({ stats }: { stats: AdminStats | null }) {
-  const colors = useColors();
-  const styles = useStyles(createStyles);
+  }, [data]);
 
   if (!stats) return null;
 
@@ -288,13 +417,12 @@ function AdminView({ stats }: { stats: AdminStats | null }) {
 
   return (
     <View>
-      {/* Alertas de manutenção */}
       {hasMaintAlert && (
         <View style={[styles.alertCard, { borderColor: colors.warning + '50', backgroundColor: colors.warning + '10' }]}>
           <Ionicons name="construct-outline" size={18} color={colors.warning} />
           <Text style={[styles.alertText, { color: colors.warning }]}>
             {stats.pendingMaintenance > 0
-              ? `${stats.pendingMaintenance} manutenção(ões) pendente(s)`
+              ? `${stats.pendingMaintenance} manutencao(oes) pendente(s)`
               : ''}
             {stats.pendingMaintenance > 0 && stats.inProgressMaintenance > 0 ? ' · ' : ''}
             {stats.inProgressMaintenance > 0
@@ -304,33 +432,31 @@ function AdminView({ stats }: { stats: AdminStats | null }) {
         </View>
       )}
 
-      {/* Mês atual */}
-      <Text style={styles.mesLabel}>{stats.mesAtual}</Text>
+      <Text style={styles.sectionLabel}>{stats.mesAtual}</Text>
 
       <View style={styles.statsRow}>
         <StatCard
           icon="water-outline"
           iconColor={colors.warning}
           value={formatCurrency(stats.gastoMes)}
-          label="Combustível do mês"
+          label="Combustivel do mes"
         />
         <StatCard
           icon="cash-outline"
           iconColor={colors.success}
           value={formatCurrency(stats.receitaMes)}
-          label="Receita do mês"
+          label="Receita do mes"
         />
       </View>
 
-      {/* Totais gerais */}
-      <Text style={styles.mesLabel}>Geral</Text>
+      <Text style={styles.sectionLabel}>Geral</Text>
 
       <View style={styles.statsRow}>
         <StatCard
           icon="bus-outline"
           iconColor={colors.accent}
           value={String(stats.totalCaminhoes)}
-          label="Caminhões"
+          label="Caminhoes"
         />
         <StatCard
           icon="navigate-outline"
@@ -371,16 +497,18 @@ function AdminView({ stats }: { stats: AdminStats | null }) {
       <Card style={styles.infoCard}>
         <View style={styles.infoHeader}>
           <Ionicons name="bar-chart-outline" size={20} color={colors.accent} />
-          <Text style={styles.infoTitle}>Relatórios detalhados</Text>
+          <Text style={styles.infoTitle}>Relatorios detalhados</Text>
         </View>
         <Text style={styles.infoText}>
-          Acesse a aba Relatórios para ver KPIs filtrados por período, ranking de
-          veículos e análise de custos.
+          Acesse a aba Relatorios para ver KPIs filtrados por periodo, ranking de
+          veiculos e analise de custos.
         </Text>
       </Card>
     </View>
   );
 }
+
+/* ───────────────────── STYLES ───────────────────── */
 
 const createStyles = (c: Colors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: c.bg },
@@ -396,20 +524,199 @@ const createStyles = (c: Colors) => StyleSheet.create({
     color: c.textMuted,
     marginTop: spacing.xs,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  mesLabel: {
+
+  // Section
+  sectionLabel: {
     fontSize: fontSize.xs,
     fontWeight: '700',
     color: c.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+
+  // Truck card
+  truckCard: {
+    marginBottom: spacing.sm,
+  },
+  truckHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  truckIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  truckInfo: {
+    flex: 1,
+  },
+  truckPlaca: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    color: c.text,
+    letterSpacing: 1,
+  },
+  truckModelo: {
+    fontSize: fontSize.sm,
+    color: c.textMuted,
+    marginTop: 2,
+  },
+  truckStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    borderTopColor: c.border,
+    paddingTop: spacing.sm,
+  },
+  truckStatItem: {
+    alignItems: 'center',
+  },
+  truckStatValue: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: c.text,
+  },
+  truckStatLabel: {
+    fontSize: fontSize.xs,
+    color: c.textMuted,
+    marginTop: 2,
+  },
+
+  // Active trip card
+  activeTripCard: {
+    borderWidth: 1,
+    marginBottom: spacing.sm,
+  },
+  activeTripBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  activeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  activeTripBadgeText: {
+    fontSize: fontSize.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  tripRoute: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: spacing.xs,
   },
+  tripPoint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+  },
+  tripPointText: {
+    fontSize: fontSize.sm,
+    color: c.text,
+    fontWeight: '500',
+    flex: 1,
+  },
+  tripProduct: {
+    fontSize: fontSize.xs,
+    color: c.textMuted,
+    marginBottom: spacing.sm,
+  },
+  tripFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  tripFrete: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: c.text,
+  },
+  tripAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+  },
+  tripActionText: {
+    fontSize: fontSize.xs,
+    fontWeight: '600',
+  },
+
+  // Quick actions grid
+  quickActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  quickBtn: {
+    width: '48%',
+    flexGrow: 1,
+    flexBasis: '46%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.lg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: spacing.sm,
+  },
+  quickBtnPressed: {
+    opacity: 0.7,
+  },
+  quickBtnText: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+  },
+
+  // Recent records
+  recentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  recentItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: c.border,
+  },
+  recentInfo: {
+    flex: 1,
+  },
+  recentLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: '500',
+    color: c.text,
+  },
+  recentDate: {
+    fontSize: fontSize.xs,
+    color: c.textMuted,
+    marginTop: 1,
+  },
+  recentValue: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: c.text,
+  },
+
+  // Alert card (admin)
   alertCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -424,6 +731,8 @@ const createStyles = (c: Colors) => StyleSheet.create({
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
+
+  // Info card
   infoCard: {
     marginTop: spacing.md,
     borderRadius: radius.lg,
@@ -444,15 +753,23 @@ const createStyles = (c: Colors) => StyleSheet.create({
     color: c.textMuted,
     lineHeight: 20,
   },
+
+  // Empty state
+  emptyIcon: {
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
   emptyTitle: {
     fontSize: fontSize.lg,
     fontWeight: '600',
     color: c.text,
     marginBottom: spacing.xs,
+    textAlign: 'center',
   },
   emptyText: {
     fontSize: fontSize.sm,
     color: c.textMuted,
     lineHeight: 20,
+    textAlign: 'center',
   },
 });
