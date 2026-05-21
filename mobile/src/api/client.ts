@@ -8,6 +8,7 @@ const API_URL =
 
 export const api = axios.create({
   baseURL: API_URL,
+  timeout: 15000, // 15s — prevents infinite hang on slow/dead connections
   headers: {
     'Content-Type': 'application/json',
   },
