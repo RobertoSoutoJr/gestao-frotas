@@ -86,7 +86,16 @@ export default function LoginScreen() {
       await login(email.trim(), password);
       router.replace('/(app)/dashboard');
     } catch (err: any) {
-      Alert.alert('Erro ao entrar', err?.message ?? 'Verifique suas credenciais');
+      const msg = err?.message ?? 'Verifique suas credenciais';
+      // Show more context on network errors so we can diagnose
+      if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('timeout')) {
+        Alert.alert(
+          'Erro de Conexão',
+          'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.\n\nDetalhes: ' + msg
+        );
+      } else {
+        Alert.alert('Erro ao entrar', msg);
+      }
     } finally {
       setLoading(false);
     }

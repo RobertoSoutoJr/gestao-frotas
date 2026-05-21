@@ -6,9 +6,14 @@ const API_URL =
   (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
   'https://srv1665848.hstgr.cloud/api';
 
+// Log the resolved URL once so we can verify in dev client
+if (__DEV__) {
+  console.log('[FuelTrack] API_URL =', API_URL);
+}
+
 export const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000, // 15s — prevents infinite hang on slow/dead connections
+  timeout: 30000, // 30s — generous for slow mobile connections + bcrypt
   headers: {
     'Content-Type': 'application/json',
   },
