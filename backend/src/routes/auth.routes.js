@@ -3,13 +3,14 @@ const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { protect, requireAdmin } = require('../middlewares/auth.middleware');
 const { checkMotoristaAccountLimit } = require('../middlewares/planLimits.middleware');
+const { authLimiter } = require('../middlewares/rateLimiter');
 
-// Rotas públicas
-router.post('/register', authController.register);
-router.post('/verify-email', authController.verifyEmail);
-router.post('/resend-code', authController.resendCode);
-router.post('/login', authController.login);
-router.post('/refresh-token', authController.refreshToken);
+// Rotas públicas (com rate limit restrito)
+router.post('/register', authLimiter, authController.register);
+router.post('/verify-email', authLimiter, authController.verifyEmail);
+router.post('/resend-code', authLimiter, authController.resendCode);
+router.post('/login', authLimiter, authController.login);
+router.post('/refresh-token', authLimiter, authController.refreshToken);
 router.post('/logout', authController.logout);
 
 // Rotas protegidas

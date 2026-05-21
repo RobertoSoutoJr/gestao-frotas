@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const documentController = require('../controllers/document.controller');
+const { uploadLimiter } = require('../middlewares/rateLimiter');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -18,8 +19,8 @@ const upload = multer({
 const router = express.Router();
 
 router.get('/:entidade_tipo/:entidade_id', documentController.getByEntity);
-router.post('/', upload.single('arquivo'), documentController.upload);
-router.post('/extract-fuel-receipt', upload.single('arquivo'), documentController.extractFuelReceipt);
+router.post('/', uploadLimiter, upload.single('arquivo'), documentController.upload);
+router.post('/extract-fuel-receipt', uploadLimiter, upload.single('arquivo'), documentController.extractFuelReceipt);
 router.delete('/:id', documentController.delete);
 
 module.exports = router;
