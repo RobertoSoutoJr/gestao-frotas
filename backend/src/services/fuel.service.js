@@ -16,6 +16,21 @@ class FuelService {
       .order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar registros de abastecimento', 500, error);
+
+    // Check which records have linked NFC-e documents
+    if (data && data.length > 0) {
+      const ids = data.map(r => r.id);
+      const { data: docs } = await supabase
+        .from('documentos')
+        .select('entidade_id')
+        .eq('user_id', userId)
+        .eq('entidade_tipo', 'abastecimento')
+        .in('entidade_id', ids);
+
+      const docSet = new Set((docs || []).map(d => d.entidade_id));
+      data.forEach(r => { r.has_nfce = docSet.has(r.id); });
+    }
+
     return data;
   }
 

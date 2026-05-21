@@ -98,7 +98,8 @@ export function FuelForm({ trucks, drivers, postos = [], onSuccess, preselectedT
         km_registro: Number(formData.km_registro),
         litros: Number(formData.litros),
         valor_total: Number(formData.valor_total),
-        posto_id: formData.posto_id ? Number(formData.posto_id) : null
+        posto_id: formData.posto_id ? Number(formData.posto_id) : null,
+        documento_id: ocrResult?.documento_id || undefined,
       };
 
       await fuelService.create(data);

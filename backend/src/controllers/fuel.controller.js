@@ -1,4 +1,5 @@
 const fuelService = require('../services/fuel.service');
+const documentService = require('../services/document.service');
 const { createFuelRecordSchema } = require('../validators/fuel.validator');
 const { asyncHandler } = require('../middlewares/errorHandler');
 const { logAudit } = require('../middlewares/audit.middleware');
@@ -19,8 +20,20 @@ exports.getByTruck = asyncHandler(async (req, res) => {
 });
 
 exports.create = asyncHandler(async (req, res) => {
-  const validatedData = createFuelRecordSchema.parse(req.body);
+  const { documento_id, ...body } = req.body;
+  const validatedData = createFuelRecordSchema.parse(body);
   const record = await fuelService.create(validatedData, req.userId);
+
+  // Link NFC-e document to this fuel record if provided
+  if (documento_id) {
+    try {
+      await documentService.linkToEntity(documento_id, record.id, req.userId);
+    } catch (err) {
+      // Non-critical — don't fail the whole request
+      console.error('[FuelController] Failed to link document:', err.message);
+    }
+  }
+
   await logAudit(req, 'criar', 'abastecimento', record.id, null, validatedData);
   res.status(201).json({ success: true, data: record });
 });

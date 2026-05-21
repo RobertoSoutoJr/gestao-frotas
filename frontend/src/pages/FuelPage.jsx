@@ -8,7 +8,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { FuelForm } from '../components/forms/FuelForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown, Plus, X } from 'lucide-react';
+import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown, Plus, X, Paperclip } from 'lucide-react';
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
 import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
@@ -486,7 +486,12 @@ export function FuelPage({ trucks, drivers, postos = [], onRefetch }) {
                     return (
                       <tr key={fuel.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)] transition-colors">
                         <td className="px-4 py-3">
-                          <p className="font-medium text-[var(--color-text)]">{getTruckName(fuel.caminhao_id).split(' - ')[0]}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-medium text-[var(--color-text)]">{getTruckName(fuel.caminhao_id).split(' - ')[0]}</p>
+                            {fuel.has_nfce && (
+                              <Paperclip className="h-3.5 w-3.5 text-[var(--color-accent)]" title="NFC-e anexada" />
+                            )}
+                          </div>
                           <p className="text-xs text-[var(--color-text-secondary)] sm:hidden">{getDriverName(fuel.motorista_id)}</p>
                           <p className="text-xs text-[var(--color-text-secondary)] md:hidden">{formatDate(fuel.created_at)}</p>
                         </td>

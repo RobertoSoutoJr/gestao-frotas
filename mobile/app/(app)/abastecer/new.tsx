@@ -187,7 +187,8 @@ export default function AbastecerScreen() {
       valor_total: Number(form.valor_total),
       km_registro: Number(form.km_registro),
       posto_id: form.posto_id || undefined,
-    };
+      documento_id: ocrResult?.documento_id || undefined,
+    } as any;
 
     const state = await Network.getNetworkStateAsync();
     if (!state.isConnected || !state.isInternetReachable) {
