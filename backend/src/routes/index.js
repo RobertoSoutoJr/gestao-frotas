@@ -19,9 +19,41 @@ const { protect, requireAdmin } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-// Health check
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check — detailed with DB ping and system metrics
+const startTime = Date.now();
+router.get('/health', async (req, res) => {
+  const uptime = Math.floor((Date.now() - startTime) / 1000);
+  const mem = process.memoryUsage();
+
+  // Test Supabase connection
+  let dbStatus = 'ok';
+  let dbLatency = 0;
+  try {
+    const t0 = Date.now();
+    const { error } = await require('../config/database').supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+    dbLatency = Date.now() - t0;
+    if (error) dbStatus = 'error';
+  } catch {
+    dbStatus = 'unreachable';
+  }
+
+  const status = dbStatus === 'ok' ? 'ok' : 'degraded';
+  res.status(status === 'ok' ? 200 : 503).json({
+    status,
+    timestamp: new Date().toISOString(),
+    uptime_seconds: uptime,
+    version: process.env.npm_package_version || '1.0.0',
+    database: { status: dbStatus, latency_ms: dbLatency },
+    memory: {
+      rss_mb: Math.round(mem.rss / 1024 / 1024),
+      heap_used_mb: Math.round(mem.heapUsed / 1024 / 1024),
+      heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
+    },
+    node: process.version,
+  });
 });
 
 // Auth routes (públicas)
