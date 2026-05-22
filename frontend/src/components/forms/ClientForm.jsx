@@ -1,9 +1,10 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { clientsService } from '../../services/clients';
 import { useToast } from '../../hooks/useToast';
+import { useCepLookup } from '../../hooks/useCepLookup';
 import { maskCPFCNPJ, maskPhone } from '../../lib/utils';
 
 const LocationPicker = lazy(() => import('../ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
@@ -37,6 +38,11 @@ export function ClientForm({ onSuccess }) {
     }
   };
 
+  const onCepResult = useCallback((addr) => {
+    setFormData(prev => ({ ...prev, ...addr }));
+  }, []);
+  const { lookupCep, loading: cepLoading } = useCepLookup(onCepResult);
+
   const handleChange = (e) => {
     let { name, value } = e.target;
     if (name === 'cpf_cnpj') value = maskCPFCNPJ(value);
@@ -51,7 +57,7 @@ export function ClientForm({ onSuccess }) {
         <Input name="cpf_cnpj" label="CPF/CNPJ" placeholder="000.000.000-00" value={formData.cpf_cnpj} onChange={handleChange} />
         <Input name="telefone" label="Telefone" placeholder="(11) 98888-8888" value={formData.telefone} onChange={handleChange} />
         <Input name="email" label="E-mail" type="email" placeholder="email@exemplo.com" value={formData.email} onChange={handleChange} />
-        <Input name="cep" label="CEP" placeholder="00000-000" value={formData.cep} onChange={handleChange} />
+        <Input name="cep" label={cepLoading ? "CEP (buscando...)" : "CEP"} placeholder="00000-000" value={formData.cep} onChange={handleChange} onBlur={(e) => lookupCep(e.target.value)} />
         <Input name="endereco" label="Endereço" placeholder="Rodovia BR-153, Km 42" value={formData.endereco} onChange={handleChange} className="md:col-span-2" />
         <Input name="cidade" label="Cidade" placeholder="Goiânia" value={formData.cidade} onChange={handleChange} />
         <Select name="estado" label="Estado (UF)" value={formData.estado} onChange={handleChange}>

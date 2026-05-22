@@ -13,6 +13,7 @@ const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then
 import { formatCurrency, maskCPFCNPJ, maskPhone } from '../lib/utils';
 import { clientsService } from '../services/clients';
 import { useToast } from '../hooks/useToast';
+import { useCepLookup } from '../hooks/useCepLookup';
 import { usePagination } from '../hooks/usePagination';
 import { Pagination } from '../components/ui/Pagination';
 
@@ -24,6 +25,7 @@ const ESTADOS_BR = [
 function EditClientModal({ client, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
+  const { lookupCep, loading: cepLoading } = useCepLookup((addr) => setFormData(prev => ({ ...prev, ...addr })));
   const [formData, setFormData] = useState({
     nome: client.nome || '',
     cpf_cnpj: client.cpf_cnpj || '',
@@ -68,7 +70,7 @@ function EditClientModal({ client, isOpen, onClose, onSuccess }) {
           <Input name="cpf_cnpj" label="CPF/CNPJ" value={formData.cpf_cnpj} onChange={handleChange} />
           <Input name="telefone" label="Telefone" value={formData.telefone} onChange={handleChange} />
           <Input name="email" label="E-mail" type="email" value={formData.email} onChange={handleChange} />
-          <Input name="cep" label="CEP" value={formData.cep} onChange={handleChange} />
+          <Input name="cep" label={cepLoading ? "CEP (buscando...)" : "CEP"} value={formData.cep} onChange={handleChange} onBlur={(e) => lookupCep(e.target.value)} />
           <Input name="endereco" label="Endereço" value={formData.endereco} onChange={handleChange} className="md:col-span-2" />
           <Input name="cidade" label="Cidade" value={formData.cidade} onChange={handleChange} />
           <Select name="estado" label="Estado (UF)" value={formData.estado} onChange={handleChange}>
