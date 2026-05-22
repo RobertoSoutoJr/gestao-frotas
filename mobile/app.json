@@ -49,6 +49,15 @@
       "expo-router",
       "expo-secure-store",
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0f0f23"
+        }
+      ],
+      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "O FuelTrack usa sua localização para registrar o início e fim das viagens."

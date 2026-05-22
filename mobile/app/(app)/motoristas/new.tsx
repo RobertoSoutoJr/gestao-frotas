@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -12,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { KeyboardAwareScroll } from '../../../src/components/KeyboardAwareScroll';
 import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
 import { Picker, PickerOption } from '../../../src/components/Picker';
@@ -90,11 +88,7 @@ export default function NovoMotoristaScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerStyle={styles.scroll} containerStyle={styles.flex}>
           <View style={styles.headerRow}>
             <Button title="Voltar" variant="ghost" onPress={() => router.back()} style={styles.backBtn} />
           </View>
@@ -164,8 +158,7 @@ export default function NovoMotoristaScreen() {
             disabled={mutation.isPending}
             style={styles.submitBtn}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

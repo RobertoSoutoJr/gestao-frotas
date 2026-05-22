@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -16,6 +13,7 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
+import { KeyboardAwareScroll } from '../../../src/components/KeyboardAwareScroll';
 import { Picker, PickerOption } from '../../../src/components/Picker';
 import { Card } from '../../../src/components/Card';
 import { useAuth } from '../../../src/contexts/AuthContext';
@@ -164,11 +162,10 @@ export default function NovaViagemScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareScroll
+        contentContainerStyle={styles.scroll}
+        containerStyle={styles.flex}
       >
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
           <View style={styles.headerRow}>
             <Button title="Voltar" variant="ghost" onPress={() => router.back()} style={styles.backBtn} />
@@ -324,8 +321,7 @@ export default function NovaViagemScreen() {
             disabled={mutation.isPending || (!isAdmin && !user?.motorista_id)}
             style={styles.submitBtn}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

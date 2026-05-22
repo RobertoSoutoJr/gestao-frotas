@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -17,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
+import { KeyboardAwareScroll } from '../../../src/components/KeyboardAwareScroll';
 import { Picker, PickerOption } from '../../../src/components/Picker';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { caminhoesApi } from '../../../src/api/caminhoes';
@@ -221,14 +219,10 @@ export default function NewManutencaoScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareScroll
+        contentContainerStyle={styles.scroll}
+        containerStyle={styles.flex}
       >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-        >
           <View style={styles.headerRow}>
             <Button
               title="Voltar"
@@ -349,8 +343,7 @@ export default function NewManutencaoScreen() {
             disabled={isBusy}
             style={styles.submitBtn}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -15,6 +12,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
+import { KeyboardAwareScroll } from '../../../src/components/KeyboardAwareScroll';
 import { Card } from '../../../src/components/Card';
 import { useToast } from '../../../src/contexts/ToastContext';
 import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
@@ -121,14 +119,10 @@ export default function EditViagemScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareScroll
+        contentContainerStyle={styles.scroll}
+        containerStyle={styles.flex}
       >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-        >
           <View style={styles.header}>
             <Pressable onPress={() => router.back()} style={styles.backBtn}>
               <Ionicons name="arrow-back" size={22} color={colors.text} />
@@ -239,8 +233,7 @@ export default function EditViagemScreen() {
             disabled={mutation.isPending}
             style={styles.submitBtn}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

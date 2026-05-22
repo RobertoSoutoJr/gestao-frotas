@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -13,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { KeyboardAwareScroll } from '../../../src/components/KeyboardAwareScroll';
 import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
 import { Picker, PickerOption } from '../../../src/components/Picker';
@@ -221,14 +219,7 @@ export default function EditAbastecimentoScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-        >
+      <KeyboardAwareScroll contentContainerStyle={styles.scroll} containerStyle={styles.flex}>
           <View style={styles.header}>
             <Pressable onPress={() => router.back()} style={styles.backBtn}>
               <Ionicons name="arrow-back" size={22} color={colors.text} />
@@ -363,8 +354,7 @@ export default function EditAbastecimentoScreen() {
             disabled={mutation.isPending}
             style={styles.submitButton}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScroll>
 
       <NfceScanner
         visible={scannerVisible}

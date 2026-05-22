@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
   Pressable,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -17,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Network from 'expo-network';
 import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
+import { KeyboardAwareScroll } from '../../../src/components/KeyboardAwareScroll';
 import { Picker, PickerOption } from '../../../src/components/Picker';
 import { Card } from '../../../src/components/Card';
 import { NfceScanner } from '../../../src/components/NfceScanner';
@@ -233,14 +232,10 @@ export default function AbastecerScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareScroll
+        contentContainerStyle={styles.scroll}
+        containerStyle={styles.flex}
       >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-        >
           <View style={styles.header}>
             <Pressable onPress={() => router.back()} style={styles.backBtn}>
               <Ionicons name="arrow-back" size={22} color={colors.text} />
@@ -370,8 +365,7 @@ export default function AbastecerScreen() {
             disabled={mutation.isPending}
             style={styles.submitButton}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScroll>
 
       <NfceScanner
         visible={scannerVisible}
