@@ -415,7 +415,7 @@ function DocCard({ doc, onPreview, onDelete }) {
         onClick={onPreview}
       >
         {isImg ? (
-          <img src={doc.arquivo_url} alt={doc.nome_original} className="h-full w-full object-cover" />
+          <img src={doc.arquivo_url} alt={doc.nome_original} loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <FileText className="h-10 w-10 text-red-400/60" />
         )}

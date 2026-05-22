@@ -1,5 +1,5 @@
 // Bump this when the SW logic itself changes to force old caches to be wiped.
-const CACHE_NAME = 'fueltrack-v3';
+const CACHE_NAME = 'fueltrack-v4';
 // Do NOT precache '/' — index.html is network-first below so the latest
 // JS bundle hashes are always picked up after a deploy.
 const STATIC_ASSETS = [
@@ -72,17 +72,36 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   if (url.origin !== self.location.origin) return;
 
-  // API calls: network-first
+  // API calls — stale-while-revalidate for GET listing endpoints,
+  // network-first for everything else
   if (url.pathname.startsWith('/api') || url.pathname.startsWith('/auth')) {
-    event.respondWith(
-      fetch(request)
-        .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          return res;
-        })
-        .catch(() => caches.match(request))
-    );
+    const isListingEndpoint = /^\/(caminhoes|motoristas|abastecimentos|manutencoes|viagens|clientes|fornecedores|produtos|estoque|oficinas|postos|dashboard|notifications)/.test(url.pathname.replace(/^\/api/, ''));
+
+    if (isListingEndpoint) {
+      // Stale-while-revalidate: respond from cache immediately, update in background
+      event.respondWith(
+        caches.open(CACHE_NAME).then((cache) =>
+          cache.match(request).then((cached) => {
+            const fetchPromise = fetch(request).then((res) => {
+              if (res.ok) cache.put(request, res.clone());
+              return res;
+            }).catch(() => cached);
+            return cached || fetchPromise;
+          })
+        )
+      );
+    } else {
+      // Network-first for auth, mutations, etc.
+      event.respondWith(
+        fetch(request)
+          .then((res) => {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            return res;
+          })
+          .catch(() => caches.match(request))
+      );
+    }
     return;
   }
 
