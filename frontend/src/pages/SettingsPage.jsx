@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import authService from '../services/auth';
 import { driversService } from '../services/drivers';
+import { trucksService } from '../services/trucks';
 import { User, Lock, Building2, Phone, Mail, Save, Eye, EyeOff, LogOut, Users, Plus, Power, Crown, Zap, Rocket, Check, TrendingUp } from 'lucide-react';
 
 export function SettingsPage() {
@@ -417,19 +418,22 @@ function MotoristaAccountsSection() {
   const { addToast } = useToast();
   const [accounts, setAccounts] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [trucks, setTrucks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ nome: '', email: '', password: '', motorista_id: '' });
+  const [form, setForm] = useState({ nome: '', email: '', password: '', motorista_id: '', caminhao_id: '' });
 
   const fetchData = async () => {
     try {
-      const [accRes, drvRes] = await Promise.all([
+      const [accRes, drvRes, trkRes] = await Promise.all([
         authService.getMotoristaAccounts(),
         driversService.getAll(),
+        trucksService.getAll(),
       ]);
       setAccounts(accRes.data || []);
       setDrivers(drvRes.data || []);
+      setTrucks(trkRes.data || []);
     } catch {
       // silent
     } finally {
@@ -457,8 +461,16 @@ function MotoristaAccountsSection() {
         password: form.password,
         motorista_id: form.motorista_id ? Number(form.motorista_id) : null,
       });
+      // If a truck was selected and motorista was linked, update the motorista's caminhao_id
+      if (form.motorista_id && form.caminhao_id) {
+        try {
+          await driversService.update(Number(form.motorista_id), { caminhao_id: Number(form.caminhao_id) });
+        } catch {
+          // non-blocking
+        }
+      }
       addToast('Conta de motorista criada', 'success');
-      setForm({ nome: '', email: '', password: '', motorista_id: '' });
+      setForm({ nome: '', email: '', password: '', motorista_id: '', caminhao_id: '' });
       setShowCreate(false);
       fetchData();
     } catch (err) {
@@ -537,6 +549,16 @@ function MotoristaAccountsSection() {
                   <option key={d.id} value={d.id}>{d.nome}</option>
                 ))}
               </Select>
+              <Select
+                label="Caminhao vinculado (opcional)"
+                value={form.caminhao_id}
+                onChange={(e) => setForm(prev => ({ ...prev, caminhao_id: e.target.value }))}
+              >
+                <option value="">Sem caminhao</option>
+                {trucks.map(t => (
+                  <option key={t.id} value={t.id}>{t.placa} — {t.modelo}</option>
+                ))}
+              </Select>
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => setShowCreate(false)}>Cancelar</Button>
@@ -556,6 +578,7 @@ function MotoristaAccountsSection() {
           <div className="space-y-2">
             {accounts.map(acc => {
               const linkedDriver = drivers.find(d => d.id === acc.motorista_id);
+              const linkedTruck = linkedDriver?.caminhoes || trucks.find(t => t.id === linkedDriver?.caminhao_id);
               return (
                 <div key={acc.id} className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-4 py-3">
                   <div>
@@ -567,7 +590,8 @@ function MotoristaAccountsSection() {
                     </div>
                     <p className="text-xs text-[var(--color-text-secondary)]">
                       {acc.email}
-                      {linkedDriver && <span className="ml-2">| Vinculado: {linkedDriver.nome}</span>}
+                      {linkedDriver && <span className="ml-2">| Motorista: {linkedDriver.nome}</span>}
+                      {linkedTruck && <span className="ml-2">| Caminhao: {linkedTruck.placa || linkedTruck}</span>}
                     </p>
                   </div>
                   <Button
