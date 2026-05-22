@@ -26,6 +26,13 @@ export function FuelForm({ trucks, drivers, postos = [], onSuccess, preselectedT
     ? (Number(formData.valor_total) / Number(formData.litros)).toFixed(3)
     : null;
 
+  // KM validation: warn if km_registro < current truck km
+  const selectedTruck = trucks.find(t => String(t.id) === formData.caminhao_id);
+  const kmWarning = selectedTruck?.km_atual && formData.km_registro
+    && Number(formData.km_registro) < selectedTruck.km_atual
+    ? `KM atual do veículo: ${selectedTruck.km_atual.toLocaleString('pt-BR')} km`
+    : null;
+
   const handleScanNfce = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -221,15 +228,23 @@ export function FuelForm({ trucks, drivers, postos = [], onSuccess, preselectedT
           ))}
         </Select>
 
-        <Input
-          name="km_registro"
-          label="Quilometragem (km)"
-          type="number"
-          placeholder="50000"
-          value={formData.km_registro}
-          onChange={handleChange}
-          required
-        />
+        <div>
+          <Input
+            name="km_registro"
+            label="Quilometragem (km)"
+            type="number"
+            placeholder={selectedTruck?.km_atual ? String(selectedTruck.km_atual) : '50000'}
+            value={formData.km_registro}
+            onChange={handleChange}
+            required
+          />
+          {kmWarning && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-amber-500">
+              <AlertTriangle className="h-3 w-3" />
+              {kmWarning}
+            </p>
+          )}
+        </div>
 
         <Input
           name="litros"
