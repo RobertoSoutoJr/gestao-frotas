@@ -32,9 +32,11 @@ const REPORT_SECTIONS = [
   { id: 'driver_detail', label: 'Detalhamento por Motorista', description: 'Performance, km, produtividade por motorista', icon: Users },
   { id: 'client_profitability', label: 'Rentabilidade por Cliente', description: 'Ranking de clientes por margem e faturamento', icon: Building2 },
   { id: 'profitability_ranking', label: 'Ranking Geral', description: 'Top caminhões, motoristas e clientes por lucro', icon: Trophy },
+  { id: 'cost_per_km', label: 'Custo por KM', description: 'Gráfico comparativo de custo/km rodado por veículo', icon: Gauge },
+  { id: 'spend_projection', label: 'Projeção de Gastos', description: 'Tendência e previsão de gastos para os próximos 3 meses', icon: TrendingUp },
 ];
 
-const DEFAULT_ORDER = ['filters', 'dre', 'client_profitability', 'profitability_ranking', 'summary_cards', 'maintenance_table', 'fuel_table', 'chart_costs', 'chart_distribution', 'chart_monthly', 'truck_detail', 'driver_detail'];
+const DEFAULT_ORDER = ['filters', 'dre', 'client_profitability', 'profitability_ranking', 'cost_per_km', 'spend_projection', 'summary_cards', 'maintenance_table', 'fuel_table', 'chart_costs', 'chart_distribution', 'chart_monthly', 'truck_detail', 'driver_detail'];
 const DEFAULT_VISIBILITY = {
   filters: true,
   dre: true,
@@ -48,6 +50,8 @@ const DEFAULT_VISIBILITY = {
   driver_detail: true,
   client_profitability: true,
   profitability_ranking: true,
+  cost_per_km: true,
+  spend_projection: true,
 };
 
 export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenanceRecords, trips }) {
@@ -199,6 +203,56 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
       Manutenção: Number(months[key].manutencao.toFixed(2))
     }));
   }, [filteredData]);
+
+  // Cost per KM chart data
+  const costPerKmData = useMemo(() => {
+    return stats
+      .filter(s => s.totalKm > 0)
+      .map(s => ({
+        name: s.truck.placa,
+        'R$/km': Number((s.totalSpent / s.totalKm).toFixed(2)),
+        'Combustível/km': Number((s.totalFuel / s.totalKm).toFixed(2)),
+        'Manutenção/km': Number((s.totalMaintenance / s.totalKm).toFixed(2)),
+      }))
+      .sort((a, b) => a['R$/km'] - b['R$/km']);
+  }, [stats]);
+
+  // Spend projection — linear regression on monthly totals, forecast 3 months
+  const projectionData = useMemo(() => {
+    if (monthlyData.length < 3) return [];
+
+    const totals = monthlyData.map(m => m['Combustível'] + m['Manutenção']);
+    const n = totals.length;
+    const sumX = n * (n - 1) / 2;
+    const sumY = totals.reduce((a, b) => a + b, 0);
+    const sumXY = totals.reduce((a, y, i) => a + i * y, 0);
+    const sumXX = Array.from({ length: n }, (_, i) => i * i).reduce((a, b) => a + b, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    const lastMonth = monthlyData[monthlyData.length - 1].mes;
+    const [lastY, lastM] = lastMonth.split('-').map(Number);
+
+    const result = monthlyData.map((m, i) => ({
+      mes: m.mes,
+      Real: Number((m['Combustível'] + m['Manutenção']).toFixed(2)),
+      Tendência: Number((intercept + slope * i).toFixed(2)),
+    }));
+
+    for (let f = 1; f <= 3; f++) {
+      const futureIdx = n + f - 1;
+      const futureMonth = new Date(lastY, lastM - 1 + f, 1);
+      const key = `${futureMonth.getFullYear()}-${String(futureMonth.getMonth() + 1).padStart(2, '0')}`;
+      result.push({
+        mes: key,
+        Real: null,
+        Tendência: Math.max(0, Number((intercept + slope * futureIdx).toFixed(2))),
+      });
+    }
+
+    return result;
+  }, [monthlyData]);
 
   // DRE data — filtered by date range
   const dreData = useMemo(() => {
@@ -712,6 +766,88 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
         </CardContent>
       </Card>
     ),
+
+    cost_per_km: () => {
+      if (costPerKmData.length === 0) return null;
+      return (
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gauge className="h-5 w-5 text-blue-400" />
+              Custo por KM Rodado
+            </CardTitle>
+            <CardDescription>Comparativo de custo/km por veículo (combustível + manutenção)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={Math.max(280, costPerKmData.length * 45)}>
+              <BarChart data={costPerKmData} layout="vertical" margin={{ left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis type="number" stroke={axisColor} style={{ fontSize: '11px' }} tickFormatter={(v) => `R$${v.toFixed(2)}`} />
+                <YAxis type="category" dataKey="name" stroke={axisColor} style={{ fontSize: '11px' }} width={80} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(value) => `R$ ${value.toFixed(2)}/km`} />
+                <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
+                <Bar dataKey="Combustível/km" stackId="a" fill="#F59E0B" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="Manutenção/km" stackId="a" fill="#EF4444" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      );
+    },
+
+    spend_projection: () => {
+      if (projectionData.length === 0) return (
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-emerald-400" />
+              Projeção de Gastos
+            </CardTitle>
+            <CardDescription>Necessário pelo menos 3 meses de dados para calcular projeção</CardDescription>
+          </CardHeader>
+        </Card>
+      );
+
+      const lastRealIdx = projectionData.filter(d => d.Real !== null).length - 1;
+      const projectedTotal = projectionData.filter(d => d.Real === null).reduce((s, d) => s + (d['Tendência'] || 0), 0);
+      const avgReal = lastRealIdx >= 0 ? projectionData.filter(d => d.Real !== null).reduce((s, d) => s + d.Real, 0) / (lastRealIdx + 1) : 0;
+      const trendDirection = projectionData.length >= 2 && projectionData[projectionData.length - 1]['Tendência'] > avgReal ? 'up' : 'down';
+
+      return (
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-emerald-400" />
+                  Projeção de Gastos
+                </CardTitle>
+                <CardDescription>Tendência linear baseada nos meses anteriores + previsão de 3 meses</CardDescription>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-[var(--color-text-secondary)]">Projeção próx. 3 meses</p>
+                <p className={`text-lg font-bold ${trendDirection === 'up' ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {formatCurrency(projectedTotal)}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={projectionData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="mes" stroke={axisColor} style={{ fontSize: '11px' }} />
+                <YAxis stroke={axisColor} style={{ fontSize: '11px' }} tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(value) => value !== null ? formatCurrency(value) : '—'} />
+                <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
+                <Line type="monotone" dataKey="Real" stroke="#5E6AD2" strokeWidth={2.5} dot={{ r: 4 }} connectNulls={false} />
+                <Line type="monotone" dataKey="Tendência" stroke="#10B981" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      );
+    },
 
     chart_monthly: () => {
       if (monthlyData.length === 0) return null;
