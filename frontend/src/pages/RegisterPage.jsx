@@ -99,7 +99,7 @@ export function RegisterPage({ onToggle }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input type="text" name="nome" label="Nome" placeholder="Seu nome" value={formData.nome} onChange={handleChange} required icon={User} />
               <Input type="email" name="email" label="Email" placeholder="email@email.com" value={formData.email} onChange={handleChange} required icon={Mail} />
-              <Input type="password" name="password" label="Senha" placeholder="Mínimo 6 caracteres" value={formData.password} onChange={handleChange} required icon={Lock} />
+              <Input type="password" name="password" label="Senha" placeholder="Min. 8 chars, maiuscula, minuscula e numero" value={formData.password} onChange={handleChange} required icon={Lock} />
               <Input type="text" name="empresa" label="Empresa (opcional)" placeholder="Nome da empresa" value={formData.empresa} onChange={handleChange} icon={Building} />
               <Input type="tel" name="telefone" label="Telefone (opcional)" placeholder="(11) 98765-4321" value={formData.telefone} onChange={handleChange} icon={Phone} />
 

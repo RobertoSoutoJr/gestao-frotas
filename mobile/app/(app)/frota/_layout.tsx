@@ -9,7 +9,7 @@ export default function FrotaLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.bg },
-        animation: 'fade',
+        animation: 'slide_from_right',
       }}
     >
       <Stack.Screen name="index" />
