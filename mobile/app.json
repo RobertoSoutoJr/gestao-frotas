@@ -3,7 +3,7 @@
     "name": "FuelTrack",
     "slug": "fueltrack",
     "scheme": "fueltrack",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -83,7 +83,7 @@
       "enabled": true,
       "url": "https://u.expo.dev/2006f5c0-7ed6-455c-9dcb-9230560f67ff",
       "fallbackToCacheTimeout": 0,
-      "checkAutomatically": "ON_ERROR_RECOVERY"
+      "checkAutomatically": "ON_LAUNCH"
     },
     "extra": {
       "apiUrl": "https://srv1665848.hstgr.cloud/api",
