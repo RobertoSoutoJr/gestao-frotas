@@ -14,6 +14,7 @@ const documentRoutes = require('./document.routes');
 const oficinaRoutes = require('./oficina.routes');
 const postoRoutes = require('./posto.routes');
 const auditRoutes = require('./audit.routes');
+const notificationRoutes = require('./notification.routes');
 const dashboardController = require('../controllers/dashboard.controller');
 const { protect, requireAdmin } = require('../middlewares/auth.middleware');
 
@@ -77,5 +78,6 @@ router.use('/documentos', protect, documentRoutes);
 router.use('/oficinas', protect, oficinaRoutes);
 router.use('/postos', protect, postoRoutes);
 router.use('/audit-logs', protect, requireAdmin, auditRoutes);
+router.use('/notifications', protect, notificationRoutes);
 
 module.exports = router;

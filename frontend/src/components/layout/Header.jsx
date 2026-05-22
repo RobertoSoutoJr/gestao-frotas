@@ -6,6 +6,7 @@ import logoDark from '../../assets/images/logoFuelTrack_black-removebg.png';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
 import { GlobalSearch } from '../ui/GlobalSearch';
+import { NotificationCenter } from '../ui/NotificationCenter';
 import { cn } from '../../lib/utils';
 
 export function Header({ searchData }) {
@@ -55,6 +56,9 @@ export function Header({ searchData }) {
                 <Search className="h-5 w-5 text-[var(--color-text-secondary)]" />
               </button>
             )}
+
+            {/* Notifications */}
+            <NotificationCenter />
 
             {/* Theme Toggle */}
             <button
