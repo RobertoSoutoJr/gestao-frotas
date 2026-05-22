@@ -3,7 +3,15 @@ import { AppState, type AppStateStatus } from 'react-native';
 import * as Network from 'expo-network';
 import { useQueryClient } from '@tanstack/react-query';
 import { abastecimentosApi } from '../api/abastecimentos';
-import { getQueue, removeFromQueue } from '../lib/offlineQueue';
+import { manutencoesApi } from '../api/manutencoes';
+import {
+  getQueueByType,
+  getTotalQueueCount,
+  removeFromQueue,
+  incrementRetry,
+  type QueuedItem,
+  type QueueEntityType,
+} from '../lib/offlineQueue';
 import { useToast } from './ToastContext';
 
 interface OfflineSyncContextValue {
@@ -29,17 +37,61 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refreshCount = async () => {
-    const queue = await getQueue();
-    setPendingCount(queue.length);
+    const total = await getTotalQueueCount();
+    setPendingCount(total);
+  };
+
+  const MAX_RETRIES = 5;
+
+  const syncEntityType = async (entityType: QueueEntityType) => {
+    const queue = await getQueueByType(entityType);
+    if (queue.length === 0) return { synced: 0, discarded: 0, transientError: '' };
+
+    let synced = 0;
+    let discarded = 0;
+    let lastTransientError = '';
+    const discardedErrors: string[] = [];
+
+    for (const item of queue) {
+      // Skip items that exceeded max retries
+      if ((item.retryCount || 0) >= MAX_RETRIES) {
+        await removeFromQueue(item.id, entityType);
+        discarded++;
+        discardedErrors.push('Excedeu tentativas máximas');
+        continue;
+      }
+
+      try {
+        if (entityType === 'abastecimentos') {
+          await abastecimentosApi.create(item.payload as any);
+        } else if (entityType === 'manutencoes') {
+          await manutencoesApi.create(item.payload as any);
+        }
+        await removeFromQueue(item.id, entityType);
+        synced++;
+      } catch (err: any) {
+        const status: number | undefined = err?.status;
+        if (status !== undefined && status >= 400 && status < 500) {
+          await removeFromQueue(item.id, entityType);
+          discarded++;
+          discardedErrors.push(err?.message ?? 'Erro de validação');
+        } else {
+          await incrementRetry(item.id, entityType);
+          lastTransientError = err?.message ?? 'Erro ao conectar';
+        }
+      }
+    }
+
+    return { synced, discarded, transientError: lastTransientError, discardedErrors };
   };
 
   const sync = async () => {
     if (syncingRef.current) return;
 
-    const queue = await getQueue();
-    if (queue.length === 0) return;
+    const total = await getTotalQueueCount();
+    if (total === 0) return;
 
-    // Only skip if explicitly offline — null means unknown, try anyway
+    // Only skip if explicitly offline
     try {
       const state = await Network.getNetworkStateAsync();
       if (state.isConnected === false) return;
@@ -49,52 +101,47 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
 
     syncingRef.current = true;
     setSyncing(true);
-    let synced = 0;
-    let discarded = 0;
-    let lastTransientError = '';
-    const discardedErrors: string[] = [];
 
-    for (const item of queue) {
-      try {
-        await abastecimentosApi.create(item.payload as any);
-        await removeFromQueue(item.id);
-        synced++;
-      } catch (err: any) {
-        const status: number | undefined = err?.status;
-        if (status !== undefined && status >= 400 && status < 500) {
-          // Permanent validation error — will never succeed, remove from queue
-          await removeFromQueue(item.id);
-          discarded++;
-          discardedErrors.push(err?.message ?? 'Erro de validação');
-        } else {
-          // Transient error (network, 5xx) — keep for retry
-          lastTransientError = err?.message ?? 'Erro ao conectar';
-        }
-      }
+    const entityTypes: QueueEntityType[] = ['abastecimentos', 'manutencoes'];
+    let totalSynced = 0;
+    let totalDiscarded = 0;
+    let lastError = '';
+    const invalidatedKeys: string[] = [];
+
+    for (const entityType of entityTypes) {
+      const result = await syncEntityType(entityType);
+      totalSynced += result.synced;
+      totalDiscarded += result.discarded;
+      if (result.transientError) lastError = result.transientError;
+      if (result.synced > 0) invalidatedKeys.push(entityType);
     }
 
     syncingRef.current = false;
     setSyncing(false);
     await refreshCount();
 
-    if (synced > 0) {
-      queryClient.invalidateQueries({ queryKey: ['abastecimentos'] });
+    if (totalSynced > 0) {
+      for (const key of invalidatedKeys) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
       showToast(
-        `${synced} lançamento${synced > 1 ? 's' : ''} sincronizado${synced > 1 ? 's' : ''}`,
+        `${totalSynced} lançamento${totalSynced > 1 ? 's' : ''} sincronizado${totalSynced > 1 ? 's' : ''}`,
         'success',
       );
     }
 
-    if (discarded > 0) {
+    if (totalDiscarded > 0) {
       showToast(
-        `${discarded} lançamento${discarded > 1 ? 's' : ''} descartado${discarded > 1 ? 's' : ''}: ${discardedErrors[0]}`,
+        `${totalDiscarded} lançamento${totalDiscarded > 1 ? 's' : ''} descartado${totalDiscarded > 1 ? 's' : ''}`,
         'error',
       );
     }
 
-    const remaining = await getQueue();
-    if (remaining.length > 0 && lastTransientError) {
-      showToast(`Erro ao sincronizar: ${lastTransientError}`, 'error');
+    if (lastError) {
+      const remaining = await getTotalQueueCount();
+      if (remaining > 0) {
+        showToast(`Erro ao sincronizar: ${lastError}`, 'error');
+      }
     }
   };
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -26,6 +26,8 @@ import type { Manutencao } from '../../../src/api/types';
 import { type Colors, fontSize, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
 import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
+import { useOfflineSync } from '../../../src/hooks/useOfflineSync';
+import { getQueueByType } from '../../../src/lib/offlineQueue';
 
 const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Preventiva: 'shield-checkmark-outline',
@@ -46,8 +48,18 @@ export default function ManutencoesListScreen() {
   const haptics = useHaptics();
   const [search, setSearch] = useState('');
   const [periodo, setPeriodo] = useState<Periodo>('tudo');
+  const { syncing, sync } = useOfflineSync();
+  const [offlineCount, setOfflineCount] = useState(0);
   const colors = useColors();
   const styles = useStyles(createStyles);
+
+  // Track offline manutencoes count
+  const refreshOfflineCount = async () => {
+    const items = await getQueueByType('manutencoes');
+    setOfflineCount(items.length);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useMemo(() => { refreshOfflineCount(); }, []);
 
   const query = useQuery({
     queryKey: ['manutencoes'],
@@ -122,6 +134,17 @@ export default function ManutencoesListScreen() {
 
       <PeriodFilter value={periodo} onChange={setPeriodo} />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por tipo, placa ou oficina..." />
+
+      {offlineCount > 0 && (
+        <Pressable style={styles.offlineBanner} onPress={sync}>
+          <Ionicons name="cloud-offline-outline" size={18} color="#fff" />
+          <Text style={styles.offlineBannerText}>
+            {syncing
+              ? 'Sincronizando...'
+              : `${offlineCount} manutenção${offlineCount > 1 ? 'ões' : ''} offline — toque para sincronizar`}
+          </Text>
+        </Pressable>
+      )}
 
       {query.isLoading ? (
         <SkeletonList count={5} />
@@ -348,5 +371,22 @@ const createStyles = (c: Colors) => StyleSheet.create({
     fontSize: fontSize.sm,
     color: c.accent,
     fontWeight: '500',
+  },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: c.warning,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 8,
+  },
+  offlineBannerText: {
+    color: '#fff',
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    flex: 1,
   },
 });

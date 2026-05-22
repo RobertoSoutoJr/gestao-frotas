@@ -27,6 +27,8 @@ import {
 } from '../../../src/api/manutencoes';
 import { oficinasApi } from '../../../src/api/oficinas';
 import { documentosApi } from '../../../src/api/documentos';
+import { enqueueManutencao } from '../../../src/lib/offlineQueue';
+import { useOfflineSync } from '../../../src/hooks/useOfflineSync';
 import { type Colors, fontSize, radius, spacing } from '../../../src/lib/theme';
 import { useHaptics } from '../../../src/hooks/useHaptics';
 import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
@@ -56,6 +58,7 @@ export default function NewManutencaoScreen() {
   const colors = useColors();
   const styles = useStyles(createStyles);
 
+  const { refreshCount } = useOfflineSync();
   const isMotorista = user?.role === 'motorista';
 
   const caminhoesQuery = useQuery({
@@ -168,7 +171,31 @@ export default function NewManutencaoScreen() {
         { text: 'OK', onPress: () => router.back() },
       ]);
     },
-    onError: (err: any) => {
+    onError: async (err: any) => {
+      // Network/server error — save offline
+      const status: number | undefined = err?.status;
+      if (status === undefined || status >= 500) {
+        const today = new Date().toISOString().split('T')[0];
+        const payload = {
+          caminhao_id: form.caminhao_id!,
+          tipo_manutencao: form.tipo_manutencao,
+          descricao: form.descricao,
+          valor_total: Number(form.valor_total),
+          km_manutencao: Number(form.km_manutencao) || 0,
+          data_manutencao: today,
+          status: 'concluida',
+          ...(form.oficina_id ? { oficina_id: form.oficina_id } : {}),
+        };
+        await enqueueManutencao(payload);
+        await refreshCount();
+        haptics.success();
+        Alert.alert(
+          'Salvo offline',
+          'Sem conexão — a manutenção será sincronizada automaticamente.',
+          [{ text: 'OK', onPress: () => router.back() }],
+        );
+        return;
+      }
       haptics.error();
       Alert.alert('Erro', err?.message || 'Falha ao registrar manutenção');
     },
