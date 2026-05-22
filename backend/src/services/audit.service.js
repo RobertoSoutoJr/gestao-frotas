@@ -19,7 +19,7 @@ class AuditService {
       });
     } catch (err) {
       // Audit logging should never break the main flow
-      console.error('[AuditService] Failed to log:', err.message);
+      require('../lib/logger').warn({ err: err.message }, 'AuditService failed to log');
     }
   }
 

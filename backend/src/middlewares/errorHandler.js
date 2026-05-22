@@ -1,4 +1,5 @@
 const { ZodError } = require('zod');
+const logger = require('../lib/logger');
 
 class AppError extends Error {
   constructor(message, statusCode = 500, details = null) {
@@ -34,7 +35,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Unknown errors - log and send generic message
-  console.error('💥 UNHANDLED ERROR:', err);
+  logger.error({ err, method: req.method, url: req.url }, 'Unhandled error');
 
   return res.status(500).json({
     success: false,

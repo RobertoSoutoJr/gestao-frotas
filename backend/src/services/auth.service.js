@@ -96,7 +96,7 @@ class AuthService {
     try {
       await emailService.sendVerificationCode(email, code, nome);
     } catch (err) {
-      console.error('Erro ao enviar email de verificação:', err.message);
+      require('../lib/logger').error({ err: err.message, email }, 'Failed to send verification email');
       throw new AppError('Erro ao enviar email de verificação. Verifique o email informado.', 500);
     }
   }

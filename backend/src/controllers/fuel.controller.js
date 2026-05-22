@@ -39,7 +39,7 @@ exports.create = asyncHandler(async (req, res) => {
   // Link NFC-e document if provided
   if (documento_id) {
     try { await documentService.linkToEntity(documento_id, record.id, req.userId); }
-    catch (err) { console.error('[FuelController] Failed to link document:', err.message); }
+    catch (err) { require('../lib/logger').warn({ err: err.message, documento_id }, 'Failed to link NFC-e document'); }
   }
 
   await logAudit(req, 'criar', 'abastecimento', record.id, null, validatedData);

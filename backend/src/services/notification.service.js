@@ -191,7 +191,7 @@ class NotificationService {
         }
       }
     } catch (err) {
-      console.error('[NotificationService] checkAndGenerate error:', err.message);
+      require('../lib/logger').warn({ err: err.message }, 'NotificationService checkAndGenerate failed');
     }
 
     return generated;
