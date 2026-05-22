@@ -5,7 +5,7 @@ import { Select } from '../ui/Select';
 import { suppliersService } from '../../services/suppliers';
 import { useToast } from '../../hooks/useToast';
 import { useCepLookup } from '../../hooks/useCepLookup';
-import { maskCPFCNPJ, maskPhone } from '../../lib/utils';
+import { maskCPFCNPJ, maskPhone, maskCEP } from '../../lib/utils';
 
 const LocationPicker = lazy(() => import('../ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 
@@ -47,6 +47,7 @@ export function SupplierForm({ onSuccess }) {
     let { name, value } = e.target;
     if (name === 'cpf_cnpj') value = maskCPFCNPJ(value);
     if (name === 'telefone') value = maskPhone(value);
+    if (name === 'cep') value = maskCEP(value);
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 

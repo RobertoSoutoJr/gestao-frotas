@@ -13,7 +13,7 @@ const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then
 import { suppliersService } from '../services/suppliers';
 import { useToast } from '../hooks/useToast';
 import { useCepLookup } from '../hooks/useCepLookup';
-import { maskCPFCNPJ, maskPhone } from '../lib/utils';
+import { maskCPFCNPJ, maskPhone, maskCEP } from '../lib/utils';
 import { usePagination } from '../hooks/usePagination';
 import { Pagination } from '../components/ui/Pagination';
 
@@ -59,6 +59,7 @@ function EditSupplierModal({ supplier, isOpen, onClose, onSuccess }) {
     let { name, value } = e.target;
     if (name === 'cpf_cnpj') value = maskCPFCNPJ(value);
     if (name === 'telefone') value = maskPhone(value);
+    if (name === 'cep') value = maskCEP(value);
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 

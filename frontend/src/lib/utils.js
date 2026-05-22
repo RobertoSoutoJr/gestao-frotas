@@ -73,6 +73,11 @@ export function maskPhone(value) {
     .replace(/(\d{5})(\d{1,4})$/, '$1-$2');
 }
 
+export function maskCEP(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  return digits.replace(/(\d{5})(\d{1,3})/, '$1-$2');
+}
+
 export function maskCurrency(value) {
   const digits = value.replace(/\D/g, '');
   if (!digits) return '';
