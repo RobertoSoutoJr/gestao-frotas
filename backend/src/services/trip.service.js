@@ -9,7 +9,8 @@ class TripService {
     let query = supabase
       .from('viagens')
       .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)', { count: 'exact' })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     if (filters.motoristaId) {
       query = query.eq('motorista_id', filters.motoristaId);
@@ -34,6 +35,7 @@ class TripService {
       .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)')
       .eq('id', id)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw new AppError('Viagem não encontrada', 404, error);
@@ -163,10 +165,11 @@ class TripService {
   async delete(id, userId) {
     const { error } = await supabase
       .from('viagens')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
       .eq('user_id', userId)
-      .eq('status', 'cadastrada');
+      .eq('status', 'cadastrada')
+      .is('deleted_at', null);
 
     if (error) throw new AppError('Falha ao deletar viagem. Apenas viagens cadastradas podem ser deletadas.', 500, error);
     return { message: 'Viagem deletada com sucesso' };

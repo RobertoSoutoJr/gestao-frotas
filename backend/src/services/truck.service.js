@@ -9,7 +9,8 @@ class TruckService {
     let query = supabase
       .from('caminhoes')
       .select('*', { count: 'exact' })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     // Motorista scope: only their assigned truck
     if (filters.caminhaoId) {
@@ -31,6 +32,7 @@ class TruckService {
       .select('*')
       .eq('id', id)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw new AppError('Caminhão não encontrado', 404, error);
@@ -44,6 +46,7 @@ class TruckService {
       .select('placa')
       .eq('placa', truckData.placa)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (existing) {
@@ -76,9 +79,10 @@ class TruckService {
   async delete(id, userId) {
     const { error } = await supabase
       .from('caminhoes')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     if (error) throw new AppError('Falha ao deletar caminhão', 500, error);
     return { message: 'Caminhão deletado com sucesso' };

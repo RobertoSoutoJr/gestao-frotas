@@ -568,7 +568,8 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
         onClose={() => setDeletingTruck(null)}
         onConfirm={handleDelete}
         title="Excluir Caminhão"
-        description={`Tem certeza que deseja excluir o caminhão ${deletingTruck?.placa}? Esta ação não pode ser desfeita.`}
+        description={`Tem certeza que deseja excluir o caminhão ${deletingTruck?.placa}? O registro será removido do sistema.`}
+        confirmValue={deletingTruck?.placa}
         confirmText="Excluir"
         cancelText="Cancelar"
         variant="danger"

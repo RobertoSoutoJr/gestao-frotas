@@ -7,6 +7,7 @@ class OficinaService {
       .from('oficinas')
       .select('*')
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .order('nome', { ascending: true });
 
     if (error) throw new AppError('Falha ao buscar oficinas', 500, error);
@@ -19,6 +20,7 @@ class OficinaService {
       .select('*')
       .eq('id', id)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw new AppError('Oficina não encontrada', 404, error);
@@ -54,9 +56,10 @@ class OficinaService {
     await this.getById(id, userId);
     const { error } = await supabase
       .from('oficinas')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     if (error) throw new AppError('Falha ao excluir oficina', 500, error);
     return true;

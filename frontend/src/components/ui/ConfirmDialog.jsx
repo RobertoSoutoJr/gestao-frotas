@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from './Button';
 
@@ -12,7 +12,17 @@ export function ConfirmDialog({
   cancelText = 'Cancelar',
   variant = 'danger',
   isLoading,
+  /** When set, user must type this exact value to enable the confirm button */
+  confirmValue,
+  /** Label shown above the input (default: 'Digite "VALUE" para confirmar') */
+  confirmLabel,
 }) {
+  const [typed, setTyped] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) setTyped('');
+  }, [isOpen]);
+
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape' && isOpen) onClose();
@@ -22,6 +32,9 @@ export function ConfirmDialog({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const needsTyping = !!confirmValue;
+  const typingMatch = !needsTyping || typed === confirmValue;
 
   return (
     <div
@@ -45,6 +58,24 @@ export function ConfirmDialog({
             <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{description}</p>
           </div>
 
+          {needsTyping && (
+            <div className="mt-4">
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1.5">
+                {confirmLabel || (
+                  <>Digite <span className="font-semibold text-[var(--color-text)]">{confirmValue}</span> para confirmar</>
+                )}
+              </label>
+              <input
+                type="text"
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                placeholder={confirmValue}
+                autoFocus
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 py-2 text-sm text-[var(--color-text)] placeholder-[var(--color-text-dim)] focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/60"
+              />
+            </div>
+          )}
+
           <div className="mt-6 flex gap-3">
             <Button
               variant="outline"
@@ -58,6 +89,7 @@ export function ConfirmDialog({
               variant={variant}
               onClick={onConfirm}
               loading={isLoading}
+              disabled={!typingMatch}
               className="flex-1"
             >
               {confirmText}

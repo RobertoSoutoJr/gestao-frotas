@@ -7,6 +7,7 @@ class DriverService {
       .from('motoristas')
       .select('*, caminhoes:caminhao_id(id, placa, modelo)')
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .order('nome', { ascending: true });
 
     if (error) throw new AppError('Falha ao buscar motoristas', 500, error);
@@ -19,6 +20,7 @@ class DriverService {
       .select('*')
       .eq('id', id)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw new AppError('Motorista não encontrado', 404, error);
@@ -64,9 +66,10 @@ class DriverService {
   async delete(id, userId) {
     const { error } = await supabase
       .from('motoristas')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     if (error) throw new AppError('Falha ao deletar motorista', 500, error);
     return { message: 'Motorista deletado com sucesso' };

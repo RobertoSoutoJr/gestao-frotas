@@ -7,6 +7,7 @@ class SupplierService {
       .from('fornecedores')
       .select('*')
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .order('nome', { ascending: true });
 
     if (error) throw new AppError('Falha ao buscar fornecedores', 500, error);
@@ -19,6 +20,7 @@ class SupplierService {
       .select('*')
       .eq('id', id)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw new AppError('Fornecedor não encontrado', 404, error);
@@ -52,9 +54,10 @@ class SupplierService {
   async delete(id, userId) {
     const { error } = await supabase
       .from('fornecedores')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     if (error) throw new AppError('Falha ao deletar fornecedor. Verifique se não há produtos, viagens ou estoque vinculados.', 500, error);
     return { message: 'Fornecedor deletado com sucesso' };

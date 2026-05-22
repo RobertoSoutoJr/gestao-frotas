@@ -424,7 +424,8 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
         onClose={() => setDeletingDriver(null)}
         onConfirm={handleDelete}
         title="Excluir Motorista"
-        description={`Tem certeza que deseja excluir o motorista ${deletingDriver?.nome}? Esta ação não pode ser desfeita.`}
+        description={`Tem certeza que deseja excluir o motorista ${deletingDriver?.nome}? O registro será removido do sistema.`}
+        confirmValue={deletingDriver?.nome}
         confirmText="Excluir"
         cancelText="Cancelar"
         variant="danger"

@@ -15,7 +15,8 @@ class FuelService {
         motoristas:motorista_id(nome),
         postos:posto_id(id, nome)
       `, { count: 'exact' })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     // Motorista scope: only their truck
     if (filters.caminhaoId) {
@@ -63,6 +64,7 @@ class FuelService {
       `)
       .eq('id', id)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw new AppError('Registro de abastecimento não encontrado', 404, error);
@@ -75,6 +77,7 @@ class FuelService {
       .select('*')
       .eq('caminhao_id', truckId)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) throw new AppError('Falha ao buscar registros de abastecimento do caminhão', 500, error);
@@ -122,9 +125,10 @@ class FuelService {
   async delete(id, userId) {
     const { error } = await supabase
       .from('abastecimentos')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     if (error) throw new AppError('Falha ao excluir registro de abastecimento', 500, error);
   }

@@ -14,7 +14,8 @@ class MaintenanceService {
         caminhoes:caminhao_id(placa, modelo),
         oficinas:oficina_id(id, nome)
       `, { count: 'exact' })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     if (filters.caminhaoId) {
       query = query.eq('caminhao_id', filters.caminhaoId);
@@ -43,6 +44,7 @@ class MaintenanceService {
       `)
       .eq('id', id)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw new AppError('Registro de manutenção não encontrado', 404, error);
@@ -101,9 +103,10 @@ class MaintenanceService {
     await this.getById(id, userId);
     const { error } = await supabase
       .from('manutencoes')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
     if (error) throw new AppError('Falha ao excluir manutenção', 500, error);
     return true;
   }
