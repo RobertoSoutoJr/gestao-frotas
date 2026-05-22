@@ -444,7 +444,7 @@ export function MaintenancePage({ trucks, oficinas = [], onRefetch }) {
         ) : (
           <Card>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[700px]">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
                     <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>

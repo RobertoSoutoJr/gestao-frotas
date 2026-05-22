@@ -233,7 +233,7 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
           <div className="overflow-x-auto">
             <Card>
               <CardContent className="p-0">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm min-w-[650px]">
                   <thead>
                     <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
                       <th className="px-4 py-3 text-left font-medium">#</th>
