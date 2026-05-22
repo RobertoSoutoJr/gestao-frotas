@@ -1,27 +1,36 @@
 const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 const truckService = require('./truck.service');
+const { parsePagination, paginate } = require('../lib/pagination');
 
 class MaintenanceService {
-  async getAll(userId, filters = {}) {
+  async getAll(userId, filters = {}, queryParams = {}) {
+    const { page, limit } = parsePagination(queryParams);
+
     let query = supabase
       .from('manutencoes')
       .select(`
         *,
         caminhoes:caminhao_id(placa, modelo),
         oficinas:oficina_id(id, nome)
-      `)
+      `, { count: 'exact' })
       .eq('user_id', userId);
 
-    // Motorista scope: only their truck
     if (filters.caminhaoId) {
       query = query.eq('caminhao_id', filters.caminhaoId);
     }
 
-    const { data, error } = await query.order('data_manutencao', { ascending: false });
+    if (queryParams.status) {
+      query = query.eq('status', queryParams.status);
+    }
 
-    if (error) throw new AppError('Falha ao buscar registros de manutenção', 500, error);
-    return data;
+    query = query.order('data_manutencao', { ascending: false });
+
+    try {
+      return await paginate(query, page, limit);
+    } catch (error) {
+      throw new AppError('Falha ao buscar registros de manutencao', 500, error);
+    }
   }
 
   async getById(id, userId) {

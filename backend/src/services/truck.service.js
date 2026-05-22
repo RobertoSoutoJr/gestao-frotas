@@ -1,11 +1,14 @@
 const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
+const { parsePagination, paginate } = require('../lib/pagination');
 
 class TruckService {
-  async getAll(userId, filters = {}) {
+  async getAll(userId, filters = {}, queryParams = {}) {
+    const { page, limit } = parsePagination(queryParams);
+
     let query = supabase
       .from('caminhoes')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', userId);
 
     // Motorista scope: only their assigned truck
@@ -13,10 +16,13 @@ class TruckService {
       query = query.eq('id', filters.caminhaoId);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    query = query.order('created_at', { ascending: false });
 
-    if (error) throw new AppError('Falha ao buscar caminhões', 500, error);
-    return data;
+    try {
+      return await paginate(query, page, limit);
+    } catch (error) {
+      throw new AppError('Falha ao buscar caminhoes', 500, error);
+    }
   }
 
   async getById(id, userId) {

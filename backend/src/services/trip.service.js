@@ -1,22 +1,31 @@
 const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
+const { parsePagination, paginate } = require('../lib/pagination');
 
 class TripService {
-  async getAll(userId, filters = {}) {
+  async getAll(userId, filters = {}, queryParams = {}) {
+    const { page, limit } = parsePagination(queryParams);
+
     let query = supabase
       .from('viagens')
-      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)')
+      .select('*, fornecedores(id, nome, endereco, cidade, estado), clientes(id, nome, endereco, cidade, estado), caminhoes(id, placa, modelo), motoristas(id, nome)', { count: 'exact' })
       .eq('user_id', userId);
 
-    // Motorista scope: only trips assigned to them
     if (filters.motoristaId) {
       query = query.eq('motorista_id', filters.motoristaId);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    if (queryParams.status) {
+      query = query.eq('status', queryParams.status);
+    }
 
-    if (error) throw new AppError('Falha ao buscar viagens', 500, error);
-    return data;
+    query = query.order('created_at', { ascending: false });
+
+    try {
+      return await paginate(query, page, limit);
+    } catch (error) {
+      throw new AppError('Falha ao buscar viagens', 500, error);
+    }
   }
 
   async getById(id, userId) {

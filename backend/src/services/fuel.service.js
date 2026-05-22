@@ -1,9 +1,12 @@
 const { supabase } = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 const truckService = require('./truck.service');
+const { parsePagination, paginate } = require('../lib/pagination');
 
 class FuelService {
-  async getAll(userId, filters = {}) {
+  async getAll(userId, filters = {}, queryParams = {}) {
+    const { page, limit } = parsePagination(queryParams);
+
     let query = supabase
       .from('abastecimentos')
       .select(`
@@ -11,7 +14,7 @@ class FuelService {
         caminhoes:caminhao_id(placa, modelo),
         motoristas:motorista_id(nome),
         postos:posto_id(id, nome)
-      `)
+      `, { count: 'exact' })
       .eq('user_id', userId);
 
     // Motorista scope: only their truck
@@ -19,25 +22,34 @@ class FuelService {
       query = query.eq('caminhao_id', filters.caminhaoId);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) throw new AppError('Falha ao buscar registros de abastecimento', 500, error);
-
-    // Check which records have linked NFC-e documents
-    if (data && data.length > 0) {
-      const ids = data.map(r => r.id);
-      const { data: docs } = await supabase
-        .from('documentos')
-        .select('entidade_id')
-        .eq('user_id', userId)
-        .eq('entidade_tipo', 'abastecimento')
-        .in('entidade_id', ids);
-
-      const docSet = new Set((docs || []).map(d => d.entidade_id));
-      data.forEach(r => { r.has_nfce = docSet.has(r.id); });
+    // Search filter
+    if (queryParams.search) {
+      query = query.or(`posto.ilike.%${queryParams.search}%`);
     }
 
-    return data;
+    query = query.order('created_at', { ascending: false });
+
+    try {
+      const result = await paginate(query, page, limit);
+
+      // Check which records have linked NFC-e documents
+      if (result.data.length > 0) {
+        const ids = result.data.map(r => r.id);
+        const { data: docs } = await supabase
+          .from('documentos')
+          .select('entidade_id')
+          .eq('user_id', userId)
+          .eq('entidade_tipo', 'abastecimento')
+          .in('entidade_id', ids);
+
+        const docSet = new Set((docs || []).map(d => d.entidade_id));
+        result.data.forEach(r => { r.has_nfce = docSet.has(r.id); });
+      }
+
+      return result;
+    } catch (error) {
+      throw new AppError('Falha ao buscar registros de abastecimento', 500, error);
+    }
   }
 
   async getById(id, userId) {

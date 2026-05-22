@@ -8,8 +8,8 @@ exports.getAll = asyncHandler(async (req, res) => {
   if (req.userRole === 'motorista' && req.motoristaCaminhaoId) {
     filters.caminhaoId = req.motoristaCaminhaoId;
   }
-  const trucks = await truckService.getAll(req.userId, filters);
-  res.json({ success: true, data: trucks });
+  const result = await truckService.getAll(req.userId, filters, req.query);
+  res.json({ success: true, data: result.data, pagination: result.pagination });
 });
 
 exports.getById = asyncHandler(async (req, res) => {
