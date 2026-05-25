@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { fuelService } from '../../services/fuel';
 import { documentsService } from '../../services/documents';
+import { anpService } from '../../services/fipe';
 import { useToast } from '../../hooks/useToast';
-import { Camera, CheckCircle, AlertTriangle, Loader2, FileText } from 'lucide-react';
+import { Camera, CheckCircle, AlertTriangle, Loader2, FileText, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function FuelForm({ trucks, drivers, postos = [], onSuccess, preselectedTruckId }) {
   const [loading, setLoading] = useState(false);
@@ -21,6 +22,15 @@ export function FuelForm({ trucks, drivers, postos = [], onSuccess, preselectedT
     valor_total: '',
     posto_id: ''
   });
+
+  const [anpPreco, setAnpPreco] = useState(null);
+
+  // Carregar preço médio ANP (diesel) ao montar
+  useEffect(() => {
+    anpService.getPrecos({ combustivel: 'diesel_s10' })
+      .then(data => setAnpPreco(data))
+      .catch(() => {}); // silently fail
+  }, []);
 
   const pricePerLiter = formData.litros && formData.valor_total
     ? (Number(formData.valor_total) / Number(formData.litros)).toFixed(3)
@@ -282,14 +292,49 @@ export function FuelForm({ trucks, drivers, postos = [], onSuccess, preselectedT
       </div>
 
       {pricePerLiter && (
-        <div className="rounded-xl bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 px-4 py-3 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-[var(--color-text-secondary)]">Preço por litro calculado</p>
-            <p className="text-xl font-bold text-[var(--color-accent)] tabular-nums">R$ {pricePerLiter}</p>
+        <div className="space-y-2">
+          <div className="rounded-xl bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 px-4 py-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-[var(--color-text-secondary)]">Preço por litro calculado</p>
+              <p className="text-xl font-bold text-[var(--color-accent)] tabular-nums">R$ {pricePerLiter}</p>
+            </div>
+            <div className="text-right text-xs text-[var(--color-text-secondary)]">
+              {formatNumber(formData.litros)} L × R$ {pricePerLiter} = R$ {Number(formData.valor_total).toFixed(2)}
+            </div>
           </div>
-          <div className="text-right text-xs text-[var(--color-text-secondary)]">
-            {formatNumber(formData.litros)} L × R$ {pricePerLiter} = R$ {Number(formData.valor_total).toFixed(2)}
-          </div>
+
+          {/* Comparação com preço ANP */}
+          {anpPreco?.media_nacional && (() => {
+            const ppl = Number(pricePerLiter);
+            const anpMedia = anpPreco.media_nacional;
+            const diff = ((ppl - anpMedia) / anpMedia * 100).toFixed(1);
+            const isAbove = ppl > anpMedia;
+            const isClose = Math.abs(diff) <= 5;
+
+            return (
+              <div className={`rounded-lg px-3 py-2 flex items-center gap-2 text-xs border ${
+                isClose
+                  ? 'bg-green-500/5 border-green-500/20 text-green-500'
+                  : isAbove
+                    ? 'bg-amber-500/5 border-amber-500/20 text-amber-500'
+                    : 'bg-green-500/5 border-green-500/20 text-green-500'
+              }`}>
+                {isAbove ? (
+                  <TrendingUp className="h-3.5 w-3.5 flex-shrink-0" />
+                ) : (
+                  <TrendingDown className="h-3.5 w-3.5 flex-shrink-0" />
+                )}
+                <span>
+                  {isClose
+                    ? `Dentro da média nacional ANP (R$ ${anpMedia.toFixed(2)}/L — Diesel S10)`
+                    : isAbove
+                      ? `${diff}% acima da média nacional ANP (R$ ${anpMedia.toFixed(2)}/L — Diesel S10)`
+                      : `${Math.abs(diff)}% abaixo da média nacional ANP (R$ ${anpMedia.toFixed(2)}/L — Diesel S10)`
+                  }
+                </span>
+              </div>
+            );
+          })()}
         </div>
       )}
 

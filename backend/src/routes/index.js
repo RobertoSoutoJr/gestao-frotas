@@ -15,6 +15,8 @@ const oficinaRoutes = require('./oficina.routes');
 const postoRoutes = require('./posto.routes');
 const auditRoutes = require('./audit.routes');
 const notificationRoutes = require('./notification.routes');
+const fipeRoutes = require('./fipe.routes');
+const anpController = require('../controllers/anp.controller');
 const dashboardController = require('../controllers/dashboard.controller');
 const { protect, requireAdmin } = require('../middlewares/auth.middleware');
 
@@ -79,5 +81,7 @@ router.use('/oficinas', protect, oficinaRoutes);
 router.use('/postos', protect, postoRoutes);
 router.use('/audit-logs', protect, requireAdmin, auditRoutes);
 router.use('/notifications', protect, notificationRoutes);
+router.use('/fipe', protect, fipeRoutes);
+router.get('/anp/precos', protect, anpController.getPrecos);
 
 module.exports = router;

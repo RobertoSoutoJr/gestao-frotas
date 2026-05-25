@@ -11,6 +11,7 @@ import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
+import { FipeConsult } from '../components/ui/FipeConsult';
 import { PageSkeleton } from '../components/ui/Skeleton';
 import { Truck, Gauge, Edit2, Trash2, Search, Filter, Plus, Fuel, Wrench, Camera, Calendar, DollarSign, ChevronRight, X } from 'lucide-react';
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
@@ -82,6 +83,11 @@ function TruckDetailModal({ truck, isOpen, onClose }) {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Consulta FIPE */}
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <FipeConsult />
           </div>
 
           {/* Últimas Manutenções */}
