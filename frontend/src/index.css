@@ -246,6 +246,15 @@ html:not(.dark) .linear-grid {
   }
 }
 
+/* ── Leaflet z-index fix (keep below modals z-50) ── */
+.leaflet-container {
+  z-index: 0 !important;
+}
+.leaflet-pane,
+.leaflet-control {
+  z-index: auto !important;
+}
+
 /* ── Recharts Theme Override ── */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {

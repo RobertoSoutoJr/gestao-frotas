@@ -43,12 +43,21 @@ function FlyTo({ center, zoom }) {
   return null;
 }
 
-// Nominatim search with debounce
+// Nominatim search with debounce — prioritize Minas Gerais region
 async function searchAddress(query) {
   if (!query || query.length < 3) return [];
   try {
+    // viewbox covers Minas Gerais; bounded=0 means prefer but don't restrict
+    const params = new URLSearchParams({
+      format: 'json',
+      q: query,
+      countrycodes: 'br',
+      limit: '8',
+      viewbox: '-51.1,-22.9,-39.8,-14.2', // MG bounding box (lon1,lat1,lon2,lat2)
+      bounded: '0', // prefer results in viewbox but also show others
+    });
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=5`,
+      `https://nominatim.openstreetmap.org/search?${params}`,
       { headers: { 'User-Agent': 'FuelTrack/1.0' } }
     );
     return await res.json();
