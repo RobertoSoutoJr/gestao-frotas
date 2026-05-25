@@ -137,6 +137,7 @@ export function ClientsPage({ clients, trips, onRefetch }) {
   const [deletingClient, setDeletingClient] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const { map: profitMap, ranking } = useClientProfitability(clients, trips);
@@ -144,12 +145,14 @@ export function ClientsPage({ clients, trips, onRefetch }) {
   const filteredClients = useMemo(() => {
     return clients.filter(c => {
       const s = searchTerm.toLowerCase();
-      return (
+      const matchSearch = !s || (
         c.nome?.toLowerCase().includes(s) ||
         c.cpf_cnpj?.includes(searchTerm) ||
         c.cidade?.toLowerCase().includes(s) ||
         c.telefone?.includes(searchTerm)
       );
+      const matchEstado = !filterEstado || c.estado === filterEstado;
+      return matchSearch && matchEstado;
     }).sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
   }, [clients, searchTerm]);
 
@@ -238,12 +241,18 @@ export function ClientsPage({ clients, trips, onRefetch }) {
         {showFilters && (
           <Card className="mb-6">
             <CardContent className="p-4">
-              <div className="flex gap-3 items-end">
+              <div className="flex flex-col sm:flex-row gap-3 items-end">
                 <div className="flex-1">
                   <Input icon={Search} placeholder="Buscar por nome, CPF/CNPJ, cidade ou telefone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 </div>
-                {searchTerm && (
-                  <Button variant="outline" size="sm" onClick={() => setSearchTerm('')}>
+                <div className="w-full sm:w-36">
+                  <Select value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)}>
+                    <option value="">Todos UF</option>
+                    {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                  </Select>
+                </div>
+                {(searchTerm || filterEstado) && (
+                  <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setFilterEstado(''); }}>
                     <X className="mr-1 h-3.5 w-3.5" /> Limpar
                   </Button>
                 )}

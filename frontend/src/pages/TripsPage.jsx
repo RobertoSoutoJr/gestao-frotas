@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -9,7 +10,7 @@ import { Select } from '../components/ui/Select';
 import { Badge } from '../components/ui/Badge';
 import {
   Route, MapPin, Truck, Users, Package, DollarSign, CheckCircle,
-  Edit2, Trash2, Search, Filter, ArrowRight, Calendar, Map
+  Edit2, Trash2, Search, Filter, ArrowRight, Calendar, Map, Scale
 } from 'lucide-react';
 import { MapView } from '../components/ui/MapView';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
@@ -47,6 +48,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
   const [produtoCustom, setProdutoCustom] = useState('');
   const [selectedEstoqueId, setSelectedEstoqueId] = useState('');
   const [gpsOrigem, setGpsOrigem] = useState(null);
+  const [estimatingKm, setEstimatingKm] = useState(false);
   const [formData, setFormData] = useState({
     fornecedor_id: '', cliente_id: '', caminhao_id: '', motorista_id: '',
     quantidade_sacas: '', preco_produto_saca: '', preco_frete_saca: '', observacoes: '',
@@ -153,8 +155,10 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Rota: Fornecedor -> Cliente */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Rota da Viagem</h3>
+      <div className="rounded-lg border border-[var(--color-border)] p-4">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] flex items-center gap-2">
+          <Route className="h-4 w-4 text-blue-400" /> Rota da Viagem
+        </h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Select name="fornecedor_id" label="Fornecedor (Carregamento)" value={formData.fornecedor_id} onChange={handleChange} required>
             <option value="">Selecione o fornecedor</option>
@@ -166,11 +170,36 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
           </Select>
         </div>
         {selectedSupplier && selectedClient && (
-          <div className="mt-3 flex items-center gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
-            <MapPin className="h-4 w-4" />
-            {selectedSupplier.cidade || selectedSupplier.nome}
-            <ArrowRight className="h-4 w-4" />
-            {selectedClient.cidade || selectedClient.nome}
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              {selectedSupplier.cidade || selectedSupplier.nome}
+              <ArrowRight className="h-4 w-4" />
+              {selectedClient.cidade || selectedClient.nome}
+            </div>
+            {(selectedSupplier.cidade && selectedClient.cidade) && (
+              <button
+                type="button"
+                disabled={estimatingKm}
+                onClick={async () => {
+                  setEstimatingKm(true);
+                  try {
+                    const origem = `${selectedSupplier.cidade}/${selectedSupplier.estado}`;
+                    const destino = `${selectedClient.cidade}/${selectedClient.estado}`;
+                    const res = await tripsService.estimateDistance(origem, destino);
+                    const data = res.data || res;
+                    if (data.km > 0) {
+                      setFormData(prev => ({ ...prev, distancia_km: String(data.km) }));
+                    }
+                  } catch { /* ignore */ }
+                  setEstimatingKm(false);
+                }}
+                className="flex items-center gap-1 rounded-md bg-blue-500/20 px-2 py-1 text-xs font-medium hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+              >
+                <Navigation className={`h-3 w-3 ${estimatingKm ? 'animate-spin' : ''}`} />
+                {estimatingKm ? 'Estimando...' : 'Estimar KM (IA)'}
+              </button>
+            )}
           </div>
         )}
         {/* GPS capture for origin (at loading point) */}
@@ -204,8 +233,10 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
       )}
 
       {/* Veículo e Motorista */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Veículo e Motorista</h3>
+      <div className="rounded-lg border border-[var(--color-border)] p-4">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] flex items-center gap-2">
+          <Truck className="h-4 w-4 text-amber-400" /> Veículo e Motorista
+        </h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Select name="caminhao_id" label="Caminhão" value={formData.caminhao_id} onChange={handleChange} required>
             <option value="">Selecione o caminhão</option>
@@ -219,8 +250,10 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
       </div>
 
       {/* Produto e Valores */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Produto e Valores</h3>
+      <div className="rounded-lg border border-[var(--color-border)] p-4">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] flex items-center gap-2">
+          <Package className="h-4 w-4 text-emerald-400" /> Produto e Valores
+        </h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Select label="Produto" value={produtoTipo} onChange={(e) => setProdutoTipo(e.target.value)} required>
             <option value="">Selecione o produto</option>
@@ -292,8 +325,10 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
       )}
 
       {/* Despesas da Viagem (opcional) */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Despesas da Viagem (Opcional)</h3>
+      <div className="rounded-lg border border-[var(--color-border)] p-4">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-red-400" /> Despesas da Viagem (Opcional)
+        </h3>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Input name="custo_combustivel" label="Combustivel (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_combustivel} onChange={handleChange} />
           <Input name="custo_pedagio" label="Pedagio (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_pedagio} onChange={handleChange} />
@@ -455,9 +490,13 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const [finalizingTrip, setFinalizingTrip] = useState(null);
   const [deletingTrip, setDeletingTrip] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todas');
-  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'todas');
+  const [truckFilter, setTruckFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [showFilters, setShowFilters] = useState(!!searchParams.get('status'));
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [expandedTripId, setExpandedTripId] = useState(null);
@@ -497,12 +536,16 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
     return trips.filter(t => {
       const matchSearch = searchTerm === '' || [
         t.fornecedores?.nome, t.clientes?.nome, t.motoristas?.nome,
-        t.caminhoes?.placa, t.produto || ''
+        t.caminhoes?.placa, t.produto || '',
+        t.fornecedores?.cidade, t.clientes?.cidade
       ].some(v => v?.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchStatus = statusFilter === 'todas' || t.status === statusFilter;
-      return matchSearch && matchStatus;
+      const matchTruck = !truckFilter || t.caminhao_id === Number(truckFilter);
+      const matchDateFrom = !dateFrom || new Date(t.created_at) >= new Date(dateFrom);
+      const matchDateTo = !dateTo || new Date(t.created_at) <= new Date(dateTo + 'T23:59:59');
+      return matchSearch && matchStatus && matchTruck && matchDateFrom && matchDateTo;
     });
-  }, [trips, searchTerm, statusFilter]);
+  }, [trips, searchTerm, statusFilter, truckFilter, dateFrom, dateTo]);
 
   const pagination = usePagination(filteredTrips);
 
@@ -623,19 +666,29 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
         {showFilters && (
           <Card className="mb-6">
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Input icon={Search} placeholder="Buscar por fornecedor, cliente, motorista, placa ou produto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="sm:col-span-2 lg:col-span-4">
+                  <Input icon={Search} placeholder="Buscar por fornecedor, cliente, motorista, placa, produto ou cidade..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                </div>
                 <Select label="Status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="todas">Todas</option>
-                  <option value="cadastrada">Cadastradas</option>
+                  <option value="cadastrada">Em Andamento</option>
                   <option value="finalizada">Finalizadas</option>
                 </Select>
-                {(searchTerm || statusFilter !== 'todas') && (
-                  <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter('todas'); }} className="self-end">
+                <Select label="Caminhao" value={truckFilter} onChange={(e) => setTruckFilter(e.target.value)}>
+                  <option value="">Todos</option>
+                  {trucks.map(t => <option key={t.id} value={t.id}>{t.placa}</option>)}
+                </Select>
+                <Input label="Data Inicial" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                <Input label="Data Final" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+              </div>
+              {(searchTerm || statusFilter !== 'todas' || truckFilter || dateFrom || dateTo) && (
+                <div className="mt-3 flex justify-end">
+                  <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter('todas'); setTruckFilter(''); setDateFrom(''); setDateTo(''); setSearchParams({}); }}>
                     <X className="mr-1 h-3.5 w-3.5" /> Limpar Filtros
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -716,7 +769,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                     </div>
 
                     <div className="flex flex-row flex-wrap gap-2 sm:ml-4 sm:flex-col sm:shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <DocumentGallery entidadeTipo="viagem" entidadeId={trip.id} compact />
+                      <DocumentGallery entidadeTipo="viagem" entidadeId={trip.id} compact quickUploadType="Ticket Peso" quickUploadLabel="Foto Peso" quickUploadIcon={Scale} />
                       {trip.status === 'cadastrada' && (
                         <>
                           <Button variant="success" size="sm" onClick={() => setFinalizingTrip(trip)}>

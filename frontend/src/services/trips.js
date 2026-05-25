@@ -16,4 +16,8 @@ export const tripsService = {
   addCost: (tripId, data) => api.post(`/viagens/${tripId}/custos`, data),
   updateCost: (id, data) => api.put(`/viagens/custo/${id}`, data),
   deleteCost: (id) => api.delete(`/viagens/custo/${id}`),
+
+  // AI distance estimation
+  estimateDistance: (origem, destino) =>
+    api.get(`/ai/estimate-distance?origem=${encodeURIComponent(origem)}&destino=${encodeURIComponent(destino)}`),
 };

@@ -15,7 +15,7 @@ const TIPOS_POR_ENTIDADE = {
   caminhao: ['CRLV', 'Seguro', 'Foto', 'Laudo', 'Outro'],
   motorista: ['CNH Frente', 'CNH Verso', 'Foto', 'Comprovante Residencia', 'Outro'],
   manutencao: ['Nota Fiscal', 'Foto Servico', 'Orcamento', 'Garantia', 'Outro'],
-  viagem: ['Comprovante Entrega', 'Canhoto', 'CT-e', 'Nota Fiscal', 'Foto Carga', 'Outro'],
+  viagem: ['Ticket Peso', 'Comprovante Entrega', 'Canhoto', 'CT-e', 'Nota Fiscal', 'Foto Carga', 'Outro'],
   estoque: ['Nota Fiscal', 'Comprovante Pagamento', 'Romaneio', 'Outro'],
 };
 
@@ -30,7 +30,7 @@ function isImage(mimeType) {
   return mimeType?.startsWith('image/');
 }
 
-export function DocumentGallery({ entidadeTipo, entidadeId, compact = false }) {
+export function DocumentGallery({ entidadeTipo, entidadeId, compact = false, quickUploadType, quickUploadLabel, quickUploadIcon: QuickIcon }) {
   const { success, error: showError } = useToast();
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +38,7 @@ export function DocumentGallery({ entidadeTipo, entidadeId, compact = false }) {
   const [showUpload, setShowUpload] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
   const [deletingDoc, setDeletingDoc] = useState(null);
+  const quickFileRef = useRef(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Upload form state
@@ -125,6 +126,31 @@ export function DocumentGallery({ entidadeTipo, entidadeId, compact = false }) {
     );
   }
 
+  const handleQuickUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !quickUploadType) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Erro', 'Arquivo excede 5MB');
+      return;
+    }
+    setUploading(true);
+    try {
+      await documentsService.upload(file, {
+        entidade_tipo: entidadeTipo,
+        entidade_id: entidadeId,
+        tipo_documento: quickUploadType,
+        observacoes: '',
+      });
+      success('Sucesso!', `${quickUploadLabel || quickUploadType} enviado`);
+      fetchDocs();
+    } catch (err) {
+      showError('Erro', err.message || 'Falha ao enviar');
+    } finally {
+      setUploading(false);
+      if (quickFileRef.current) quickFileRef.current.value = '';
+    }
+  };
+
   // Compact mode: just a count badge + button (for use inside entity cards)
   if (compact) {
     return (
@@ -133,6 +159,21 @@ export function DocumentGallery({ entidadeTipo, entidadeId, compact = false }) {
           <Paperclip className="mr-1.5 h-3.5 w-3.5" />
           Docs {docs.length > 0 && <Badge variant="default" className="ml-1.5">{docs.length}</Badge>}
         </Button>
+
+        {quickUploadType && (
+          <>
+            <input ref={quickFileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleQuickUpload} />
+            <Button
+              variant="outline"
+              size="sm"
+              loading={uploading}
+              onClick={() => quickFileRef.current?.click()}
+            >
+              {QuickIcon && <QuickIcon className="mr-1.5 h-3.5 w-3.5" />}
+              {quickUploadLabel || quickUploadType}
+            </Button>
+          </>
+        )}
 
         <Modal isOpen={showUpload} onClose={() => setShowUpload(false)} title="Documentos" size="lg">
           <DocumentGalleryFull

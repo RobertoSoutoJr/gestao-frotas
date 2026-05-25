@@ -84,4 +84,8 @@ router.use('/notifications', protect, notificationRoutes);
 router.use('/fipe', protect, fipeRoutes);
 router.get('/anp/precos', protect, anpController.getPrecos);
 
+// AI endpoints
+const aiController = require('../controllers/ai.controller');
+router.get('/ai/estimate-distance', protect, aiController.estimateDistance);
+
 module.exports = router;

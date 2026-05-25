@@ -136,6 +136,7 @@ export function SuppliersPage({ suppliers, trips, onRefetch }) {
   const [deletingSupplier, setDeletingSupplier] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const { map: volumeMap, ranking } = useSupplierVolume(suppliers, trips);
@@ -143,14 +144,16 @@ export function SuppliersPage({ suppliers, trips, onRefetch }) {
   const filteredSuppliers = useMemo(() => {
     return suppliers.filter(s => {
       const search = searchTerm.toLowerCase();
-      return (
+      const matchSearch = !search || (
         s.nome?.toLowerCase().includes(search) ||
         s.cpf_cnpj?.includes(searchTerm) ||
         s.cidade?.toLowerCase().includes(search) ||
         s.telefone?.includes(searchTerm)
       );
+      const matchEstado = !filterEstado || s.estado === filterEstado;
+      return matchSearch && matchEstado;
     }).sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
-  }, [suppliers, searchTerm]);
+  }, [suppliers, searchTerm, filterEstado]);
 
   const pagination = usePagination(filteredSuppliers);
 
@@ -237,12 +240,18 @@ export function SuppliersPage({ suppliers, trips, onRefetch }) {
         {showFilters && (
           <Card className="mb-6">
             <CardContent className="p-4">
-              <div className="flex gap-3 items-end">
+              <div className="flex flex-col sm:flex-row gap-3 items-end">
                 <div className="flex-1">
                   <Input icon={Search} placeholder="Buscar por nome, CPF/CNPJ, cidade ou telefone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 </div>
-                {searchTerm && (
-                  <Button variant="outline" size="sm" onClick={() => setSearchTerm('')}>
+                <div className="w-full sm:w-36">
+                  <Select value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)}>
+                    <option value="">Todos UF</option>
+                    {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                  </Select>
+                </div>
+                {(searchTerm || filterEstado) && (
+                  <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setFilterEstado(''); }}>
                     <X className="mr-1 h-3.5 w-3.5" /> Limpar
                   </Button>
                 )}
