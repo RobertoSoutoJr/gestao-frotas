@@ -1,4 +1,5 @@
 require('dotenv').config();
+const Sentry = require('@sentry/node');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -8,6 +9,24 @@ const logger = require('./lib/logger');
 const routes = require('./routes');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { globalLimiter } = require('./middlewares/rateLimiter');
+
+// Initialize Sentry (only if DSN is configured)
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'production',
+    tracesSampleRate: 0.2, // 20% of transactions for performance monitoring
+    beforeSend(event) {
+      // Redact sensitive headers
+      if (event.request?.headers) {
+        delete event.request.headers.authorization;
+        delete event.request.headers.cookie;
+      }
+      return event;
+    },
+  });
+  logger.info('Sentry initialized');
+}
 
 const app = express();
 
@@ -77,6 +96,11 @@ app.use((req, res) => {
     message: 'Endpoint não encontrado'
   });
 });
+
+// Sentry error handler (captures exceptions before our handler)
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 // Global error handler (must be last)
 app.use(errorHandler);
