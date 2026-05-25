@@ -19,6 +19,17 @@ import {
 
 const COLORS = ['#5E6AD2', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
+const REPORT_TABS = [
+  { id: 'all', label: 'Visao Geral', icon: BarChart3, sections: null }, // null = show all visible
+  { id: 'dre', label: 'DRE', icon: Receipt, sections: ['filters', 'dre'] },
+  { id: 'fuel', label: 'Combustivel', icon: FuelIcon, sections: ['filters', 'summary_cards', 'fuel_table', 'chart_costs', 'chart_distribution'] },
+  { id: 'maintenance', label: 'Manutencao', icon: Wrench, sections: ['filters', 'maintenance_table'] },
+  { id: 'trucks', label: 'Frota', icon: Truck, sections: ['filters', 'truck_detail', 'cost_per_km', 'chart_costs'] },
+  { id: 'drivers', label: 'Motoristas', icon: Users, sections: ['filters', 'driver_detail', 'profitability_ranking'] },
+  { id: 'clients', label: 'Clientes', icon: Building2, sections: ['filters', 'client_profitability'] },
+  { id: 'projections', label: 'Projecoes', icon: TrendingUp, sections: ['filters', 'chart_monthly', 'spend_projection'] },
+];
+
 const REPORT_SECTIONS = [
   { id: 'filters', label: 'Filtros', description: 'Filtrar por caminhão e período', icon: Filter },
   { id: 'dre', label: 'DRE Simplificado', description: 'Demonstrativo de resultado: receita, despesas e lucro', icon: Receipt },
@@ -57,6 +68,7 @@ const DEFAULT_VISIBILITY = {
 export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenanceRecords, trips }) {
   const { isDark } = useTheme();
   const [showCustomize, setShowCustomize] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
 
   const { prefs, isVisible, getOrder, moveUp, moveDown, toggleVisibility, reset } = useSectionPrefs(
     'reports_prefs', DEFAULT_ORDER, DEFAULT_VISIBILITY
@@ -1364,6 +1376,8 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
   // Group consecutive chart sections for grid layout
   const renderOrderedSections = () => {
     const order = getOrder();
+    const currentTab = REPORT_TABS.find(t => t.id === activeTab);
+    const allowedSections = currentTab?.sections; // null = all
     const elements = [];
     let chartBuffer = [];
 
@@ -1384,6 +1398,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
 
     for (const id of order) {
       if (!isVisible(id)) continue;
+      if (allowedSections && !allowedSections.includes(id)) continue;
 
       if (chartIds.includes(id)) {
         chartBuffer.push(id);
@@ -1463,6 +1478,28 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
           </div>
           <SectionCustomizerButton onClick={() => setShowCustomize(true)} />
         </div>
+      </div>
+
+      {/* Report Tabs */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mt-4">
+        {REPORT_TABS.map(tab => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                isActive
+                  ? 'bg-[var(--color-accent)] text-white shadow-md'
+                  : 'bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]'
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       <SectionCustomizerModal

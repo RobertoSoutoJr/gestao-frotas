@@ -686,6 +686,14 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                         <MapPin className="h-4 w-4 text-blue-500" />
                         <span className="font-medium">{trip.clientes?.nome}</span>
                       </div>
+                      {(trip.fornecedores?.cidade || trip.clientes?.cidade) && (
+                        <p className="mt-0.5 text-xs text-[var(--color-text-secondary)] ml-6">
+                          {trip.fornecedores?.cidade ? `${trip.fornecedores.cidade}/${trip.fornecedores.estado || ''}` : '?'}
+                          {' → '}
+                          {trip.clientes?.cidade ? `${trip.clientes.cidade}/${trip.clientes.estado || ''}` : '?'}
+                          {trip.distancia_km ? ` (${trip.distancia_km} km)` : ''}
+                        </p>
+                      )}
 
                       <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
                         <span className="flex items-center gap-1">

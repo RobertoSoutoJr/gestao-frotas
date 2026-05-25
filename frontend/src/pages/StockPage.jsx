@@ -689,7 +689,7 @@ export function StockPage({ onRefetch }) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {pagination.paginatedItems.map(item => {
             const saldo = Number(item.valor_total) - Number(item.valor_pago || 0);
             const percentPago = Number(item.valor_total) > 0 ? (Number(item.valor_pago || 0) / Number(item.valor_total)) * 100 : 0;
@@ -697,88 +697,82 @@ export function StockPage({ onRefetch }) {
 
             return (
               <Card key={item.id} className={`hover:shadow-md transition-shadow ${item.pago ? 'border-l-4 border-l-green-400' : saldo < Number(item.valor_total) && Number(item.valor_pago || 0) > 0 ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-red-400'}`}>
-                <CardContent className="p-6">
-                  <div className="flex flex-col sm:flex-row items-start gap-4">
-                    <div className="flex flex-1 cursor-pointer flex-col sm:flex-row items-center sm:items-start gap-4" onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}>
-                      {/* Silo Icon */}
-                      <div className="shrink-0">
-                        <SiloIcon percent={percentEstoque} size={56} />
-                      </div>
-
-                      <div className="flex-1 space-y-3">
-                        {/* Header */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant={item.pago ? 'success' : percentPago > 0 ? 'warning' : 'danger'}>
-                            {item.pago ? 'Pago' : percentPago > 0 ? `Parcial (${Math.round(percentPago)}%)` : 'Pendente'}
-                          </Badge>
-                          {item.nota_fiscal && <span className="text-xs text-[var(--color-text-secondary)]">NF: {item.nota_fiscal}</span>}
-                          <span className="text-xs text-[var(--color-text-secondary)]">{formatDate(item.data_entrada || item.created_at)}</span>
-                          <DueDateBadge date={item.data_vencimento} />
-                        </div>
-
-                        {/* Product & Supplier */}
-                        <div>
-                          <h3 className="text-base font-semibold text-[var(--color-text)]">{item.produto}</h3>
-                          <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-secondary)]">
-                            <span className="flex items-center gap-1">
-                              <Factory className="h-3 w-3" /> {item.fornecedores?.nome}
-                            </span>
-                            {item.localizacao && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" /> {item.localizacao}
-                              </span>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <Package className="h-3 w-3" />
-                              {Number(item.quantidade_sacas_restante).toLocaleString('pt-BR')}/{Number(item.quantidade_sacas).toLocaleString('pt-BR')} sc
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" /> {formatCurrency(item.preco_pago_saca)}/sc
-                            </span>
-                            {item.forma_pagamento && (
-                              <span className="flex items-center gap-1">
-                                <CreditCard className="h-3 w-3" /> {item.forma_pagamento}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Financial */}
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="font-semibold text-[var(--color-text)]">Total: {formatCurrency(item.valor_total)}</span>
-                          {!item.pago && (
-                            <>
-                              <span className="text-green-600">Pago: {formatCurrency(item.valor_pago || 0)}</span>
-                              <span className="font-medium text-red-600">Saldo: {formatCurrency(saldo)}</span>
-                            </>
-                          )}
-                        </div>
-
-                        {/* Expand indicator */}
-                        <div className="flex items-center gap-1 text-xs text-[var(--color-accent)]">
-                          {expandedItem === item.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                          <span>{expandedItem === item.id ? 'Recolher' : 'Ver saídas'}</span>
-                        </div>
-                      </div>
+                <CardContent className="p-4 sm:p-5">
+                  {/* Top: Silo + Info */}
+                  <div className="flex gap-3 cursor-pointer" onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}>
+                    <div className="shrink-0">
+                      <SiloIcon percent={percentEstoque} size={48} />
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex shrink-0 flex-row flex-wrap gap-2 sm:flex-col">
-                      {!item.pago && (
-                        <Button variant="success" size="sm" onClick={() => setPayingItem(item)}>
-                          <DollarSign className="mr-1 h-4 w-4" /> Pagar
-                        </Button>
-                      )}
-                      <Button variant="outline" size="sm" onClick={() => setTogglingItem(item)}>
-                        {item.pago ? <><Undo2 className="mr-1 h-4 w-4" /> Reverter</> : <><CheckCircle className="mr-1 h-4 w-4" /> Quitar</>}
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => setEditingItem(item)}>
-                        <Edit2 className="mr-1 h-4 w-4" /> Editar
-                      </Button>
-                      <Button variant="danger" size="sm" onClick={() => setDeletingItem(item)}>
-                        <Trash2 className="mr-1 h-4 w-4" /> Excluir
-                      </Button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                        <Badge variant={item.pago ? 'success' : percentPago > 0 ? 'warning' : 'danger'}>
+                          {item.pago ? 'Pago' : percentPago > 0 ? `Parcial (${Math.round(percentPago)}%)` : 'Pendente'}
+                        </Badge>
+                        <DueDateBadge date={item.data_vencimento} />
+                      </div>
+                      <h3 className="text-base font-semibold text-[var(--color-text)] truncate">{item.produto}</h3>
+                      <p className="text-sm text-[var(--color-text-secondary)] truncate">
+                        <Factory className="inline h-3 w-3 mr-1" />{item.fornecedores?.nome}
+                      </p>
                     </div>
+                  </div>
+
+                  {/* Stats grid */}
+                  <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+                    <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
+                      <p className="text-xs text-[var(--color-text-secondary)]">Sacas</p>
+                      <p className="font-semibold text-[var(--color-text)] tabular-nums">
+                        {Number(item.quantidade_sacas_restante).toLocaleString('pt-BR')}/{Number(item.quantidade_sacas).toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
+                      <p className="text-xs text-[var(--color-text-secondary)]">Preco/sc</p>
+                      <p className="font-semibold text-[var(--color-text)] tabular-nums">{formatCurrency(item.preco_pago_saca)}</p>
+                    </div>
+                    <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
+                      <p className="text-xs text-[var(--color-text-secondary)]">Total</p>
+                      <p className="font-semibold text-[var(--color-text)] tabular-nums">{formatCurrency(item.valor_total)}</p>
+                    </div>
+                    <div className="rounded-lg bg-[var(--color-surface)] p-2 text-center">
+                      <p className="text-xs text-[var(--color-text-secondary)]">{item.pago ? 'Status' : 'Saldo'}</p>
+                      <p className={`font-semibold tabular-nums ${item.pago ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {item.pago ? 'Quitado' : formatCurrency(saldo)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Meta info */}
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)]">
+                    <span>{formatDate(item.data_entrada || item.created_at)}</span>
+                    {item.nota_fiscal && <span>NF: {item.nota_fiscal}</span>}
+                    {item.forma_pagamento && <span>{item.forma_pagamento}</span>}
+                    {item.localizacao && <span><MapPin className="inline h-3 w-3 mr-0.5" />{item.localizacao}</span>}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-3 flex flex-wrap gap-1.5 border-t border-[var(--color-border)] pt-3">
+                    {!item.pago && (
+                      <Button variant="success" size="sm" onClick={() => setPayingItem(item)}>
+                        <DollarSign className="mr-1 h-3.5 w-3.5" /> Pagar
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" onClick={() => setTogglingItem(item)}>
+                      {item.pago ? <><Undo2 className="mr-1 h-3.5 w-3.5" /> Reverter</> : <><CheckCircle className="mr-1 h-3.5 w-3.5" /> Quitar</>}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setEditingItem(item)}>
+                      <Edit2 className="mr-1 h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => setDeletingItem(item)}>
+                      <Trash2 className="mr-1 h-3.5 w-3.5" />
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
+                      className="ml-auto flex items-center gap-1 text-xs text-[var(--color-accent)] hover:underline"
+                    >
+                      {expandedItem === item.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      {expandedItem === item.id ? 'Recolher' : 'Saidas'}
+                    </button>
                   </div>
 
                   {/* Expanded trips section */}

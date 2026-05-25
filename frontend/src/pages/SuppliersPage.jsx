@@ -7,13 +7,13 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { SupplierForm } from '../components/forms/SupplierForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Factory, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus, X } from 'lucide-react';
+import { Factory, Phone, Mail, MapPin, Edit2, Trash2, Search, Filter, Plus, TrendingUp, DollarSign, Route, X } from 'lucide-react';
 
 const LocationPicker = lazy(() => import('../components/ui/LocationPicker').then(m => ({ default: m.LocationPicker })));
 import { suppliersService } from '../services/suppliers';
 import { useToast } from '../hooks/useToast';
 import { useCepLookup } from '../hooks/useCepLookup';
-import { maskCPFCNPJ, maskPhone, maskCEP } from '../lib/utils';
+import { formatCurrency, maskCPFCNPJ, maskPhone, maskCEP } from '../lib/utils';
 import { usePagination } from '../hooks/usePagination';
 import { Pagination } from '../components/ui/Pagination';
 
@@ -99,7 +99,38 @@ function EditSupplierModal({ supplier, isOpen, onClose, onSuccess }) {
   );
 }
 
-export function SuppliersPage({ suppliers, onRefetch }) {
+function useSupplierVolume(suppliers, trips) {
+  return useMemo(() => {
+    const finalized = (trips || []).filter(t => t.status === 'finalizada');
+    const map = {};
+
+    finalized.forEach(t => {
+      const sid = t.fornecedor_id;
+      if (!map[sid]) map[sid] = { receita: 0, custos: 0, viagens: 0, peso_total: 0 };
+      map[sid].receita += Number(t.valor_total_frete) || 0;
+      map[sid].custos += (Number(t.custo_combustivel) || 0) + (Number(t.custo_pedagio) || 0) +
+        (Number(t.custo_manutencao) || 0) + (Number(t.custo_outros) || 0);
+      map[sid].viagens += 1;
+      map[sid].peso_total += Number(t.peso_carga) || 0;
+    });
+
+    Object.values(map).forEach(v => {
+      v.lucro = v.receita - v.custos;
+      v.margem = v.receita > 0 ? (v.lucro / v.receita) * 100 : 0;
+    });
+
+    const ranking = Object.entries(map)
+      .map(([id, data]) => {
+        const supplier = (suppliers || []).find(s => s.id === Number(id));
+        return { id: Number(id), nome: supplier?.nome || `#${id}`, ...data };
+      })
+      .sort((a, b) => b.viagens - a.viagens);
+
+    return { map, ranking };
+  }, [suppliers, trips]);
+}
+
+export function SuppliersPage({ suppliers, trips, onRefetch }) {
   const { success, error } = useToast();
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [deletingSupplier, setDeletingSupplier] = useState(null);
@@ -107,6 +138,7 @@ export function SuppliersPage({ suppliers, onRefetch }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const { map: volumeMap, ranking } = useSupplierVolume(suppliers, trips);
 
   const filteredSuppliers = useMemo(() => {
     return suppliers.filter(s => {
@@ -144,6 +176,47 @@ export function SuppliersPage({ suppliers, onRefetch }) {
 
   return (
     <div className="space-y-8">
+      {/* Volume Ranking */}
+      {ranking.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
+            Volume por Fornecedor
+          </h2>
+          <div className="overflow-x-auto">
+            <Card>
+              <CardContent className="p-0">
+                <table className="w-full text-sm min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
+                      <th className="px-4 py-3 text-left font-medium">#</th>
+                      <th className="px-4 py-3 text-left font-medium">Fornecedor</th>
+                      <th className="px-4 py-3 text-right font-medium">Viagens</th>
+                      <th className="px-4 py-3 text-right font-medium">Receita</th>
+                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Custos</th>
+                      <th className="px-4 py-3 text-right font-medium">Lucro</th>
+                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Margem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ranking.slice(0, 10).map((r, i) => (
+                      <tr key={r.id} className="border-b border-[var(--color-border)] last:border-0">
+                        <td className="px-4 py-3 font-medium text-[var(--color-text-secondary)]">{i + 1}</td>
+                        <td className="px-4 py-3 font-medium text-[var(--color-text)]">{r.nome}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] tabular-nums">{r.viagens}</td>
+                        <td className="px-4 py-3 text-right text-[var(--color-text)] tabular-nums">{formatCurrency(r.receita)}</td>
+                        <td className="px-4 py-3 text-right text-red-400 tabular-nums hidden sm:table-cell">{formatCurrency(r.custos)}</td>
+                        <td className={`px-4 py-3 text-right font-semibold tabular-nums ${r.lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(r.lucro)}</td>
+                        <td className={`px-4 py-3 text-right tabular-nums hidden sm:table-cell ${r.margem >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{r.margem.toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold text-[var(--color-text)]">
