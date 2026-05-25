@@ -33,37 +33,32 @@ exports.estimateDistance = async (req, res) => {
     }
 
     const message = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 200,
+      model: 'claude-haiku-4-20250514',
+      max_tokens: 100,
       messages: [{
         role: 'user',
-        content: `Estime a distância rodoviária em km entre "${origem}" e "${destino}" no Brasil.
-Responda APENAS com um JSON no formato: {"km": número, "rota": "descrição curta da rota principal", "tempo_estimado": "Xh XXmin"}
-Se não souber, responda: {"km": 0, "rota": "desconhecido", "tempo_estimado": "N/A"}
-Sem texto adicional, apenas o JSON.`
+        content: `Qual a distancia aproximada em KM da cidade ${origem} a cidade ${destino} por rodovia? Responda apenas o numero em KM, nada mais. Exemplo: 450`
       }]
     });
 
-    const text = message.content[0]?.text?.trim() || '';
-    let parsed;
-    try {
-      // Extract JSON from response (handle potential markdown wrapping)
-      const jsonMatch = text.match(/\{[^}]+\}/);
-      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
-    } catch {
-      parsed = { km: 0, rota: 'Não foi possível estimar', tempo_estimado: 'N/A' };
+    const text = (message.content[0]?.text || '').trim();
+    // Extract number from response
+    const numMatch = text.match(/[\d.,]+/);
+    let km = 0;
+    if (numMatch) {
+      km = Math.round(Number(numMatch[0].replace(/\./g, '').replace(',', '.')));
     }
 
     const result = {
       origem,
       destino,
-      km: Number(parsed.km) || 0,
-      rota: parsed.rota || '',
-      tempo_estimado: parsed.tempo_estimado || '',
+      km,
     };
 
-    // Cache result
-    cache.set(cacheKey, { data: result, timestamp: Date.now() });
+    // Cache result if valid
+    if (km > 0) {
+      cache.set(cacheKey, { data: result, timestamp: Date.now() });
+    }
 
     // Cleanup old cache entries periodically
     if (cache.size > 500) {
@@ -76,6 +71,6 @@ Sem texto adicional, apenas o JSON.`
     res.json(result);
   } catch (err) {
     console.error('[ai] estimateDistance error:', err.message);
-    res.status(500).json({ error: 'Falha ao estimar distância' });
+    res.status(500).json({ error: 'Falha ao estimar distância: ' + err.message });
   }
 };

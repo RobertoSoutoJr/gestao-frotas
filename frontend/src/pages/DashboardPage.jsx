@@ -15,7 +15,7 @@ import {
 function StatCard({ title, value, icon: Icon, color, subtitle, onClick }) {
   return (
     <Card
-      className="relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-200"
+      className={`relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-200 ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
       <CardContent className="p-4 sm:p-6">
@@ -628,7 +628,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard title="Clientes" value={stats.totalClients} icon={Building2} color="#06B6D4" subtitle="Cadastrados" onClick={() => onNavigate('clients')} />
         <StatCard title="Fornecedores" value={stats.totalSuppliers} icon={Factory} color="#F97316" subtitle="Cadastrados" onClick={() => onNavigate('suppliers')} />
-        <StatCard title="Viagens" value={stats.totalTrips} icon={Route} color={CHART_COLORS.green} subtitle={`${stats.activeTrips} em andamento · ${stats.completedTrips} finalizadas`} onClick={() => onNavigate('trips?status=cadastrada')} />
+        <StatCard title="Viagens" value={stats.totalTrips} icon={Route} color={CHART_COLORS.green} subtitle={`${stats.activeTrips} em andamento · ${stats.completedTrips} finalizadas`} onClick={() => onNavigate('trips', { status: 'cadastrada' })} />
         <StatCard title="Estoque" value={`${formatNumber(stats.totalSacas, 0)} sacas`} icon={Warehouse} color={CHART_COLORS.red} subtitle={`${formatCurrency(stats.totalStockValue)} investido`} onClick={() => onNavigate('stock')} />
       </div>
     ),

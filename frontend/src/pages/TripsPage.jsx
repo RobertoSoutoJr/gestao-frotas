@@ -184,14 +184,18 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
                 onClick={async () => {
                   setEstimatingKm(true);
                   try {
-                    const origem = `${selectedSupplier.cidade}/${selectedSupplier.estado}`;
-                    const destino = `${selectedClient.cidade}/${selectedClient.estado}`;
+                    const origem = `${selectedSupplier.cidade}, ${selectedSupplier.estado}`;
+                    const destino = `${selectedClient.cidade}, ${selectedClient.estado}`;
                     const res = await tripsService.estimateDistance(origem, destino);
                     const data = res.data || res;
                     if (data.km > 0) {
                       setFormData(prev => ({ ...prev, distancia_km: String(data.km) }));
+                    } else {
+                      showError('IA', 'Não foi possível estimar a distância');
                     }
-                  } catch { /* ignore */ }
+                  } catch (err) {
+                    showError('IA', err?.response?.data?.error || 'Falha ao estimar distância');
+                  }
                   setEstimatingKm(false);
                 }}
                 className="flex items-center gap-1 rounded-md bg-blue-500/20 px-2 py-1 text-xs font-medium hover:bg-blue-500/30 transition-colors disabled:opacity-50"
@@ -527,8 +531,8 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
     fetchData();
   };
 
-  const handleCreateSuccess = () => {
-    handleRefetch();
+  const handleCreateSuccess = async () => {
+    await fetchData();
     setShowCreateForm(false);
   };
 

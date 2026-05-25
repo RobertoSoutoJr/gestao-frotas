@@ -79,8 +79,13 @@ function AuthenticatedContent() {
   const isAdmin = user?.role !== 'motorista';
   const [showOnboarding, setShowOnboarding] = useState(!isOnboardingDone());
 
-  const handleNavigate = (path) => {
-    navigate(`/${path}`);
+  const handleNavigate = (path, searchParams) => {
+    if (searchParams) {
+      const qs = new URLSearchParams(searchParams).toString();
+      navigate(`/${path}?${qs}`);
+    } else {
+      navigate(`/${path}`);
+    }
   };
 
   if (loading) {
