@@ -194,7 +194,8 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
                       showError('IA', 'Não foi possível estimar a distância');
                     }
                   } catch (err) {
-                    showError('IA', err?.response?.data?.error || 'Falha ao estimar distância');
+                    console.error('[AI estimate]', err);
+                    showError('IA', err?.message || 'Falha ao estimar distância');
                   }
                   setEstimatingKm(false);
                 }}
@@ -272,7 +273,37 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
         </div>
         {/* Distance + axles for ANTT validation */}
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input name="distancia_km" label="Distância (km)" type="number" placeholder="Ex: 250" min="0" step="1" value={formData.distancia_km} onChange={handleChange} helperText="Para validar piso ANTT" />
+          <div>
+            <Input name="distancia_km" label="Distância (km)" type="number" placeholder="Ex: 250" min="0" step="1" value={formData.distancia_km} onChange={handleChange} helperText="Para validar piso ANTT" />
+            {selectedSupplier?.cidade && selectedClient?.cidade && (
+              <button
+                type="button"
+                disabled={estimatingKm}
+                onClick={async () => {
+                  setEstimatingKm(true);
+                  try {
+                    const origem = `${selectedSupplier.cidade}, ${selectedSupplier.estado}`;
+                    const destino = `${selectedClient.cidade}, ${selectedClient.estado}`;
+                    const res = await tripsService.estimateDistance(origem, destino);
+                    const data = res.data || res;
+                    if (data.km > 0) {
+                      setFormData(prev => ({ ...prev, distancia_km: String(data.km) }));
+                    } else {
+                      showError('IA', 'Não foi possível estimar a distância');
+                    }
+                  } catch (err) {
+                    console.error('[AI estimate]', err);
+                    showError('IA', err?.message || 'Falha ao estimar distância');
+                  }
+                  setEstimatingKm(false);
+                }}
+                className="mt-1 flex items-center gap-1.5 rounded-md bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 text-xs font-medium text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+              >
+                <Navigation className={`h-3.5 w-3.5 ${estimatingKm ? 'animate-spin' : ''}`} />
+                {estimatingKm ? 'Calculando...' : '✨ Estimar via IA'}
+              </button>
+            )}
+          </div>
           <Select name="eixos" label="Eixos do caminhão" value={formData.eixos} onChange={handleChange}>
             {getEixosOptions().map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
