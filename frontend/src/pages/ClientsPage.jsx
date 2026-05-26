@@ -15,7 +15,9 @@ import { clientsService } from '../services/clients';
 import { useToast } from '../hooks/useToast';
 import { useCepLookup } from '../hooks/useCepLookup';
 import { usePagination } from '../hooks/usePagination';
+import { useSortable } from '../hooks/useSortable';
 import { Pagination } from '../components/ui/Pagination';
+import { SortHeader } from '../components/ui/SortHeader';
 
 const ESTADOS_BR = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
@@ -141,6 +143,7 @@ export function ClientsPage({ clients, trips, onRefetch }) {
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const { map: profitMap, ranking } = useClientProfitability(clients, trips);
+  const { sortedItems: sortedRanking, sortKey: rkSortKey, sortDir: rkSortDir, requestSort: rkRequestSort } = useSortable(ranking, { defaultKey: 'lucro', defaultDir: 'desc' });
 
   const filteredClients = useMemo(() => {
     return clients.filter(c => {
@@ -193,16 +196,16 @@ export function ClientsPage({ clients, trips, onRefetch }) {
                   <thead>
                     <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
                       <th className="px-4 py-3 text-left font-medium">#</th>
-                      <th className="px-4 py-3 text-left font-medium">Cliente</th>
-                      <th className="px-4 py-3 text-right font-medium">Viagens</th>
-                      <th className="px-4 py-3 text-right font-medium">Receita</th>
-                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Custos</th>
-                      <th className="px-4 py-3 text-right font-medium">Lucro</th>
-                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Margem</th>
+                      <SortHeader column="nome" label="Cliente" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} />
+                      <SortHeader column="viagens" label="Viagens" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" />
+                      <SortHeader column="receita" label="Receita" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" />
+                      <SortHeader column="custos" label="Custos" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" className="hidden sm:table-cell" />
+                      <SortHeader column="lucro" label="Lucro" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" />
+                      <SortHeader column="margem" label="Margem" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" className="hidden sm:table-cell" />
                     </tr>
                   </thead>
                   <tbody>
-                    {ranking.slice(0, 10).map((r, i) => (
+                    {sortedRanking.slice(0, 10).map((r, i) => (
                       <tr key={r.id} className="border-b border-[var(--color-border)] last:border-0">
                         <td className="px-4 py-3 font-medium text-[var(--color-text-secondary)]">{i + 1}</td>
                         <td className="px-4 py-3 font-medium text-[var(--color-text)]">{r.nome}</td>

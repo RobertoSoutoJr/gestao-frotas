@@ -7,6 +7,8 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination } from '../components/ui/Pagination';
 import { PageSkeleton } from '../components/ui/Skeleton';
 import { ClipboardList, User, Clock, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { useSortable } from '../hooks/useSortable';
+import { SortHeader } from '../components/ui/SortHeader';
 import { auditService } from '../services/audit';
 import { formatDate } from '../lib/utils';
 
@@ -39,6 +41,7 @@ export function AuditPage() {
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
   const limit = 20;
+  const { sortedItems: sortedLogs, sortKey, sortDir, requestSort } = useSortable(logs, { defaultKey: 'created_at', defaultDir: 'desc' });
 
   // Filters
   const [filters, setFilters] = useState({
@@ -161,16 +164,16 @@ export function AuditPage() {
               <table className="w-full text-sm min-w-[700px]">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Data/Hora</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Usuario</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Acao</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Entidade</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">ID</th>
+                    <SortHeader column="created_at" label="Data/Hora" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
+                    <SortHeader column="user_nome" label="Usuário" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
+                    <SortHeader column="acao" label="Ação" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
+                    <SortHeader column="entidade_tipo" label="Entidade" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
+                    <SortHeader column="entidade_id" label="ID" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
                     <th className="px-4 py-3 text-center font-medium text-[var(--color-text-secondary)]">Detalhes</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {logs.map((log) => (
+                  {sortedLogs.map((log) => (
                     <AuditRow
                       key={log.id}
                       log={log}

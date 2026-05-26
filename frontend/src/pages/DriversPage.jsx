@@ -13,7 +13,9 @@ import { formatCPF, formatCurrency, formatNumber, maskCPF, maskPhone } from '../
 import { driversService } from '../services/drivers';
 import { useToast } from '../hooks/useToast';
 import { usePagination } from '../hooks/usePagination';
+import { useSortable } from '../hooks/useSortable';
 import { Pagination } from '../components/ui/Pagination';
+import { SortHeader } from '../components/ui/SortHeader';
 
 function useDriverPerformance(drivers, trips, fuelRecords) {
   return useMemo(() => {
@@ -172,6 +174,7 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const { map: perfMap, ranking } = useDriverPerformance(drivers, trips, fuelRecords);
+  const { sortedItems: sortedRanking, sortKey: rkSortKey, sortDir: rkSortDir, requestSort: rkRequestSort } = useSortable(ranking, { defaultKey: 'lucro', defaultDir: 'desc' });
 
   const filteredAndSortedDrivers = useMemo(() => {
     let filtered = drivers.filter(driver => {
@@ -237,16 +240,16 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
                   <thead>
                     <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
                       <th className="px-4 py-3 text-left font-medium">#</th>
-                      <th className="px-4 py-3 text-left font-medium">Motorista</th>
-                      <th className="px-4 py-3 text-right font-medium">Viagens</th>
-                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Km</th>
-                      <th className="px-4 py-3 text-right font-medium">Receita</th>
-                      <th className="px-4 py-3 text-right font-medium">Lucro</th>
-                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Margem</th>
+                      <SortHeader column="nome" label="Motorista" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} />
+                      <SortHeader column="viagens" label="Viagens" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" />
+                      <SortHeader column="km" label="Km" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" className="hidden sm:table-cell" />
+                      <SortHeader column="receita" label="Receita" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" />
+                      <SortHeader column="lucro" label="Lucro" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" />
+                      <SortHeader column="margem" label="Margem" sortKey={rkSortKey} sortDir={rkSortDir} onSort={rkRequestSort} align="right" className="hidden sm:table-cell" />
                     </tr>
                   </thead>
                   <tbody>
-                    {ranking.slice(0, 10).map((r, i) => (
+                    {sortedRanking.slice(0, 10).map((r, i) => (
                       <tr key={r.id} className="border-b border-[var(--color-border)] last:border-0">
                         <td className="px-4 py-3 font-medium text-[var(--color-text-secondary)]">{i + 1}</td>
                         <td className="px-4 py-3 font-medium text-[var(--color-text)]">{r.nome}</td>

@@ -14,7 +14,9 @@ import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
 import { PageSkeleton } from '../components/ui/Skeleton';
 import { usePagination } from '../hooks/usePagination';
+import { useSortable } from '../hooks/useSortable';
 import { Pagination } from '../components/ui/Pagination';
+import { SortHeader } from '../components/ui/SortHeader';
 
 function PricePerLiter({ valorTotal, litros }) {
   if (!valorTotal || !litros || litros === 0) return null;
@@ -314,10 +316,11 @@ export function FuelPage({ trucks, drivers, postos = [], onRefetch }) {
       return matchesSearch && matchesTruck && matchesPeriod;
     });
 
-    return filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return filtered;
   }, [fuelRecords, searchTerm, filterTruck, filterPeriod]);
 
-  const pagination = usePagination(filteredFuelRecords);
+  const { sortedItems: sortedFuel, sortKey, sortDir, requestSort } = useSortable(filteredFuelRecords, { defaultKey: 'created_at', defaultDir: 'desc' });
+  const pagination = usePagination(sortedFuel);
 
   const activeFilterCount = [searchTerm, filterTruck, filterPeriod !== 'all' ? filterPeriod : ''].filter(Boolean).length;
 
@@ -469,14 +472,14 @@ export function FuelPage({ trucks, drivers, postos = [], onRefetch }) {
               <table className="w-full text-sm min-w-[700px]">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden sm:table-cell">Motorista</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden md:table-cell">Data</th>
-                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Litros</th>
-                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Valor</th>
-                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)] hidden lg:table-cell">R$/L</th>
-                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)] hidden lg:table-cell">KM</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden xl:table-cell">Posto</th>
+                    <SortHeader column="caminhao_id" label="Caminhão" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
+                    <SortHeader column="motorista_id" label="Motorista" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden sm:table-cell" />
+                    <SortHeader column="created_at" label="Data" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden md:table-cell" />
+                    <SortHeader column="litros" label="Litros" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" />
+                    <SortHeader column="valor_total" label="Valor" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" />
+                    <SortHeader column="preco_litro" label="R$/L" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" className="hidden lg:table-cell" />
+                    <SortHeader column="km_registro" label="KM" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" className="hidden lg:table-cell" />
+                    <SortHeader column="posto" label="Posto" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden xl:table-cell" />
                     <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Ações</th>
                   </tr>
                 </thead>

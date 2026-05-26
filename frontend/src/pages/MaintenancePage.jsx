@@ -15,7 +15,9 @@ import { maintenanceService } from '../services/maintenance';
 import { useToast } from '../hooks/useToast';
 import { PageSkeleton } from '../components/ui/Skeleton';
 import { usePagination } from '../hooks/usePagination';
+import { useSortable } from '../hooks/useSortable';
 import { Pagination } from '../components/ui/Pagination';
+import { SortHeader } from '../components/ui/SortHeader';
 
 const MAINTENANCE_TYPES = [
   'Preventiva',
@@ -280,13 +282,11 @@ export function MaintenancePage({ trucks, oficinas = [], onRefetch }) {
       return matchesSearch && matchesTruck && matchesType && matchesPeriod;
     });
 
-    // Sort by date (most recent first)
-    return filtered.sort((a, b) =>
-      new Date(b.data_manutencao || b.created_at) - new Date(a.data_manutencao || a.created_at)
-    );
+    return filtered;
   }, [maintenanceRecords, searchTerm, filterTruck, filterType, filterPeriod]);
 
-  const pagination = usePagination(filteredMaintenanceRecords);
+  const { sortedItems: sortedMaint, sortKey, sortDir, requestSort } = useSortable(filteredMaintenanceRecords, { defaultKey: 'created_at', defaultDir: 'desc' });
+  const pagination = usePagination(sortedMaint);
 
   const activeFilterCount = [searchTerm, filterTruck, filterType, filterPeriod !== 'all' ? filterPeriod : ''].filter(Boolean).length;
 
@@ -447,13 +447,13 @@ export function MaintenancePage({ trucks, oficinas = [], onRefetch }) {
               <table className="w-full text-sm min-w-[700px]">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden sm:table-cell">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden sm:table-cell">Descrição</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)] hidden md:table-cell">Data</th>
-                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Valor</th>
-                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)] hidden lg:table-cell">KM</th>
+                    <SortHeader column="caminhao_id" label="Caminhão" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
+                    <SortHeader column="tipo" label="Tipo" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
+                    <SortHeader column="status" label="Status" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden sm:table-cell" />
+                    <SortHeader column="descricao" label="Descrição" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden sm:table-cell" />
+                    <SortHeader column="created_at" label="Data" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden md:table-cell" />
+                    <SortHeader column="valor" label="Valor" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" />
+                    <SortHeader column="km_registro" label="KM" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" className="hidden lg:table-cell" />
                     <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Ações</th>
                   </tr>
                 </thead>
