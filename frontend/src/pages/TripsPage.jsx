@@ -42,7 +42,7 @@ const FORMAS_PAGAMENTO = [
 ];
 
 function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }) {
-  const { error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToast();
   const [loading, setLoading] = useState(false);
   const [produtoTipo, setProdutoTipo] = useState('');
   const [produtoCustom, setProdutoCustom] = useState('');
@@ -190,6 +190,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
                     const data = res.data || res;
                     if (data.km > 0) {
                       setFormData(prev => ({ ...prev, distancia_km: String(data.km) }));
+                      showSuccess('Distância estimada', `${data.km} km (${data.origem} → ${data.destino})`);
                     } else {
                       showError('IA', 'Não foi possível estimar a distância');
                     }
@@ -288,6 +289,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
                     const data = res.data || res;
                     if (data.km > 0) {
                       setFormData(prev => ({ ...prev, distancia_km: String(data.km) }));
+                      showSuccess('Distância estimada', `${data.km} km (${data.origem} → ${data.destino})`);
                     } else {
                       showError('IA', 'Não foi possível estimar a distância');
                     }
