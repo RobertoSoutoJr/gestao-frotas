@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Search, X, Truck, Users, Building2, Factory, Route, Fuel, Wrench } from 'lucide-react';
 
 const ENTITY_CONFIG = {
-  trucks: { label: 'Caminhões', icon: Truck, path: '/trucks', color: '#D97706', fields: ['placa', 'modelo'] },
-  drivers: { label: 'Motoristas', icon: Users, path: '/drivers', color: '#F59E0B', fields: ['nome', 'telefone', 'numero_cnh'] },
+  trucks: { label: 'Caminhões', icon: Truck, path: '/trucks', color: '#28633D', fields: ['placa', 'modelo'] },
+  drivers: { label: 'Motoristas', icon: Users, path: '/drivers', color: '#34D399', fields: ['nome', 'telefone', 'numero_cnh'] },
   clients: { label: 'Clientes', icon: Building2, path: '/clients', color: '#06B6D4', fields: ['nome', 'cidade', 'cpf_cnpj', 'telefone'] },
   suppliers: { label: 'Fornecedores', icon: Factory, path: '/suppliers', color: '#F97316', fields: ['nome', 'cidade', 'cpf_cnpj', 'telefone'] },
   trips: { label: 'Viagens', icon: Route, path: '/trips', color: '#10B981', fields: ['produto', 'origem_cidade', 'destino_cidade', 'observacoes'] },

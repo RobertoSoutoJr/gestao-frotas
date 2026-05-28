@@ -21,7 +21,7 @@ function createIcon(color, size = 16) {
   });
 }
 
-const ORIGIN_ICON = createIcon('#F59E0B', 18);
+const ORIGIN_ICON = createIcon('#34D399', 18);
 const DEST_ICON = createIcon('#3B82F6', 18);
 
 // Auto-fit bounds
@@ -128,8 +128,8 @@ export function TripMapDetail({ trip }) {
     <div className="space-y-2">
       {/* Route info badges */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-400">
-          <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-400">
+          <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
           {originLabel}
         </span>
         {destination && (
@@ -178,7 +178,7 @@ export function TripMapDetail({ trip }) {
           <Marker position={[origin.lat, origin.lng]} icon={ORIGIN_ICON}>
             <Popup>
               <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}>
-                <strong style={{ color: '#F59E0B' }}>Origem</strong><br />
+                <strong style={{ color: '#34D399' }}>Origem</strong><br />
                 {originLabel}
                 {trip.origem_cidade && <><br /><span style={{ color: '#888' }}>{trip.origem_cidade}{trip.origem_estado ? `/${trip.origem_estado}` : ''}</span></>}
               </div>
@@ -193,7 +193,7 @@ export function TripMapDetail({ trip }) {
                   <strong style={{ color: '#3B82F6' }}>Destino</strong><br />
                   {destLabel}
                   {trip.destino_cidade && <><br /><span style={{ color: '#888' }}>{trip.destino_cidade}{trip.destino_estado ? `/${trip.destino_estado}` : ''}</span></>}
-                  {route && <><br /><span style={{ color: '#D97706' }}>{route.distance_km} km — {route.duration_min} min</span></>}
+                  {route && <><br /><span style={{ color: '#28633D' }}>{route.distance_km} km — {route.duration_min} min</span></>}
                 </div>
               </Popup>
             </Marker>
@@ -207,7 +207,7 @@ export function TripMapDetail({ trip }) {
                   ? route.coordinates
                   : [[origin.lat, origin.lng], [destination.lat, destination.lng]]
               }
-              color={route ? '#D97706' : '#6B7280'}
+              color={route ? '#28633D' : '#6B7280'}
               weight={route ? 4 : 2}
               opacity={0.85}
               dashArray={route ? '' : '8 4'}

@@ -81,10 +81,10 @@ function KpiCard({ title, value, unit, icon: Icon, color, trend, trendLabel, inv
 }
 
 const CHART_COLORS = {
-  accent:    '#D97706',
-  secondary: '#F59E0B',
+  accent:    '#28633D',
+  secondary: '#34D399',
   green:     '#10B981',
-  orange:    '#F59E0B',
+  orange:    '#34D399',
   red:       '#EF4444',
   pink:      '#EC4899',
 };
@@ -649,7 +649,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
                 <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-text-secondary)]">
                   <span className="flex items-center gap-1"><Fuel className="h-3 w-3 text-[var(--color-accent)]" />{formatCurrency(stats.fuelCost)}</span>
                   <span className="text-[var(--color-border)]">|</span>
-                  <span className="flex items-center gap-1"><Wrench className="h-3 w-3 text-[#F59E0B]" />{formatCurrency(stats.maintenanceCost)}</span>
+                  <span className="flex items-center gap-1"><Wrench className="h-3 w-3 text-[#34D399]" />{formatCurrency(stats.maintenanceCost)}</span>
                 </div>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
@@ -798,7 +798,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
             </Card>
             <Card className="!rounded-xl !p-0 cursor-pointer" onClick={() => onNavigate('maintenance')}>
               <div className="flex items-center gap-2.5 p-3">
-                <Wrench className="h-4 w-4 text-[#F59E0B]" />
+                <Wrench className="h-4 w-4 text-[#34D399]" />
                 <div>
                   <p className="text-xs text-[var(--color-text-secondary)]">Manutenção</p>
                   <p className="text-sm font-semibold text-[var(--color-text)]">{formatCurrency(stats.maintenanceCost)}</p>
@@ -936,7 +936,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
                   <Legend wrapperStyle={{ paddingTop: '12px', fontFamily: '"Inter"', fontSize: '12px' }} />
                   <Bar dataKey="receita" name="Receita" fill="#10B981" radius={[3, 3, 0, 0]} maxBarSize={40} />
                   <Bar dataKey="despesa" name="Despesas" fill="#EF4444" radius={[3, 3, 0, 0]} maxBarSize={40} />
-                  <Line type="monotone" dataKey="saldo" name="Saldo Acum." stroke="#D97706" strokeWidth={2.5} dot={{ fill: '#D97706', r: 3, strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="saldo" name="Saldo Acum." stroke="#28633D" strokeWidth={2.5} dot={{ fill: '#28633D', r: 3, strokeWidth: 0 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { Fuel, Truck, Route, BarChart3, Shield, Smartphone, ArrowRight, Check } from 'lucide-react';
-import logoLight from '../assets/images/logoFuelTrack_light-removebg.png';
 import logoDark from '../assets/images/logoFuelTrack_black-removebg.png';
 
 const FEATURES = [
@@ -83,7 +82,7 @@ export function LandingPage() {
             </button>
             <button
               onClick={() => navigate('/auth?register=1')}
-              className="px-5 py-2 text-sm font-medium bg-[#D97706] hover:bg-[#B45309] text-white rounded-lg transition-colors"
+              className="px-5 py-2 text-sm font-medium bg-[#28633D] hover:bg-[#1E4F30] text-white rounded-lg transition-colors"
             >
               Criar conta grátis
             </button>
@@ -94,13 +93,13 @@ export function LandingPage() {
       {/* Hero — clean, no gradient blobs */}
       <section className="relative">
         <div className="container mx-auto px-4 pt-20 pb-24 text-center">
-          <div className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-[#D97706] mb-8">
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-[#28633D] mb-8">
             Novo: Rotas reais com GPS offline
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-3xl mx-auto">
             Gestão de frotas{' '}
-            <span className="text-[#D97706]">simples e inteligente</span>
+            <span className="text-[#28633D]">simples e inteligente</span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">
@@ -111,7 +110,7 @@ export function LandingPage() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => navigate('/auth?register=1')}
-              className="group flex items-center gap-2 px-8 py-3.5 text-base font-semibold bg-[#D97706] hover:bg-[#B45309] text-white rounded-lg transition-colors"
+              className="group flex items-center gap-2 px-8 py-3.5 text-base font-semibold bg-[#28633D] hover:bg-[#1E4F30] text-white rounded-lg transition-colors"
             >
               Comece grátis agora
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
@@ -132,7 +131,7 @@ export function LandingPage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
               Tudo que você precisa para{' '}
-              <span className="text-[#D97706]">gerenciar sua frota</span>
+              <span className="text-[#28633D]">gerenciar sua frota</span>
             </h2>
             <p className="mt-4 text-lg text-white/40 max-w-xl mx-auto">
               Do abastecimento ao relatório financeiro, numa única plataforma.
@@ -148,7 +147,7 @@ export function LandingPage() {
                   key={i}
                   className={`flex items-start gap-5 ${isEven ? '' : 'flex-row-reverse text-right'}`}
                 >
-                  <Icon className="h-6 w-6 text-[#D97706] shrink-0 mt-0.5" />
+                  <Icon className="h-6 w-6 text-[#28633D] shrink-0 mt-0.5" />
                   <div>
                     <h3 className="text-base font-semibold text-white">{feature.title}</h3>
                     <p className="mt-1 text-sm text-white/40 leading-relaxed">{feature.description}</p>
@@ -165,7 +164,7 @@ export function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Planos para cada tamanho de <span className="text-[#D97706]">operação</span>
+              Planos para cada tamanho de <span className="text-[#28633D]">operação</span>
             </h2>
             <p className="mt-4 text-lg text-white/40">
               Comece grátis, escale quando precisar.
@@ -178,12 +177,12 @@ export function LandingPage() {
                 key={i}
                 className={`rounded-xl p-6 transition-colors ${
                   plan.highlight
-                    ? 'border-2 border-[#D97706] bg-[#D97706]/5'
+                    ? 'border-2 border-[#28633D] bg-[#28633D]/5'
                     : 'border border-white/5 bg-white/[0.02] hover:border-white/10'
                 }`}
               >
                 {plan.highlight && (
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#D97706] mb-3">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#28633D] mb-3">
                     Mais popular
                   </div>
                 )}
@@ -196,7 +195,7 @@ export function LandingPage() {
                 <ul className="mt-6 space-y-2.5">
                   {plan.features.map((f, j) => (
                     <li key={j} className="flex items-center gap-2.5 text-sm text-white/60">
-                      <Check className="h-4 w-4 text-[#D97706] shrink-0" />
+                      <Check className="h-4 w-4 text-[#28633D] shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -205,7 +204,7 @@ export function LandingPage() {
                   onClick={() => navigate('/auth?register=1')}
                   className={`mt-6 w-full py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                     plan.highlight
-                      ? 'bg-[#D97706] hover:bg-[#B45309] text-white'
+                      ? 'bg-[#28633D] hover:bg-[#1E4F30] text-white'
                       : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
                   }`}
                 >

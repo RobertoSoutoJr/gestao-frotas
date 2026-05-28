@@ -9,7 +9,7 @@ const pinIcon = L.divIcon({
   className: 'custom-pin',
   html: `<div style="
     width: 20px; height: 20px; border-radius: 50% 50% 50% 0;
-    background: #D97706; border: 2.5px solid white;
+    background: #28633D; border: 2.5px solid white;
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     transform: rotate(-45deg);
   "></div>`,

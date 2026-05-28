@@ -20,8 +20,8 @@
   --color-text-secondary: #85878F;
   --color-text-muted:     rgba(255,255,255,0.50);
   --color-text-tertiary:  rgba(255,255,255,0.30);
-  --color-accent:         #D97706;
-  --color-accent-hover:   #E58A0A;
+  --color-accent:         #28633D;
+  --color-accent-hover:   #2F7547;
   --color-input-bg:       #111114;
   --color-overlay:        rgba(0,0,0,0.65);
   --color-shadow:         rgba(0,0,0,0.5);
@@ -40,8 +40,8 @@ html:not(.dark) {
   --color-text-secondary: #6B6E76;
   --color-text-muted:     rgba(0,0,0,0.45);
   --color-text-tertiary:  rgba(0,0,0,0.30);
-  --color-accent:         #B45309;
-  --color-accent-hover:   #D97706;
+  --color-accent:         #1E4F30;
+  --color-accent-hover:   #28633D;
   --color-input-bg:       #FFFFFF;
   --color-overlay:        rgba(0,0,0,0.25);
   --color-shadow:         rgba(0,0,0,0.06);
@@ -121,11 +121,11 @@ textarea,
 }
 
 .dark .linear-bg {
-  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(217,119,6,0.04), transparent 70%);
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(40,99,61,0.04), transparent 70%);
 }
 
 html:not(.dark) .linear-bg {
-  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(180,83,9,0.03), transparent 70%);
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(30,79,48,0.03), transparent 70%);
 }
 
 /* grid kept as empty class so JSX doesn't break */

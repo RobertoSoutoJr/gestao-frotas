@@ -241,7 +241,7 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
       {/* Veículo e Motorista */}
       <div className="rounded-lg border border-[var(--color-border)] p-4">
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] flex items-center gap-2">
-          <Truck className="h-4 w-4 text-amber-400" /> Veículo e Motorista
+          <Truck className="h-4 w-4 text-emerald-400" /> Veículo e Motorista
         </h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Select name="caminhao_id" label="Caminhão" value={formData.caminhao_id} onChange={handleChange} required>
@@ -622,7 +622,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Em Andamento</p>
-            <p className="text-xl sm:text-2xl font-bold text-amber-400">{totalCadastradas}</p>
+            <p className="text-xl sm:text-2xl font-bold text-emerald-400">{totalCadastradas}</p>
           </CardContent>
         </Card>
         <Card>
@@ -770,7 +770,7 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                       </div>
 
                       <div className="mt-3 flex items-center gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-amber-500" />
+                        <MapPin className="h-4 w-4 text-emerald-500" />
                         <span className="font-medium">{trip.fornecedores?.nome}</span>
                         <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)]" />
                         <MapPin className="h-4 w-4 text-blue-500" />

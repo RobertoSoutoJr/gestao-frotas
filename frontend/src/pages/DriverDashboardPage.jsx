@@ -123,7 +123,7 @@ export function DriverDashboardPage({ trucks, drivers, trips, fuelRecords, onRef
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <Gauge className="mx-auto h-5 w-5 text-amber-400 mb-1" />
+            <Gauge className="mx-auto h-5 w-5 text-emerald-400 mb-1" />
             <p className="text-2xl font-bold text-[var(--color-text)]">{formatNumber(kmPerLiter, 1)}</p>
             <p className="text-xs text-[var(--color-text-secondary)]">km/litro</p>
           </CardContent>
@@ -162,7 +162,7 @@ export function DriverDashboardPage({ trucks, drivers, trips, fuelRecords, onRef
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <Fuel className="mx-auto h-5 w-5 text-amber-400 mb-1" />
+            <Fuel className="mx-auto h-5 w-5 text-emerald-400 mb-1" />
             <p className="text-2xl font-bold text-[var(--color-text)]">{formatNumber(totalLitros, 0)}L</p>
             <p className="text-xs text-[var(--color-text-secondary)]">Total Litros</p>
           </CardContent>
@@ -174,25 +174,25 @@ export function DriverDashboardPage({ trucks, drivers, trips, fuelRecords, onRef
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="h-5 w-5 text-amber-400" />
+              <TrendingUp className="h-5 w-5 text-emerald-400" />
               Ranking de Motoristas
             </CardTitle>
             <CardDescription>Por lucro líquido (frete - custos)</CardDescription>
           </CardHeader>
           <CardContent>
             {driverRanking.position > 0 && (
-              <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                 <p className="text-sm text-[var(--color-text-secondary)]">Sua posição</p>
-                <p className="text-2xl font-bold text-amber-400">
+                <p className="text-2xl font-bold text-emerald-400">
                   {driverRanking.position}º <span className="text-sm font-normal text-[var(--color-text-secondary)]">de {driverRanking.total} motoristas</span>
                 </p>
               </div>
             )}
             <div className="space-y-2">
               {driverRanking.rankings.slice(0, 5).map((r, i) => (
-                <div key={r.id} className={`flex items-center justify-between p-2 rounded-lg ${r.id === user?.motorista_id ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-[var(--color-bg-elevated)]'}`}>
+                <div key={r.id} className={`flex items-center justify-between p-2 rounded-lg ${r.id === user?.motorista_id ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-[var(--color-bg-elevated)]'}`}>
                   <div className="flex items-center gap-3">
-                    <span className={`text-lg font-bold w-6 text-center ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-orange-400' : 'text-[var(--color-text-secondary)]'}`}>
+                    <span className={`text-lg font-bold w-6 text-center ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-orange-400' : 'text-[var(--color-text-secondary)]'}`}>
                       {i + 1}º
                     </span>
                     <div>
@@ -255,7 +255,7 @@ export function DriverDashboardPage({ trucks, drivers, trips, fuelRecords, onRef
       {/* Active Trips */}
       <div>
         <h2 className="text-lg font-semibold text-[var(--color-text)] mb-3">
-          <Clock className="inline mr-2 h-5 w-5 text-amber-400" />
+          <Clock className="inline mr-2 h-5 w-5 text-emerald-400" />
           Viagens Ativas ({activeTrips.length})
         </h2>
         {activeTrips.length === 0 ? (
@@ -326,7 +326,7 @@ function TripCard({ trip }) {
     (Number(trip.custo_manutencao) || 0) + (Number(trip.custo_outros) || 0);
 
   return (
-    <Card className={isActive ? 'border-amber-500/30' : ''}>
+    <Card className={isActive ? 'border-emerald-500/30' : ''}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -341,7 +341,7 @@ function TripCard({ trip }) {
             </div>
 
             <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4 text-amber-500 shrink-0" />
+              <MapPin className="h-4 w-4 text-emerald-500 shrink-0" />
               <span className="font-medium truncate">{trip.fornecedores?.nome}</span>
               <ArrowRight className="h-4 w-4 text-[var(--color-text-secondary)] shrink-0" />
               <MapPin className="h-4 w-4 text-blue-500 shrink-0" />

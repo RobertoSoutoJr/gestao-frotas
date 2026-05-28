@@ -418,9 +418,9 @@ export function DriversPage({ drivers, trucks = [], trips, fuelRecords, onRefetc
                       </div>
                       {driver.caminhoes_vinculados?.length > 0 && (
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                          <Truck className="h-3 w-3 text-amber-400 shrink-0" />
+                          <Truck className="h-3 w-3 text-emerald-400 shrink-0" />
                           {driver.caminhoes_vinculados.map(t => (
-                            <span key={t.id} className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">
+                            <span key={t.id} className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
                               {t.placa}
                             </span>
                           ))}

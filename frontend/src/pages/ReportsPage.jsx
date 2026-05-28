@@ -17,7 +17,7 @@ import {
   exportFuelTableToExcel, exportMaintenanceTableToExcel, exportFullReportToExcel,
 } from '../lib/exportUtils';
 
-const COLORS = ['#D97706', '#10B981', '#F59E0B', '#EF4444', '#F59E0B', '#EC4899'];
+const COLORS = ['#28633D', '#10B981', '#34D399', '#EF4444', '#34D399', '#EC4899'];
 
 const REPORT_TABS = [
   { id: 'all', label: 'Visão Geral', icon: BarChart3, sections: null }, // null = show all visible
@@ -446,7 +446,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
         { label: 'Outros', value: -d.custoOutros, color: 'text-red-400', indent: true },
         { label: 'Subtotal viagens', value: -d.despesasViagens, color: 'text-red-400', isBold: true, indent: true },
         { label: 'DESPESAS GERAIS (FROTA)', value: null, isHeader: true },
-        { label: 'Abastecimentos', value: -d.despesasCombGeral, color: 'text-amber-400', indent: true },
+        { label: 'Abastecimentos', value: -d.despesasCombGeral, color: 'text-emerald-400', indent: true },
         { label: 'Manutenções', value: -d.despesasManGeral, color: 'text-red-400', indent: true },
         { label: 'Subtotal frota', value: -d.despesasGerais, color: 'text-red-400', isBold: true, indent: true },
         { label: 'RESULTADO', value: null, isHeader: true, isResult: true },
@@ -569,8 +569,8 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                 <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Combustível</p>
                 <p className="mt-1 sm:mt-1.5 text-lg sm:text-2xl font-bold text-[var(--color-text)]">{formatCurrency(overallStats.totalFuel)}</p>
               </div>
-              <div className="rounded-xl bg-amber-500/10 p-2 sm:p-3">
-                <FuelIcon className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
+              <div className="rounded-xl bg-emerald-500/10 p-2 sm:p-3">
+                <FuelIcon className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
               </div>
             </div>
           </CardContent>
@@ -672,7 +672,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FuelIcon className="h-5 w-5 text-amber-400" />
+            <FuelIcon className="h-5 w-5 text-emerald-400" />
             Abastecimentos Detalhados ({filteredData.filteredFuel.length})
           </CardTitle>
           <CardDescription>Registros individuais de abastecimento</CardDescription>
@@ -706,7 +706,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                         <td className="px-3 py-2 text-[var(--color-text)]">{record.posto || '-'}</td>
                         <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatNumber(record.litros, 2)}</td>
                         <td className="px-3 py-2 text-right text-[var(--color-text)]">{record.litros > 0 ? formatCurrency(Number(record.valor_total) / Number(record.litros)) : '-'}</td>
-                        <td className="px-3 py-2 text-right font-medium text-amber-500">{formatCurrency(record.valor_total)}</td>
+                        <td className="px-3 py-2 text-right font-medium text-emerald-500">{formatCurrency(record.valor_total)}</td>
                         <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_registro ? formatNumber(record.km_registro, 0) : '-'}</td>
                       </tr>
                     );
@@ -719,7 +719,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                       {formatNumber(filteredData.filteredFuel.reduce((s, r) => s + Number(r.litros || 0), 0), 2)}
                     </td>
                     <td className="px-3 py-2"></td>
-                    <td className="px-3 py-2 text-right font-bold text-amber-500">
+                    <td className="px-3 py-2 text-right font-bold text-emerald-500">
                       {formatCurrency(filteredData.filteredFuel.reduce((s, r) => s + Number(r.valor_total || 0), 0))}
                     </td>
                     <td className="px-3 py-2"></td>
@@ -747,7 +747,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                 <YAxis stroke={axisColor} style={{ fontSize: '11px' }} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value) => formatCurrency(value)} />
                 <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
-                <Bar dataKey="Combustível" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Combustível" fill="#34D399" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="Manutenção" fill="#EF4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -798,7 +798,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                 <YAxis type="category" dataKey="name" stroke={axisColor} style={{ fontSize: '11px' }} width={80} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value) => `R$ ${value.toFixed(2)}/km`} />
                 <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
-                <Bar dataKey="Combustível/km" stackId="a" fill="#F59E0B" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="Combustível/km" stackId="a" fill="#34D399" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="Manutenção/km" stackId="a" fill="#EF4444" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -852,7 +852,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                 <YAxis stroke={axisColor} style={{ fontSize: '11px' }} tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value) => value !== null ? formatCurrency(value) : '—'} />
                 <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
-                <Line type="monotone" dataKey="Real" stroke="#D97706" strokeWidth={2.5} dot={{ r: 4 }} connectNulls={false} />
+                <Line type="monotone" dataKey="Real" stroke="#28633D" strokeWidth={2.5} dot={{ r: 4 }} connectNulls={false} />
                 <Line type="monotone" dataKey="Tendência" stroke="#10B981" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -877,7 +877,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                 <YAxis stroke={axisColor} style={{ fontSize: '11px' }} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value) => formatCurrency(value)} />
                 <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
-                <Line type="monotone" dataKey="Combustível" stroke="#F59E0B" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="Combustível" stroke="#34D399" strokeWidth={2} dot={{ r: 3 }} />
                 <Line type="monotone" dataKey="Manutenção" stroke="#EF4444" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -898,7 +898,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5 text-amber-400" />
+                  <Award className="h-5 w-5 text-emerald-400" />
                   Ranking de Eficiencia
                 </CardTitle>
                 <CardDescription>Caminhoes ordenados por consumo (km/l)</CardDescription>
@@ -922,7 +922,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                       {ranking.map((s, i) => (
                         <tr key={s.truck.id} className="border-b border-[var(--color-border)] last:border-0">
                           <td className="px-4 py-3 font-medium text-[var(--color-text-secondary)]">
-                            {i === 0 ? <span className="text-amber-400 font-bold">1</span> : i + 1}
+                            {i === 0 ? <span className="text-emerald-400 font-bold">1</span> : i + 1}
                           </td>
                           <td className="px-4 py-3">
                             <span className="font-medium text-[var(--color-text)]">{s.truck.placa}</span>
@@ -962,7 +962,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {stats.map(stat => (
               <Card key={stat.truck.id} className="overflow-hidden">
-                <div className="bg-gradient-to-r from-[var(--color-accent)]/20 to-[#F59E0B]/10 border-b border-[var(--color-border)] px-6 py-4">
+                <div className="bg-gradient-to-r from-[var(--color-accent)]/20 to-[#34D399]/10 border-b border-[var(--color-border)] px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-bold text-[var(--color-text)]">{stat.truck.placa}</h3>
@@ -982,7 +982,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                       </p>
                     </div>
                     <div className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-2.5 text-center">
-                      <DollarSign className="h-3.5 w-3.5 mx-auto text-amber-400 mb-1" />
+                      <DollarSign className="h-3.5 w-3.5 mx-auto text-emerald-400 mb-1" />
                       <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)]">Custo/km</p>
                       <p className="text-sm font-bold text-[var(--color-text)]">
                         {stat.costPerKm > 0 ? `R$${stat.costPerKm.toFixed(2)}` : '-'}
@@ -1001,7 +1001,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                       <span className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                         <FuelIcon className="h-4 w-4" /> Combustível ({stat.fuelRecordsCount} reg.)
                       </span>
-                      <span className="font-semibold text-amber-400 tabular-nums">{formatCurrency(stat.totalFuel)}</span>
+                      <span className="font-semibold text-emerald-400 tabular-nums">{formatCurrency(stat.totalFuel)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
@@ -1130,7 +1130,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                       <p className="text-sm font-bold text-[var(--color-text)]">{formatNumber(s.totalKm, 0)}</p>
                     </div>
                     <div className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-2.5 text-center">
-                      <TrendingUp className="h-3.5 w-3.5 mx-auto text-amber-400 mb-1" />
+                      <TrendingUp className="h-3.5 w-3.5 mx-auto text-emerald-400 mb-1" />
                       <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)]">Km/Viagem</p>
                       <p className="text-sm font-bold text-[var(--color-text)]">{formatNumber(s.avgKmPerTrip, 0)}</p>
                     </div>
@@ -1252,7 +1252,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                     <Legend />
                     <Bar dataKey="Receita" fill="#10B981" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="Custos" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Lucro" fill="#D97706" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Lucro" fill="#28633D" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -1450,7 +1450,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                     <FileText className="h-3.5 w-3.5 text-red-400" /> Manutenções
                   </button>
                   <button onClick={() => exportFullReportToPDF(dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : '')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors font-medium">
-                    <FileText className="h-3.5 w-3.5 text-[#D97706]" /> Relatório Completo (PDF)
+                    <FileText className="h-3.5 w-3.5 text-[#28633D]" /> Relatório Completo (PDF)
                   </button>
                   <div className="border-t border-[var(--color-border)] my-1" />
                   <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)] font-semibold">Excel</p>

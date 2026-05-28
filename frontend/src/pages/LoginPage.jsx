@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import logoLight from '../assets/images/logoFuelTrack_light-removebg.png';
+import logoGreen from '../assets/images/logo-fueltrack-green.png';
 import logoDark from '../assets/images/logoFuelTrack_black-removebg.png';
 
 export function LoginPage({ onToggle }) {
@@ -45,7 +45,7 @@ export function LoginPage({ onToggle }) {
         <div className="relative z-10 flex flex-col px-16 max-w-xl">
           <div className="flex items-center mb-12">
             <img
-              src={isDark ? logoDark : logoLight}
+              src={isDark ? logoDark : logoGreen}
               alt="FuelTrack"
               className="h-28 w-auto"
             />
@@ -79,7 +79,7 @@ export function LoginPage({ onToggle }) {
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <img
-              src={isDark ? logoDark : logoLight}
+              src={isDark ? logoDark : logoGreen}
               alt="FuelTrack"
               className="h-16 w-auto"
             />

@@ -65,7 +65,7 @@ function TruckDetailModal({ truck, isOpen, onClose }) {
           {/* Últimos Abastecimentos */}
           <div>
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--color-text)]">
-              <Fuel className="h-4 w-4 text-amber-400" />
+              <Fuel className="h-4 w-4 text-emerald-400" />
               Últimos Abastecimentos ({fuelRecords.length})
             </h3>
             {fuelRecords.length === 0 ? (
@@ -78,7 +78,7 @@ function TruckDetailModal({ truck, isOpen, onClose }) {
                       <p className="text-sm font-medium text-[var(--color-text)]">{formatNumber(r.litros, 1)} L — {r.posto || 'Sem posto'}</p>
                       <p className="text-xs text-[var(--color-text-secondary)]">{formatDate(r.created_at)}</p>
                     </div>
-                    <p className="font-semibold text-amber-500">{formatCurrency(r.valor_total)}</p>
+                    <p className="font-semibold text-emerald-500">{formatCurrency(r.valor_total)}</p>
                   </div>
                 ))}
               </div>
@@ -479,7 +479,7 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => setFuelingTruck(truck)}
-                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-500 bg-amber-500/10 hover:bg-amber-500/15 transition-colors"
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/15 transition-colors"
                       >
                         <Fuel className="h-3.5 w-3.5" />
                         Abastecer

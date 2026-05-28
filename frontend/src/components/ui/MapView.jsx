@@ -28,9 +28,9 @@ function createColoredIcon(color) {
 }
 
 const ICONS = {
-  origin: createColoredIcon('#D97706'),
+  origin: createColoredIcon('#28633D'),
   destination: createColoredIcon('#10B981'),
-  active: createColoredIcon('#F59E0B'),
+  active: createColoredIcon('#34D399'),
   finalized: createColoredIcon('#6B7280'),
 };
 
@@ -210,7 +210,7 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
 
         {geoTrips.map(trip => {
           const isActive = trip.status !== 'finalizada';
-          const lineColor = isActive ? '#F59E0B' : '#6B7280';
+          const lineColor = isActive ? '#34D399' : '#6B7280';
           const route = routeData[trip.id];
 
           return (
@@ -226,10 +226,10 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
                     {trip.origem_cidade}{trip.origem_estado ? `/${trip.origem_estado}` : ''}<br />
                     <span style={{ color: '#666' }}>Viagem #{trip.id}</span>
                     {route && (
-                      <><br /><span style={{ color: '#D97706' }}>{route.distance_km} km - {route.duration_min} min</span></>
+                      <><br /><span style={{ color: '#28633D' }}>{route.distance_km} km - {route.duration_min} min</span></>
                     )}
                     {onTripClick && (
-                      <><br /><a href="#" onClick={(e) => { e.preventDefault(); onTripClick(trip); }} style={{ color: '#D97706' }}>Ver detalhes</a></>
+                      <><br /><a href="#" onClick={(e) => { e.preventDefault(); onTripClick(trip); }} style={{ color: '#28633D' }}>Ver detalhes</a></>
                     )}
                   </div>
                 </Popup>
@@ -273,11 +273,11 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
       {geoTrips.length > 0 && (
         <div className="absolute bottom-3 left-3 z-[1000] bg-[var(--color-bg-elevated)]/95 backdrop-blur-sm border border-[var(--color-border)] rounded-lg px-3 py-2 text-[10px] space-y-1">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#34D399]" />
             <span className="text-[var(--color-text-secondary)]">Viagem ativa</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#D97706]" />
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#28633D]" />
             <span className="text-[var(--color-text-secondary)]">Origem</span>
           </div>
           <div className="flex items-center gap-2">

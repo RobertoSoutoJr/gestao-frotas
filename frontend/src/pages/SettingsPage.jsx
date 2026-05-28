@@ -324,7 +324,7 @@ function PlanSection() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <PlanIcon className="h-5 w-5 text-amber-400" />
+                <PlanIcon className="h-5 w-5 text-emerald-400" />
                 Plano {planInfo.plano_nome}
               </CardTitle>
               <CardDescription>
@@ -374,9 +374,9 @@ function PlanSection() {
             const Icon = planIcons[plan.id] || Zap;
             const isCurrent = plan.id === planInfo.plano;
             return (
-              <Card key={plan.id} className={isCurrent ? 'border-amber-500/50 ring-1 ring-amber-500/20' : ''}>
+              <Card key={plan.id} className={isCurrent ? 'border-emerald-500/50 ring-1 ring-emerald-500/20' : ''}>
                 <CardHeader className="text-center">
-                  <Icon className={`mx-auto h-8 w-8 mb-2 ${isCurrent ? 'text-amber-400' : 'text-[var(--color-text-secondary)]'}`} />
+                  <Icon className={`mx-auto h-8 w-8 mb-2 ${isCurrent ? 'text-emerald-400' : 'text-[var(--color-text-secondary)]'}`} />
                   <CardTitle className="text-lg">{plan.nome}</CardTitle>
                   <CardDescription>
                     {plan.preco > 0 ? (

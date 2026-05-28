@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, ChevronDown, Sun, Moon, X, Settings, Search } from 'lucide-react';
-import logoLight from '../../assets/images/logoFuelTrack_light-removebg.png';
+import logoGreen from '../../assets/images/logo-fueltrack-green.png';
 import logoDark from '../../assets/images/logoFuelTrack_black-removebg.png';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -31,7 +31,7 @@ export function Header({ searchData }) {
           {/* Logo */}
           <div className="flex items-center">
             <img
-              src={isDark ? logoDark : logoLight}
+              src={isDark ? logoDark : logoGreen}
               alt="FuelTrack"
               className="h-14 w-auto"
             />
@@ -89,7 +89,7 @@ export function Header({ searchData }) {
                       {user.nome}
                     </div>
                     {user.role === 'motorista' ? (
-                      <div className="text-xs text-amber-400 mt-0.5 font-medium">Motorista</div>
+                      <div className="text-xs text-emerald-400 mt-0.5 font-medium">Motorista</div>
                     ) : user.empresa ? (
                       <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">
                         {user.empresa}

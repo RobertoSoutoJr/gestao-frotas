@@ -281,8 +281,8 @@ export function SuppliersPage({ suppliers, trips, onRefetch }) {
               <Card key={supplier.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
                   <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-amber-500/10">
-                      <Factory className="h-5 w-5 text-amber-400" />
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">
+                      <Factory className="h-5 w-5 text-emerald-400" />
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-semibold text-[var(--color-text)] truncate">{supplier.nome}</h3>
