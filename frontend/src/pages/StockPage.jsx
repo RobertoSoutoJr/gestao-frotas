@@ -132,6 +132,13 @@ function StockForm({ suppliers, onSuccess }) {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
+  const handleSupplierChange = (e) => {
+    const supplierId = e.target.value;
+    const supplier = suppliers.find(s => s.id === Number(supplierId));
+    const loc = supplier ? [supplier.cidade, supplier.estado].filter(Boolean).join('/') : '';
+    setFormData(prev => ({ ...prev, fornecedor_id: supplierId, localizacao: loc || prev.localizacao }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -144,11 +151,11 @@ function StockForm({ suppliers, onSuccess }) {
           {produtoTipo === 'Outros' && (
             <Input label="Nome do Produto" placeholder="Digite o nome" value={produtoCustom} onChange={(e) => setProdutoCustom(e.target.value)} required />
           )}
-          <Select name="fornecedor_id" label="Fornecedor" value={formData.fornecedor_id} onChange={handleChange} required>
+          <Select name="fornecedor_id" label="Fornecedor" value={formData.fornecedor_id} onChange={handleSupplierChange} required>
             <option value="">Selecione o fornecedor</option>
-            {suppliers.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
+            {suppliers.map(s => <option key={s.id} value={s.id}>{s.nome} {s.cidade ? `— ${s.cidade}/${s.estado}` : ''}</option>)}
           </Select>
-          <Input name="localizacao" label="Localização" placeholder="Ex: Fazenda São João" value={formData.localizacao} onChange={handleChange} />
+          <Input name="localizacao" label="Localização" placeholder="Ex: Fazenda São João" value={formData.localizacao} onChange={handleChange} helperText="Preenchido pelo fornecedor, edite se necessário" />
         </div>
       </div>
 
