@@ -157,7 +157,7 @@ function AuthenticatedContent() {
               <TrucksPage trucks={trucks} drivers={drivers} onRefetch={refetch} />
             } />
             <Route path="/drivers" element={
-              <DriversPage drivers={drivers} trips={trips} fuelRecords={fuelRecords} onRefetch={refetch} />
+              <DriversPage drivers={drivers} trucks={trucks} trips={trips} fuelRecords={fuelRecords} onRefetch={refetch} />
             } />
             <Route path="/clients" element={
               <ClientsPage clients={clients} trips={trips} onRefetch={refetch} />

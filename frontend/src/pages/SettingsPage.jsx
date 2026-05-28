@@ -422,7 +422,7 @@ function MotoristaAccountsSection() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ nome: '', email: '', password: '', motorista_id: '', caminhao_id: '' });
+  const [form, setForm] = useState({ nome: '', email: '', password: '', motorista_id: '', caminhao_ids: [] });
 
   const fetchData = async () => {
     try {
@@ -461,16 +461,16 @@ function MotoristaAccountsSection() {
         password: form.password,
         motorista_id: form.motorista_id ? Number(form.motorista_id) : null,
       });
-      // If a truck was selected and motorista was linked, update the motorista's caminhao_id
-      if (form.motorista_id && form.caminhao_id) {
+      // If trucks were selected and motorista was linked, sync the links
+      if (form.motorista_id && form.caminhao_ids.length > 0) {
         try {
-          await driversService.update(Number(form.motorista_id), { caminhao_id: Number(form.caminhao_id) });
+          await driversService.update(Number(form.motorista_id), { caminhao_ids: form.caminhao_ids.map(Number) });
         } catch {
           // non-blocking
         }
       }
       addToast('Conta de motorista criada', 'success');
-      setForm({ nome: '', email: '', password: '', motorista_id: '', caminhao_id: '' });
+      setForm({ nome: '', email: '', password: '', motorista_id: '', caminhao_ids: [] });
       setShowCreate(false);
       fetchData();
     } catch (err) {
@@ -549,16 +549,31 @@ function MotoristaAccountsSection() {
                   <option key={d.id} value={d.id}>{d.nome}</option>
                 ))}
               </Select>
-              <Select
-                label="Caminhao vinculado (opcional)"
-                value={form.caminhao_id}
-                onChange={(e) => setForm(prev => ({ ...prev, caminhao_id: e.target.value }))}
-              >
-                <option value="">Sem caminhao</option>
-                {trucks.map(t => (
-                  <option key={t.id} value={t.id}>{t.placa} — {t.modelo}</option>
-                ))}
-              </Select>
+              {trucks.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Caminhões vinculados (opcional)</label>
+                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto rounded-lg border border-[var(--color-border)] p-2">
+                    {trucks.map(t => (
+                      <label key={t.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-[var(--color-surface)] rounded px-2 py-1">
+                        <input
+                          type="checkbox"
+                          checked={form.caminhao_ids.includes(t.id)}
+                          onChange={(e) => {
+                            setForm(prev => ({
+                              ...prev,
+                              caminhao_ids: e.target.checked
+                                ? [...prev.caminhao_ids, t.id]
+                                : prev.caminhao_ids.filter(id => id !== t.id)
+                            }));
+                          }}
+                          className="rounded border-[var(--color-border)] accent-[var(--color-accent)]"
+                        />
+                        <span className="text-[var(--color-text)]">{t.placa} — {t.modelo}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => setShowCreate(false)}>Cancelar</Button>
@@ -578,7 +593,7 @@ function MotoristaAccountsSection() {
           <div className="space-y-2">
             {accounts.map(acc => {
               const linkedDriver = drivers.find(d => d.id === acc.motorista_id);
-              const linkedTruck = linkedDriver?.caminhoes || trucks.find(t => t.id === linkedDriver?.caminhao_id);
+              const linkedTrucks = linkedDriver?.caminhoes_vinculados || [];
               return (
                 <div key={acc.id} className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-4 py-3">
                   <div>
@@ -591,7 +606,7 @@ function MotoristaAccountsSection() {
                     <p className="text-xs text-[var(--color-text-secondary)]">
                       {acc.email}
                       {linkedDriver && <span className="ml-2">| Motorista: {linkedDriver.nome}</span>}
-                      {linkedTruck && <span className="ml-2">| Caminhao: {linkedTruck.placa || linkedTruck}</span>}
+                      {linkedTrucks.length > 0 && <span className="ml-2">| Caminhões: {linkedTrucks.map(t => t.placa).join(', ')}</span>}
                     </p>
                   </div>
                   <Button

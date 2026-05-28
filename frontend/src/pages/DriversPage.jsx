@@ -8,7 +8,7 @@ import { DriverForm } from '../components/forms/DriverForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
-import { Users, Phone, CreditCard, Edit2, Trash2, Search, Filter, Plus, Route, DollarSign, TrendingUp, Fuel as FuelIcon, X } from 'lucide-react';
+import { Users, Phone, CreditCard, Edit2, Trash2, Search, Filter, Plus, Route, DollarSign, TrendingUp, Fuel as FuelIcon, X, Truck } from 'lucide-react';
 import { formatCPF, formatCurrency, formatNumber, maskCPF, maskPhone } from '../lib/utils';
 import { driversService } from '../services/drivers';
 import { useToast } from '../hooks/useToast';
@@ -57,7 +57,7 @@ function useDriverPerformance(drivers, trips, fuelRecords) {
   }, [drivers, trips, fuelRecords]);
 }
 
-function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
+function EditDriverModal({ driver, trucks = [], isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
   const [formData, setFormData] = useState({
@@ -67,18 +67,23 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
     numero_cnh: driver.numero_cnh || '',
     validade_cnh: driver.validade_cnh ? driver.validade_cnh.split('T')[0] : ''
   });
+  const [selectedTrucks, setSelectedTrucks] = useState(
+    (driver.caminhoes_vinculados || []).map(t => t.id)
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await driversService.update(driver.id, formData);
+      await driversService.update(driver.id, {
+        ...formData,
+        caminhao_ids: selectedTrucks,
+      });
       success('Sucesso!', 'Motorista atualizado com sucesso');
       onSuccess?.();
       onClose();
     } catch (err) {
-
       error('Erro', err.message || 'Falha ao atualizar motorista');
     } finally {
       setLoading(false);
@@ -90,6 +95,14 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
     if (name === 'cpf') value = maskCPF(value);
     if (name === 'telefone') value = maskPhone(value);
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const toggleTruck = (truckId) => {
+    setSelectedTrucks(prev =>
+      prev.includes(truckId)
+        ? prev.filter(id => id !== truckId)
+        : [...prev, truckId]
+    );
   };
 
   return (
@@ -135,6 +148,43 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
             onChange={handleChange}
           />
         </div>
+
+        {/* Multi-select de caminhões */}
+        {trucks.length > 0 && (
+          <div>
+            <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-secondary)]">
+              <Truck className="h-4 w-4" />
+              Caminhões vinculados
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-40 overflow-y-auto rounded-lg border border-[var(--color-border)] p-2">
+              {trucks.map(t => (
+                <label
+                  key={t.id}
+                  className={`flex items-center gap-2 text-sm cursor-pointer rounded-md px-3 py-2 transition-colors ${
+                    selectedTrucks.includes(t.id)
+                      ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                      : 'hover:bg-[var(--color-surface)] text-[var(--color-text)]'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedTrucks.includes(t.id)}
+                    onChange={() => toggleTruck(t.id)}
+                    className="rounded accent-[var(--color-accent)]"
+                  />
+                  <span className="font-medium">{t.placa}</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">— {t.modelo}</span>
+                </label>
+              ))}
+            </div>
+            {selectedTrucks.length > 0 && (
+              <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+                {selectedTrucks.length} caminhão(ões) selecionado(s)
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="flex gap-3">
           <Button
             type="button"
@@ -164,7 +214,7 @@ function EditDriverModal({ driver, isOpen, onClose, onSuccess }) {
   );
 }
 
-export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
+export function DriversPage({ drivers, trucks = [], trips, fuelRecords, onRefetch }) {
   const { success, error } = useToast();
   const [editingDriver, setEditingDriver] = useState(null);
   const [deletingDriver, setDeletingDriver] = useState(null);
@@ -366,6 +416,16 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
                           </span>
                         )}
                       </div>
+                      {driver.caminhoes_vinculados?.length > 0 && (
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          <Truck className="h-3 w-3 text-amber-400 shrink-0" />
+                          {driver.caminhoes_vinculados.map(t => (
+                            <span key={t.id} className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">
+                              {t.placa}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       {perfMap[driver.id] && (
                         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                           <span className="flex items-center gap-1 text-[var(--color-text-secondary)]">
@@ -410,12 +470,13 @@ export function DriversPage({ drivers, trips, fuelRecords, onRefetch }) {
 
       {/* Modal: Cadastrar Motorista */}
       <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Novo Motorista" warnUnsaved>
-        <DriverForm onSuccess={handleCreateSuccess} />
+        <DriverForm trucks={trucks} onSuccess={handleCreateSuccess} />
       </Modal>
 
       {editingDriver && (
         <EditDriverModal
           driver={editingDriver}
+          trucks={trucks}
           isOpen={!!editingDriver}
           onClose={() => setEditingDriver(null)}
           onSuccess={onRefetch}
