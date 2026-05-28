@@ -169,7 +169,7 @@ export function PostosPage({ postos, onRefetch }) {
 
       {showCreate && <PostoFormModal isOpen onClose={() => setShowCreate(false)} onSuccess={() => { onRefetch?.(); setShowCreate(false); }} />}
       {editing && <PostoFormModal posto={editing} isEdit isOpen onClose={() => setEditing(null)} onSuccess={onRefetch} />}
-      <ConfirmDialog isOpen={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Excluir Posto" description={`Excluir "${deleting?.nome}"? Abastecimentos vinculados perderao a referencia.`} confirmText="Excluir" cancelText="Cancelar" variant="danger" isLoading={deleteLoading} />
+      <ConfirmDialog isOpen={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Excluir Posto" description={`Excluir "${deleting?.nome}"? Abastecimentos vinculados perderão a referência.`} confirmText="Excluir" cancelText="Cancelar" variant="danger" isLoading={deleteLoading} />
     </div>
   );
 }

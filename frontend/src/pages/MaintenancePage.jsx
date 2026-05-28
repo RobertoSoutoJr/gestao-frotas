@@ -210,7 +210,7 @@ function EditMaintenanceModal({ maintenance, trucks, oficinas = [], isOpen, onCl
         </div>
       </form>
 
-      {/* Documentos da Manutencao */}
+      {/* Documentos da Manutenção */}
       <div className="mt-6 border-t border-[var(--color-border)] pt-6">
         <DocumentGallery entidadeTipo="manutencao" entidadeId={maintenance.id} />
       </div>

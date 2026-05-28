@@ -44,7 +44,7 @@ export function SettingsPage() {
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     if (!profile.nome.trim()) {
-      addToast('Nome e obrigatorio', 'error');
+      addToast('Nome é obrigatório', 'error');
       return;
     }
 
@@ -99,11 +99,11 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-8 max-w-2xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">Configuracoes</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Gerencie seu perfil e seguranca</p>
+        <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">Configurações</h1>
+        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Gerencie seu perfil e segurança</p>
       </div>
 
       {/* Profile Section */}
@@ -113,7 +113,7 @@ export function SettingsPage() {
             <User className="h-5 w-5" />
             Perfil
           </CardTitle>
-          <CardDescription>Informacoes da sua conta</CardDescription>
+          <CardDescription>Informações da sua conta</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -126,7 +126,7 @@ export function SettingsPage() {
                 <Mail className="h-4 w-4 shrink-0" />
                 <span>{user?.email}</span>
               </div>
-              <p className="mt-1 text-xs text-[var(--color-text-secondary)]">O email nao pode ser alterado</p>
+              <p className="mt-1 text-xs text-[var(--color-text-secondary)]">O email não pode ser alterado</p>
             </div>
 
             <Input
@@ -160,7 +160,7 @@ export function SettingsPage() {
             <div className="flex justify-end pt-2">
               <Button type="submit" variant="primary" disabled={savingProfile}>
                 <Save className="mr-2 h-4 w-4" />
-                {savingProfile ? 'Salvando...' : 'Salvar alteracoes'}
+                {savingProfile ? 'Salvando...' : 'Salvar alterações'}
               </Button>
             </div>
           </form>

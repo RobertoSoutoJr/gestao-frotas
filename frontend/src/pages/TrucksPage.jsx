@@ -432,8 +432,8 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
                       <img src={truck.foto_url} alt={truck.placa} className="h-full w-full object-cover" />
                     </div>
                   ) : (
-                    <div className="flex h-20 sm:h-28 w-full items-center justify-center bg-[var(--color-surface)]">
-                      <Truck className="h-12 w-12 text-[var(--color-text-secondary)]" />
+                    <div className="flex h-16 sm:h-20 w-full items-center justify-center bg-[var(--color-surface)]">
+                      <Truck className="h-8 w-8 text-[var(--color-text-secondary)] opacity-40" />
                     </div>
                   )}
                   <div className="px-6 pt-6 pb-2">

@@ -11,14 +11,14 @@ const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['admin', 'motorista'] },
   { id: 'trips', label: 'Viagens', icon: Route, path: '/trips', roles: ['admin', 'motorista'] },
   { id: 'fuel', label: 'Abastecimento', icon: Fuel, path: '/fuel', roles: ['admin', 'motorista'] },
-  { id: 'maintenance', label: 'Manutencao', icon: Wrench, path: '/maintenance', roles: ['admin'] },
+  { id: 'maintenance', label: 'Manutenção', icon: Wrench, path: '/maintenance', roles: ['admin'] },
   {
     id: 'cadastros',
     label: 'Cadastros',
     icon: FolderOpen,
     roles: ['admin'],
     children: [
-      { id: 'trucks', label: 'Caminhoes', icon: Truck, path: '/trucks' },
+      { id: 'trucks', label: 'Caminhões', icon: Truck, path: '/trucks' },
       { id: 'drivers', label: 'Motoristas', icon: Users, path: '/drivers' },
       { id: 'clients', label: 'Clientes', icon: Building2, path: '/clients' },
       { id: 'suppliers', label: 'Fornecedores', icon: Factory, path: '/suppliers' },
@@ -27,7 +27,7 @@ const MENU_ITEMS = [
     ],
   },
   { id: 'stock', label: 'Estoque', icon: Warehouse, path: '/stock', roles: ['admin'] },
-  { id: 'reports', label: 'Relatorios', icon: BarChart3, path: '/reports', roles: ['admin'] },
+  { id: 'reports', label: 'Relatórios', icon: BarChart3, path: '/reports', roles: ['admin'] },
   { id: 'audit', label: 'Auditoria', icon: ClipboardList, path: '/audit', roles: ['admin'] },
 ];
 

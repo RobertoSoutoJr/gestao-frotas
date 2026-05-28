@@ -20,14 +20,14 @@ import {
 const COLORS = ['#5E6AD2', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 const REPORT_TABS = [
-  { id: 'all', label: 'Visao Geral', icon: BarChart3, sections: null }, // null = show all visible
+  { id: 'all', label: 'Visão Geral', icon: BarChart3, sections: null }, // null = show all visible
   { id: 'dre', label: 'DRE', icon: Receipt, sections: ['filters', 'dre'] },
-  { id: 'fuel', label: 'Combustivel', icon: FuelIcon, sections: ['filters', 'summary_cards', 'fuel_table', 'chart_costs', 'chart_distribution'] },
-  { id: 'maintenance', label: 'Manutencao', icon: Wrench, sections: ['filters', 'maintenance_table'] },
+  { id: 'fuel', label: 'Combustível', icon: FuelIcon, sections: ['filters', 'summary_cards', 'fuel_table', 'chart_costs', 'chart_distribution'] },
+  { id: 'maintenance', label: 'Manutenção', icon: Wrench, sections: ['filters', 'maintenance_table'] },
   { id: 'trucks', label: 'Frota', icon: Truck, sections: ['filters', 'truck_detail', 'cost_per_km', 'chart_costs'] },
   { id: 'drivers', label: 'Motoristas', icon: Users, sections: ['filters', 'driver_detail', 'profitability_ranking'] },
   { id: 'clients', label: 'Clientes', icon: Building2, sections: ['filters', 'client_profitability'] },
-  { id: 'projections', label: 'Projecoes', icon: TrendingUp, sections: ['filters', 'chart_monthly', 'spend_projection'] },
+  { id: 'projections', label: 'Projeções', icon: TrendingUp, sections: ['filters', 'chart_monthly', 'spend_projection'] },
 ];
 
 const REPORT_SECTIONS = [
@@ -442,7 +442,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
         { label: 'DESPESAS OPERACIONAIS (VIAGENS)', value: null, isHeader: true },
         { label: 'Combustivel', value: -d.custoCombustivel, color: 'text-red-400', indent: true },
         { label: 'Pedagio', value: -d.custoPedagio, color: 'text-red-400', indent: true },
-        { label: 'Manutencao', value: -d.custoManutencao, color: 'text-red-400', indent: true },
+        { label: 'Manutenção', value: -d.custoManutencao, color: 'text-red-400', indent: true },
         { label: 'Outros', value: -d.custoOutros, color: 'text-red-400', indent: true },
         { label: 'Subtotal viagens', value: -d.despesasViagens, color: 'text-red-400', isBold: true, indent: true },
         { label: 'DESPESAS GERAIS (FROTA)', value: null, isHeader: true },
@@ -1005,7 +1005,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                        <Wrench className="h-4 w-4" /> Manutencao ({stat.maintenanceCount} reg.)
+                        <Wrench className="h-4 w-4" /> Manutenção ({stat.maintenanceCount} reg.)
                       </span>
                       <span className="font-semibold text-red-400 tabular-nums">{formatCurrency(stat.totalMaintenance)}</span>
                     </div>

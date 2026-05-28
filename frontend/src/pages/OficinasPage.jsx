@@ -169,7 +169,7 @@ export function OficinasPage({ oficinas, onRefetch }) {
 
       {showCreate && <OficinaFormModal isOpen onClose={() => setShowCreate(false)} onSuccess={() => { onRefetch?.(); setShowCreate(false); }} />}
       {editing && <OficinaFormModal oficina={editing} isEdit isOpen onClose={() => setEditing(null)} onSuccess={onRefetch} />}
-      <ConfirmDialog isOpen={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Excluir Oficina" description={`Excluir "${deleting?.nome}"? Manutencoes vinculadas perderao a referencia.`} confirmText="Excluir" cancelText="Cancelar" variant="danger" isLoading={deleteLoading} />
+      <ConfirmDialog isOpen={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Excluir Oficina" description={`Excluir "${deleting?.nome}"? Manutenções vinculadas perderão a referência.`} confirmText="Excluir" cancelText="Cancelar" variant="danger" isLoading={deleteLoading} />
     </div>
   );
 }

@@ -6,8 +6,8 @@ import logoDark from '../assets/images/logoFuelTrack_black-removebg.png';
 const FEATURES = [
   {
     icon: Truck,
-    title: 'Gestao de Frota',
-    description: 'Controle caminhoes, motoristas, abastecimentos e manutencoes em um so lugar.',
+    title: 'Gestão de Frota',
+    description: 'Controle caminhões, motoristas, abastecimentos e manutenções em um só lugar.',
   },
   {
     icon: Route,
@@ -16,49 +16,49 @@ const FEATURES = [
   },
   {
     icon: BarChart3,
-    title: 'Relatorios e DRE',
-    description: 'Fluxo de caixa, rentabilidade por cliente, custo por km e exportacao em PDF/Excel.',
+    title: 'Relatórios e DRE',
+    description: 'Fluxo de caixa, rentabilidade por cliente, custo por km e exportação em PDF/Excel.',
   },
   {
     icon: Shield,
-    title: 'Alertas Automaticos',
-    description: 'Notificacoes de CNH vencendo, licenciamento, revisao por km e consumo anomalo.',
+    title: 'Alertas Automáticos',
+    description: 'Notificações de CNH vencendo, licenciamento, revisão por km e consumo anômalo.',
   },
   {
     icon: Smartphone,
-    title: 'App Instalavel (PWA)',
+    title: 'App Instalável (PWA)',
     description: 'Funciona no celular como app nativo, com captura GPS offline em fazendas sem internet.',
   },
   {
     icon: Fuel,
     title: 'Controle Financeiro',
-    description: 'Estoque com pagamento parcial, cheques, e dashboard com visao completa do negocio.',
+    description: 'Estoque com pagamento parcial, cheques, e dashboard com visão completa do negócio.',
   },
 ];
 
 const PLANS = [
   {
     name: 'Starter',
-    price: 'Gratis',
+    price: 'Grátis',
     period: '',
-    description: 'Para quem esta comecando',
-    features: ['Ate 5 caminhoes', 'Dashboard completo', 'Relatorios basicos', 'App PWA'],
+    description: 'Para quem está começando',
+    features: ['Até 5 caminhões', 'Dashboard completo', 'Relatórios básicos', 'App PWA'],
     highlight: false,
   },
   {
     name: 'Pro',
     price: 'R$ 97',
-    period: '/mes',
+    period: '/mês',
     description: 'Para frotas em crescimento',
-    features: ['Caminhoes ilimitados', 'Rotas com GPS', 'Alertas push', 'Exportacao PDF/Excel', 'Contas de motorista', 'Suporte prioritario'],
+    features: ['Caminhões ilimitados', 'Rotas com GPS', 'Alertas push', 'Exportação PDF/Excel', 'Contas de motorista', 'Suporte prioritário'],
     highlight: true,
   },
   {
     name: 'Enterprise',
     price: 'Sob consulta',
     period: '',
-    description: 'Para grandes operacoes',
-    features: ['Tudo do Pro', 'API para integracoes', 'Multi-empresa', 'SLA dedicado', 'Implantacao assistida'],
+    description: 'Para grandes operações',
+    features: ['Tudo do Pro', 'API para integrações', 'Multi-empresa', 'SLA dedicado', 'Implantação assistida'],
     highlight: false,
   },
 ];
@@ -103,14 +103,14 @@ export function LandingPage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-3xl mx-auto">
-            Gestao de frotas{' '}
+            Gestão de frotas{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5E6AD2] to-[#8B5CF6]">
               simples e inteligente
             </span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">
-            Controle sua frota de caminhoes, viagens, abastecimentos e financeiro em um unico sistema.
+            Controle sua frota de caminhões, viagens, abastecimentos e financeiro em um único sistema.
             Feito para transportadoras que querem crescer.
           </p>
 
@@ -119,19 +119,19 @@ export function LandingPage() {
               onClick={() => navigate('/auth?register=1')}
               className="group flex items-center gap-2 px-8 py-3.5 text-base font-semibold bg-[#5E6AD2] hover:bg-[#4F5BC3] text-white rounded-xl transition-all shadow-lg shadow-[#5E6AD2]/25 hover:shadow-[#5E6AD2]/40"
             >
-              Comece gratis agora
+              Comece grátis agora
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button
               onClick={() => navigate('/auth')}
               className="px-8 py-3.5 text-base font-medium text-white/70 hover:text-white border border-white/10 hover:border-white/20 rounded-xl transition-all"
             >
-              Ja tenho conta
+              Já tenho conta
             </button>
           </div>
 
           <p className="mt-6 text-sm text-white/30">
-            Sem cartao de credito. Comece em 30 segundos.
+            Sem cartão de crédito. Comece em 30 segundos.
           </p>
         </div>
       </section>
@@ -141,11 +141,11 @@ export function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Tudo que voce precisa para{' '}
+              Tudo que você precisa para{' '}
               <span className="text-[#5E6AD2]">gerenciar sua frota</span>
             </h2>
             <p className="mt-4 text-lg text-white/40 max-w-xl mx-auto">
-              Do abastecimento ao relatorio financeiro, numa unica plataforma.
+              Do abastecimento ao relatório financeiro, numa única plataforma.
             </p>
           </div>
 
@@ -174,10 +174,10 @@ export function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Planos para cada tamanho de <span className="text-[#5E6AD2]">operacao</span>
+              Planos para cada tamanho de <span className="text-[#5E6AD2]">operação</span>
             </h2>
             <p className="mt-4 text-lg text-white/40">
-              Comece gratis, escale quando precisar.
+              Comece grátis, escale quando precisar.
             </p>
           </div>
 
@@ -218,7 +218,7 @@ export function LandingPage() {
                       : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
                   }`}
                 >
-                  {plan.price === 'Sob consulta' ? 'Fale conosco' : 'Comecar agora'}
+                  {plan.price === 'Sob consulta' ? 'Fale conosco' : 'Começar agora'}
                 </button>
               </div>
             ))}
@@ -233,7 +233,7 @@ export function LandingPage() {
             <img src={logoDark} alt="FuelTrack" className="h-9 w-auto" />
           </div>
           <p className="text-sm text-white/30">
-            Gestao de frotas inteligente para transportadoras.
+            Gestão de frotas inteligente para transportadoras.
           </p>
         </div>
       </footer>

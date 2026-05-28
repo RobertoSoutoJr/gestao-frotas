@@ -123,7 +123,7 @@ export function Header({ searchData }) {
                           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--color-text-secondary)] transition-all hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] cursor-pointer"
                         >
                           <Settings className="h-4 w-4" />
-                          Configuracoes
+                          Configurações
                         </button>
                         <button
                           onClick={handleLogout}
@@ -176,7 +176,7 @@ export function Header({ searchData }) {
                             className="flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3 min-h-[44px] text-sm font-medium text-[var(--color-text)] bg-[var(--color-surface)] transition-all hover:bg-[var(--color-surface-hover)] cursor-pointer"
                           >
                             <Settings className="h-5 w-5" />
-                            Configuracoes
+                            Configurações
                           </button>
                           <button
                             onClick={handleLogout}

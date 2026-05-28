@@ -4,7 +4,7 @@ const variants = {
   primary: 'bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] shadow-[0_0_0_1px_var(--color-border),0_4px_16px_rgba(94,106,210,0.35)] active:scale-[0.98]',
   default: 'bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] shadow-[0_0_0_1px_var(--color-border)]',
   success: 'bg-emerald-600 text-white hover:bg-emerald-500 active:scale-[0.98]',
-  danger:  'bg-red-600 text-white hover:bg-red-500 active:scale-[0.98]',
+  danger:  'border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 active:scale-[0.98]',
   outline: 'border border-[var(--color-border)] bg-transparent text-[var(--color-text)] hover:bg-[var(--color-surface)]',
   ghost:   'bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
 };

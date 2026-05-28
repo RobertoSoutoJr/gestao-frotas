@@ -13,10 +13,10 @@ import { auditService } from '../services/audit';
 import { formatDate } from '../lib/utils';
 
 const ENTITY_LABELS = {
-  caminhao: 'Caminhao',
+  caminhao: 'Caminhão',
   motorista: 'Motorista',
   abastecimento: 'Abastecimento',
-  manutencao: 'Manutencao',
+  manutencao: 'Manutenção',
   viagem: 'Viagem',
 };
 
@@ -95,7 +95,7 @@ export function AuditPage() {
         <div>
           <h1 className="text-2xl font-bold text-[var(--color-text)]">Auditoria</h1>
           <p className="text-sm text-[var(--color-text-secondary)]">
-            Historico de acoes no sistema ({total} registros)
+            Histórico de ações no sistema ({total} registros)
           </p>
         </div>
       </div>
@@ -111,16 +111,16 @@ export function AuditPage() {
               onChange={handleFilterChange}
             >
               <option value="">Todas</option>
-              <option value="caminhao">Caminhao</option>
+              <option value="caminhao">Caminhão</option>
               <option value="motorista">Motorista</option>
               <option value="abastecimento">Abastecimento</option>
-              <option value="manutencao">Manutencao</option>
+              <option value="manutencao">Manutenção</option>
               <option value="viagem">Viagem</option>
             </Select>
 
             <Select
               name="acao"
-              label="Acao"
+              label="Ação"
               value={filters.acao}
               onChange={handleFilterChange}
             >
@@ -155,7 +155,7 @@ export function AuditPage() {
         <EmptyState
           icon={Search}
           title="Nenhum registro encontrado"
-          description="Nenhuma acao registrada com os filtros selecionados."
+          description="Nenhuma ação registrada com os filtros selecionados."
         />
       ) : (
         <Card>

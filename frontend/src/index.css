@@ -312,6 +312,29 @@ html:not(.dark) select {
   filter: invert(0.6);
 }
 
+/* ── Table row hover effect ── */
+.dark tbody tr {
+  transition: background-color 0.15s ease;
+}
+.dark tbody tr:hover {
+  background-color: rgba(255,255,255,0.03);
+}
+html:not(.dark) tbody tr {
+  transition: background-color 0.15s ease;
+}
+html:not(.dark) tbody tr:hover {
+  background-color: rgba(0,0,0,0.02);
+}
+
+/* ── Card hover lift ── */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--color-shadow);
+}
+
 /* ── Prefers reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

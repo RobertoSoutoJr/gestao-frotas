@@ -367,9 +367,9 @@ function TripForm({ trucks, drivers, clients, suppliers, stockItems, onSuccess }
           <DollarSign className="h-4 w-4 text-red-400" /> Despesas da Viagem (Opcional)
         </h3>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <Input name="custo_combustivel" label="Combustivel (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_combustivel} onChange={handleChange} />
-          <Input name="custo_pedagio" label="Pedagio (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_pedagio} onChange={handleChange} />
-          <Input name="custo_manutencao" label="Manutencao (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_manutencao} onChange={handleChange} />
+          <Input name="custo_combustivel" label="Combustível (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_combustivel} onChange={handleChange} />
+          <Input name="custo_pedagio" label="Pedágio (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_pedagio} onChange={handleChange} />
+          <Input name="custo_manutencao" label="Manutenção (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_manutencao} onChange={handleChange} />
           <Input name="custo_outros" label="Outros (R$)" type="number" step="0.01" placeholder="0,00" value={formData.custo_outros} onChange={handleChange} />
         </div>
       </div>
@@ -461,9 +461,9 @@ function FinalizeModal({ trip, isOpen, onClose, onSuccess }) {
         <div>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Despesas da Viagem</h3>
           <div className="grid grid-cols-2 gap-3">
-            <Input name="custo_combustivel" label="Combustivel (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_combustivel} onChange={handleCustoChange} />
-            <Input name="custo_pedagio" label="Pedagio (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_pedagio} onChange={handleCustoChange} />
-            <Input name="custo_manutencao" label="Manutencao (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_manutencao} onChange={handleCustoChange} />
+            <Input name="custo_combustivel" label="Combustível (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_combustivel} onChange={handleCustoChange} />
+            <Input name="custo_pedagio" label="Pedágio (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_pedagio} onChange={handleCustoChange} />
+            <Input name="custo_manutencao" label="Manutenção (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_manutencao} onChange={handleCustoChange} />
             <Input name="custo_outros" label="Outros (R$)" type="number" step="0.01" placeholder="0,00" value={custos.custo_outros} onChange={handleCustoChange} />
           </div>
         </div>
