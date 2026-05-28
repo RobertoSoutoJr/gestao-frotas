@@ -68,8 +68,8 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#0C0C0E] text-white">
-      {/* Nav */}
-      <nav className="border-b border-white/5 bg-[#0C0C0E]/80 backdrop-blur-xl sticky top-0 z-50">
+      {/* Nav — solid bg, no blur */}
+      <nav className="border-b border-white/5 bg-[#0C0C0E] sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
             <img src={logoDark} alt="FuelTrack" className="h-20 w-auto" />
@@ -83,7 +83,7 @@ export function LandingPage() {
             </button>
             <button
               onClick={() => navigate('/auth?register=1')}
-              className="px-5 py-2 text-sm font-medium bg-[#D97706] hover:bg-[#B45309] text-white rounded-xl transition-colors"
+              className="px-5 py-2 text-sm font-medium bg-[#D97706] hover:bg-[#B45309] text-white rounded-lg transition-colors"
             >
               Criar conta grátis
             </button>
@@ -91,22 +91,16 @@ export function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#D97706]/8 via-transparent to-transparent" />
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(217,119,6,0.12) 0%, transparent 60%)' }} />
-
-        <div className="relative container mx-auto px-4 pt-20 pb-24 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#D97706]/20 bg-[#D97706]/10 px-4 py-1.5 text-xs font-medium text-[#D97706] mb-8">
-            <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D97706] opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-[#D97706]"></span></span>
+      {/* Hero — clean, no gradient blobs */}
+      <section className="relative">
+        <div className="container mx-auto px-4 pt-20 pb-24 text-center">
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-[#D97706] mb-8">
             Novo: Rotas reais com GPS offline
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-3xl mx-auto">
             Gestão de frotas{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97706] to-[#F59E0B]">
-              simples e inteligente
-            </span>
+            <span className="text-[#D97706]">simples e inteligente</span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">
@@ -117,29 +111,25 @@ export function LandingPage() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => navigate('/auth?register=1')}
-              className="group flex items-center gap-2 px-8 py-3.5 text-base font-semibold bg-[#D97706] hover:bg-[#B45309] text-white rounded-xl transition-all shadow-lg shadow-[#D97706]/25 hover:shadow-[#D97706]/40"
+              className="group flex items-center gap-2 px-8 py-3.5 text-base font-semibold bg-[#D97706] hover:bg-[#B45309] text-white rounded-lg transition-colors"
             >
               Comece grátis agora
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button
               onClick={() => navigate('/auth')}
-              className="px-8 py-3.5 text-base font-medium text-white/70 hover:text-white border border-white/10 hover:border-white/20 rounded-xl transition-all"
+              className="px-8 py-3.5 text-base font-medium text-white/70 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-colors"
             >
               Já tenho conta
             </button>
           </div>
-
-          <p className="mt-6 text-sm text-white/30">
-            Sem cartão de crédito. Comece em 30 segundos.
-          </p>
         </div>
       </section>
 
-      {/* Features */}
+      {/* Features — alternating 2-col layout instead of 3x3 grid */}
       <section className="py-20 border-t border-white/5">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-14">
+          <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
               Tudo que você precisa para{' '}
               <span className="text-[#D97706]">gerenciar sua frota</span>
@@ -149,19 +139,20 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="max-w-3xl mx-auto space-y-10">
             {FEATURES.map((feature, i) => {
               const Icon = feature.icon;
+              const isEven = i % 2 === 0;
               return (
                 <div
                   key={i}
-                  className="group rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10 p-6 transition-all duration-300"
+                  className={`flex items-start gap-5 ${isEven ? '' : 'flex-row-reverse text-right'}`}
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#D97706]/10 border border-[#D97706]/20 mb-4 group-hover:bg-[#D97706]/15 transition-colors">
-                    <Icon className="h-5 w-5 text-[#D97706]" />
+                  <Icon className="h-6 w-6 text-[#D97706] shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-base font-semibold text-white">{feature.title}</h3>
+                    <p className="mt-1 text-sm text-white/40 leading-relaxed">{feature.description}</p>
                   </div>
-                  <h3 className="text-base font-semibold text-white mb-2">{feature.title}</h3>
-                  <p className="text-sm text-white/40 leading-relaxed">{feature.description}</p>
                 </div>
               );
             })}
@@ -169,7 +160,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* Pricing — no scale, no colored shadow */}
       <section className="py-20 border-t border-white/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
@@ -185,9 +176,9 @@ export function LandingPage() {
             {PLANS.map((plan, i) => (
               <div
                 key={i}
-                className={`rounded-2xl p-6 transition-all duration-300 ${
+                className={`rounded-xl p-6 transition-colors ${
                   plan.highlight
-                    ? 'border-2 border-[#D97706] bg-[#D97706]/5 shadow-lg shadow-[#D97706]/10 scale-[1.02]'
+                    ? 'border-2 border-[#D97706] bg-[#D97706]/5'
                     : 'border border-white/5 bg-white/[0.02] hover:border-white/10'
                 }`}
               >
@@ -212,7 +203,7 @@ export function LandingPage() {
                 </ul>
                 <button
                   onClick={() => navigate('/auth?register=1')}
-                  className={`mt-6 w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  className={`mt-6 w-full py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                     plan.highlight
                       ? 'bg-[#D97706] hover:bg-[#B45309] text-white'
                       : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
@@ -228,12 +219,13 @@ export function LandingPage() {
 
       {/* Footer */}
       <footer className="py-10 border-t border-white/5">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center mb-4">
-            <img src={logoDark} alt="FuelTrack" className="h-9 w-auto" />
-          </div>
+        <div className="container mx-auto px-4 flex flex-col items-center gap-4">
+          <img src={logoDark} alt="FuelTrack" className="h-9 w-auto" />
           <p className="text-sm text-white/30">
             Gestão de frotas inteligente para transportadoras.
+          </p>
+          <p className="text-xs text-white/20">
+            © {new Date().getFullYear()} FuelTrack. Todos os direitos reservados.
           </p>
         </div>
       </footer>

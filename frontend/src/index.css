@@ -19,10 +19,9 @@
   --color-text:           #E8E8EB;
   --color-text-secondary: #85878F;
   --color-text-muted:     rgba(255,255,255,0.50);
+  --color-text-tertiary:  rgba(255,255,255,0.30);
   --color-accent:         #D97706;
   --color-accent-hover:   #E58A0A;
-  --color-card-from:      rgba(255,255,255,0.04);
-  --color-card-to:        rgba(255,255,255,0.01);
   --color-input-bg:       #111114;
   --color-overlay:        rgba(0,0,0,0.65);
   --color-shadow:         rgba(0,0,0,0.5);
@@ -40,10 +39,9 @@ html:not(.dark) {
   --color-text:           #1C1C1E;
   --color-text-secondary: #6B6E76;
   --color-text-muted:     rgba(0,0,0,0.45);
+  --color-text-tertiary:  rgba(0,0,0,0.30);
   --color-accent:         #B45309;
   --color-accent-hover:   #D97706;
-  --color-card-from:      rgba(255,255,255,0.90);
-  --color-card-to:        rgba(255,255,255,0.70);
   --color-input-bg:       #FFFFFF;
   --color-overlay:        rgba(0,0,0,0.25);
   --color-shadow:         rgba(0,0,0,0.06);

@@ -95,7 +95,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', warnUnsav
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-[var(--color-overlay)] backdrop-blur-md" aria-hidden="true" />
+      <div className="absolute inset-0 bg-[var(--color-overlay)] backdrop-blur-sm" aria-hidden="true" />
 
       {/* Modal box */}
       <div

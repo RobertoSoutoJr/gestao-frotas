@@ -805,16 +805,23 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
                       </div>
                     </div>
 
-                    <div className="flex flex-row flex-wrap gap-2 sm:ml-4 sm:flex-col sm:shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1.5 sm:ml-4 sm:shrink-0" onClick={(e) => e.stopPropagation()}>
                       <DocumentGallery entidadeTipo="viagem" entidadeId={trip.id} compact quickUploadType="Ticket Peso" quickUploadLabel="Foto Peso" quickUploadIcon={Scale} />
                       {trip.status === 'cadastrada' && (
                         <>
-                          <Button variant="success" size="sm" onClick={() => setFinalizingTrip(trip)}>
-                            <CheckCircle className="mr-2 h-4 w-4" /> Finalizar
-                          </Button>
-                          <Button variant="danger" size="sm" onClick={() => setDeletingTrip(trip)}>
-                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                          </Button>
+                          <button
+                            onClick={() => setFinalizingTrip(trip)}
+                            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                          >
+                            <CheckCircle className="h-3.5 w-3.5" /> Finalizar
+                          </button>
+                          <button
+                            onClick={() => setDeletingTrip(trip)}
+                            className="p-1.5 rounded-lg text-[var(--color-text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </>
                       )}
                     </div>
