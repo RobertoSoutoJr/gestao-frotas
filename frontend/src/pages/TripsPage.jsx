@@ -10,8 +10,11 @@ import { Select } from '../components/ui/Select';
 import { Badge } from '../components/ui/Badge';
 import {
   Route, MapPin, Truck, Users, Package, DollarSign, CheckCircle,
-  Edit2, Trash2, Search, Filter, ArrowRight, Calendar, Map, Scale
+  Edit2, Trash2, Search, Filter, ArrowRight, Calendar, Map, Scale,
+  LayoutList, Columns3
 } from 'lucide-react';
+import { TripKanbanView } from '../components/ui/TripKanbanView';
+import { TripDetailPanel } from '../components/ui/TripDetailPanel';
 import { MapView } from '../components/ui/MapView';
 import { DocumentGallery } from '../components/ui/DocumentGallery';
 import { GPSCapture } from '../components/ui/GPSCapture';
@@ -537,6 +540,8 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [expandedTripId, setExpandedTripId] = useState(null);
+  const [viewMode, setViewMode] = useState('board');
+  const [detailTrip, setDetailTrip] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -685,6 +690,29 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
             Viagens ({filteredTrips.length} de {trips.length})
           </h2>
           <div className="flex gap-2">
+            {/* View toggle */}
+            <div className="flex rounded-lg border border-[var(--color-border)] overflow-hidden">
+              <button
+                onClick={() => setViewMode('board')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                  viewMode === 'board'
+                    ? 'bg-[var(--color-accent)] text-white'
+                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]'
+                }`}
+              >
+                <Columns3 className="h-3.5 w-3.5" /> Board
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                  viewMode === 'list'
+                    ? 'bg-[var(--color-accent)] text-white'
+                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]'
+                }`}
+              >
+                <LayoutList className="h-3.5 w-3.5" /> Lista
+              </button>
+            </div>
             <Button variant="outline" size="sm" onClick={() => setShowMap(!showMap)}>
               <Map className="mr-2 h-4 w-4" />
               {showMap ? 'Ocultar Mapa' : 'Mapa'}
@@ -730,7 +758,25 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
           </Card>
         )}
 
-        {trips.length === 0 ? (
+        {/* Board View */}
+        {viewMode === 'board' && trips.length > 0 && (
+          <TripKanbanView
+            trips={filteredTrips}
+            onTripClick={(trip) => setDetailTrip(trip)}
+            onFinalize={(trip) => setFinalizingTrip(trip)}
+          />
+        )}
+
+        {/* List View (original) */}
+        {viewMode === 'board' && trips.length === 0 && (
+          <Card>
+            <CardContent className="py-12">
+              <EmptyState icon={Route} title="Nenhuma viagem cadastrada" description="Cadastre a primeira viagem para começar o controle de fretes" />
+            </CardContent>
+          </Card>
+        )}
+
+        {viewMode === 'list' && (trips.length === 0 ? (
           <Card>
             <CardContent className="py-12">
               <EmptyState icon={Route} title="Nenhuma viagem cadastrada" description="Cadastre a primeira viagem para começar o controle de fretes" />
@@ -897,8 +943,19 @@ export function TripsPage({ trucks, drivers, onRefetch }) {
             })}
             <Pagination {...pagination} />
           </div>
-        )}
+        ))}
       </div>
+
+      {/* Trip Detail Panel (Board view) */}
+      <TripDetailPanel
+        trip={detailTrip}
+        isOpen={!!detailTrip}
+        onClose={() => setDetailTrip(null)}
+        onFinalize={(trip) => { setDetailTrip(null); setFinalizingTrip(trip); }}
+        onDelete={(trip) => { setDetailTrip(null); setDeletingTrip(trip); }}
+        onRefetch={handleRefetch}
+        formasPagamento={FORMAS_PAGAMENTO}
+      />
 
       {/* Modal: Cadastrar Viagem */}
       <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Cadastrar Nova Viagem" size="xl" warnUnsaved>
