@@ -101,7 +101,7 @@ const CHART_COLORS = {
 };
 
 const DASHBOARD_SECTIONS = [
-  { id: 'alerts', label: 'Alertas Inteligentes', description: 'Documentos, manutencao, consumo e pagamentos', icon: Bell },
+  { id: 'alerts', label: 'Alertas Inteligentes', description: 'Documentos, manutenção, consumo e pagamentos', icon: Bell },
   { id: 'kpis', label: 'Indicadores de Performance', description: 'Custo/km, km/litro, disponibilidade, tendências', icon: Activity },
   { id: 'main_stats', label: 'Estatísticas Principais', description: 'Caminhões, motoristas, gastos e KM', icon: Gauge },
   { id: 'operations', label: 'Operações', description: 'Clientes, fornecedores, viagens e estoque', icon: Route },
@@ -599,8 +599,8 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
               color={stats.fleetAvailability >= 80 ? '#10B981' : stats.fleetAvailability >= 50 ? '#F59E0B' : '#EF4444'}
               trend={null}
               trendLabel={stats.trucksInMaintenance > 0
-                ? `${stats.trucksInMaintenance} em manutencao`
-                : 'Nenhum em manutencao'}
+                ? `${stats.trucksInMaintenance} em manutenção`
+                : 'Nenhum em manutenção'}
             />
             <KpiCard
               title="Custo / Saca"

@@ -440,17 +440,17 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
         { label: 'RECEITAS', value: null, isHeader: true },
         { label: 'Frete de viagens', value: d.receita, color: 'text-emerald-400', indent: true, detail: `${d.totalViagens} viagen${d.totalViagens !== 1 ? 's' : ''} finalizadas` },
         { label: 'DESPESAS OPERACIONAIS (VIAGENS)', value: null, isHeader: true },
-        { label: 'Combustivel', value: -d.custoCombustivel, color: 'text-red-400', indent: true },
-        { label: 'Pedagio', value: -d.custoPedagio, color: 'text-red-400', indent: true },
+        { label: 'Combustível', value: -d.custoCombustivel, color: 'text-red-400', indent: true },
+        { label: 'Pedágio', value: -d.custoPedagio, color: 'text-red-400', indent: true },
         { label: 'Manutenção', value: -d.custoManutencao, color: 'text-red-400', indent: true },
         { label: 'Outros', value: -d.custoOutros, color: 'text-red-400', indent: true },
         { label: 'Subtotal viagens', value: -d.despesasViagens, color: 'text-red-400', isBold: true, indent: true },
         { label: 'DESPESAS GERAIS (FROTA)', value: null, isHeader: true },
         { label: 'Abastecimentos', value: -d.despesasCombGeral, color: 'text-amber-400', indent: true },
-        { label: 'Manutencoes', value: -d.despesasManGeral, color: 'text-red-400', indent: true },
+        { label: 'Manutenções', value: -d.despesasManGeral, color: 'text-red-400', indent: true },
         { label: 'Subtotal frota', value: -d.despesasGerais, color: 'text-red-400', isBold: true, indent: true },
         { label: 'RESULTADO', value: null, isHeader: true, isResult: true },
-        { label: 'Lucro / Prejuizo', value: d.lucro, color: d.lucro >= 0 ? 'text-emerald-400' : 'text-red-400', isBold: true, isResult: true },
+        { label: 'Lucro / Prejuízo', value: d.lucro, color: d.lucro >= 0 ? 'text-emerald-400' : 'text-red-400', isBold: true, isResult: true },
       ];
 
       return (
@@ -523,7 +523,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
           {d.monthlyDre.length > 1 && (
             <Card>
               <CardHeader>
-                <CardTitle>Evolucao Receita vs Despesas</CardTitle>
+                <CardTitle>Evolução Receita vs Despesas</CardTitle>
                 <CardDescription>Resultado mensal ao longo do tempo</CardDescription>
               </CardHeader>
               <CardContent>
@@ -909,7 +909,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                     <thead>
                       <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
                         <th className="px-4 py-3 text-left font-medium">#</th>
-                        <th className="px-4 py-3 text-left font-medium">Caminhao</th>
+                        <th className="px-4 py-3 text-left font-medium">Caminhão</th>
                         <th className="px-4 py-3 text-right font-medium">km/l</th>
                         <th className="px-4 py-3 text-right font-medium">Custo/km</th>
                         <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Viagens</th>
@@ -999,7 +999,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                        <FuelIcon className="h-4 w-4" /> Combustivel ({stat.fuelRecordsCount} reg.)
+                        <FuelIcon className="h-4 w-4" /> Combustível ({stat.fuelRecordsCount} reg.)
                       </span>
                       <span className="font-semibold text-amber-400 tabular-nums">{formatCurrency(stat.totalFuel)}</span>
                     </div>
@@ -1438,30 +1438,30 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                     <FileText className="h-3.5 w-3.5 text-red-400" /> DRE Simplificado
                   </button>
                   <button onClick={() => exportTruckReportToPDF(stats)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileText className="h-3.5 w-3.5 text-red-400" /> Relatorio Caminhoes
+                    <FileText className="h-3.5 w-3.5 text-red-400" /> Relatório Caminhões
                   </button>
                   <button onClick={() => exportDriverReportToPDF(driverStats)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileText className="h-3.5 w-3.5 text-red-400" /> Relatorio Motoristas
+                    <FileText className="h-3.5 w-3.5 text-red-400" /> Relatório Motoristas
                   </button>
                   <button onClick={() => exportFuelTableToPDF(filteredData.filteredFuel, trucks)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
                     <FileText className="h-3.5 w-3.5 text-red-400" /> Abastecimentos
                   </button>
                   <button onClick={() => exportMaintenanceTableToPDF(filteredData.filteredMaintenance, trucks)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileText className="h-3.5 w-3.5 text-red-400" /> Manutencoes
+                    <FileText className="h-3.5 w-3.5 text-red-400" /> Manutenções
                   </button>
                   <button onClick={() => exportFullReportToPDF(dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : '')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors font-medium">
-                    <FileText className="h-3.5 w-3.5 text-[#5E6AD2]" /> Relatorio Completo (PDF)
+                    <FileText className="h-3.5 w-3.5 text-[#5E6AD2]" /> Relatório Completo (PDF)
                   </button>
                   <div className="border-t border-[var(--color-border)] my-1" />
                   <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)] font-semibold">Excel</p>
                   <button onClick={() => exportFullReportToExcel(dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : '')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Relatorio Completo
+                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Relatório Completo
                   </button>
                   <button onClick={() => exportDREtoExcel(dreData, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : null)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
                     <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> DRE Simplificado
                   </button>
                   <button onClick={() => exportTruckReportToExcel(stats)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Caminhoes
+                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Caminhões
                   </button>
                   <button onClick={() => exportDriverReportToExcel(driverStats)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
                     <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Motoristas
@@ -1470,7 +1470,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                     <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Abastecimentos
                   </button>
                   <button onClick={() => exportMaintenanceTableToExcel(filteredData.filteredMaintenance, trucks)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Manutencoes
+                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Manutenções
                   </button>
                 </CardContent>
               </Card>

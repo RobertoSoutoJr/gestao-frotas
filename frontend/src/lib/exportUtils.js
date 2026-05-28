@@ -52,14 +52,14 @@ export function exportDREtoPDF(dreData, dateRange) {
     ['RECEITAS', '', true],
     ['  Frete de viagens', formatCurrencyPlain(dreData.receita)],
     ['DESPESAS OPERACIONAIS (VIAGENS)', '', true],
-    ['  Combustivel', formatCurrencyPlain(dreData.custoCombustivel)],
+    ['  Combustível', formatCurrencyPlain(dreData.custoCombustível)],
     ['  Pedagio', formatCurrencyPlain(dreData.custoPedagio)],
-    ['  Manutencao', formatCurrencyPlain(dreData.custoManutencao)],
+    ['  Manutenção', formatCurrencyPlain(dreData.custoManutenção)],
     ['  Outros', formatCurrencyPlain(dreData.custoOutros)],
     ['  Subtotal viagens', formatCurrencyPlain(dreData.despesasViagens)],
     ['DESPESAS GERAIS (FROTA)', '', true],
     ['  Abastecimentos', formatCurrencyPlain(dreData.despesasCombGeral)],
-    ['  Manutencoes', formatCurrencyPlain(dreData.despesasManGeral)],
+    ['  Manutenções', formatCurrencyPlain(dreData.despesasManGeral)],
     ['  Subtotal frota', formatCurrencyPlain(dreData.despesasGerais)],
     ['', ''],
     ['RESULTADO', formatCurrencyPlain(dreData.lucro)],
@@ -68,7 +68,7 @@ export function exportDREtoPDF(dreData, dateRange) {
 
   autoTable(doc, {
     startY: y,
-    head: [['Descricao', 'Valor']],
+    head: [['Descrição', 'Valor']],
     body: rows.map(r => [r[0], r[1]]),
     theme: 'grid',
     styles: { fontSize: 9, cellPadding: 3 },
@@ -91,9 +91,9 @@ export function exportDREtoPDF(dreData, dateRange) {
 
 export function exportTruckReportToPDF(stats) {
   const doc = new jsPDF('landscape');
-  let y = addHeader(doc, 'Relatorio por Caminhao');
+  let y = addHeader(doc, 'Relatório por Caminhão');
 
-  const head = [['Placa', 'Modelo', 'Combustivel', 'Manutencao', 'Total', 'Litros', 'km/l', 'Custo/km', 'Viagens', 'Receita', 'Lucro', 'Margem']];
+  const head = [['Placa', 'Modelo', 'Combustível', 'Manutenção', 'Total', 'Litros', 'km/l', 'Custo/km', 'Viagens', 'Receita', 'Lucro', 'Margem']];
   const body = stats.map(s => [
     s.truck.placa,
     s.truck.modelo || '-',
@@ -124,7 +124,7 @@ export function exportTruckReportToPDF(stats) {
 
 export function exportDriverReportToPDF(driverStats) {
   const doc = new jsPDF('landscape');
-  let y = addHeader(doc, 'Relatorio por Motorista');
+  let y = addHeader(doc, 'Relatório por Motorista');
 
   const head = [['Motorista', 'Viagens', 'Km Total', 'Km/Viagem', 'Litros', 'km/l', 'Receita', 'Custos', 'Lucro', 'Margem']];
   const body = driverStats.map(s => [
@@ -157,7 +157,7 @@ export function exportFuelTableToPDF(fuelRecords, trucks) {
   const doc = new jsPDF('landscape');
   let y = addHeader(doc, 'Abastecimentos Detalhados', `${fuelRecords.length} registros`);
 
-  const head = [['Data', 'Caminhao', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM']];
+  const head = [['Data', 'Caminhão', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM']];
   const body = fuelRecords
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .map(r => {
@@ -188,9 +188,9 @@ export function exportFuelTableToPDF(fuelRecords, trucks) {
 
 export function exportMaintenanceTableToPDF(maintenanceRecords, trucks) {
   const doc = new jsPDF('landscape');
-  let y = addHeader(doc, 'Manutencoes Detalhadas', `${maintenanceRecords.length} registros`);
+  let y = addHeader(doc, 'Manutenções Detalhadas', `${maintenanceRecords.length} registros`);
 
-  const head = [['Data', 'Caminhao', 'Tipo', 'Descricao', 'Oficina', 'Custo', 'KM']];
+  const head = [['Data', 'Caminhão', 'Tipo', 'Descrição', 'Oficina', 'Custo', 'KM']];
   const body = maintenanceRecords
     .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
     .map(r => {
@@ -245,19 +245,19 @@ export function exportDREtoExcel(dreData, dateRange) {
   const data = [
     ['DRE Simplificado — FuelTrack', '', dateRange || 'Periodo completo'],
     [],
-    ['Descricao', 'Valor'],
+    ['Descrição', 'Valor'],
     ['Receita — Frete de viagens', dreData.receita],
     [],
     ['Despesas Operacionais (Viagens)'],
-    ['Combustivel', dreData.custoCombustivel],
+    ['Combustível', dreData.custoCombustível],
     ['Pedagio', dreData.custoPedagio],
-    ['Manutencao', dreData.custoManutencao],
+    ['Manutenção', dreData.custoManutenção],
     ['Outros', dreData.custoOutros],
     ['Subtotal viagens', dreData.despesasViagens],
     [],
     ['Despesas Gerais (Frota)'],
     ['Abastecimentos', dreData.despesasCombGeral],
-    ['Manutencoes', dreData.despesasManGeral],
+    ['Manutenções', dreData.despesasManGeral],
     ['Subtotal frota', dreData.despesasGerais],
     [],
     ['Total Despesas', dreData.despesasTotal],
@@ -269,7 +269,7 @@ export function exportDREtoExcel(dreData, dateRange) {
   if (dreData.monthlyDre && dreData.monthlyDre.length > 0) {
     const monthly = [['Mes', 'Receita', 'Despesas', 'Lucro']];
     dreData.monthlyDre.forEach(m => monthly.push([m.mes, m.Receita, m.Despesas, m.Lucro]));
-    addSheet(wb, monthly, 'Evolucao Mensal');
+    addSheet(wb, monthly, 'Evolução Mensal');
   }
 
   XLSX.writeFile(wb, `fueltrack-dre-${Date.now()}.xlsx`);
@@ -278,7 +278,7 @@ export function exportDREtoExcel(dreData, dateRange) {
 export function exportTruckReportToExcel(stats) {
   const wb = createWorkbook();
   const data = [
-    ['Placa', 'Modelo', 'Combustivel', 'Manutencao', 'Total Gasto', 'Litros', 'km/l', 'Custo/km', 'Viagens', 'Receita', 'Custos Viagens', 'Lucro', 'Margem (%)'],
+    ['Placa', 'Modelo', 'Combustível', 'Manutenção', 'Total Gasto', 'Litros', 'km/l', 'Custo/km', 'Viagens', 'Receita', 'Custos Viagens', 'Lucro', 'Margem (%)'],
     ...stats.map(s => [
       s.truck.placa,
       s.truck.modelo || '',
@@ -295,7 +295,7 @@ export function exportTruckReportToExcel(stats) {
       s.tripsCount > 0 ? Number(s.tripMargem.toFixed(1)) : '',
     ]),
   ];
-  addSheet(wb, data, 'Caminhoes');
+  addSheet(wb, data, 'Caminhões');
   XLSX.writeFile(wb, `fueltrack-caminhoes-${Date.now()}.xlsx`);
 }
 
@@ -323,7 +323,7 @@ export function exportDriverReportToExcel(driverStats) {
 export function exportFuelTableToExcel(fuelRecords, trucks) {
   const wb = createWorkbook();
   const data = [
-    ['Data', 'Caminhao', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM'],
+    ['Data', 'Caminhão', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM'],
     ...fuelRecords
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .map(r => {
@@ -346,7 +346,7 @@ export function exportFuelTableToExcel(fuelRecords, trucks) {
 export function exportMaintenanceTableToExcel(maintenanceRecords, trucks) {
   const wb = createWorkbook();
   const data = [
-    ['Data', 'Caminhao', 'Tipo', 'Descricao', 'Oficina', 'Custo', 'KM'],
+    ['Data', 'Caminhão', 'Tipo', 'Descrição', 'Oficina', 'Custo', 'KM'],
     ...maintenanceRecords
       .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
       .map(r => {
@@ -362,7 +362,7 @@ export function exportMaintenanceTableToExcel(maintenanceRecords, trucks) {
         ];
       }),
   ];
-  addSheet(wb, data, 'Manutencoes');
+  addSheet(wb, data, 'Manutenções');
   XLSX.writeFile(wb, `fueltrack-manutencoes-${Date.now()}.xlsx`);
 }
 
@@ -373,30 +373,30 @@ export function exportFullReportToPDF(dreData, stats, driverStats, fuelRecords, 
   const period = dateRange || 'Periodo completo';
 
   // Page 1: DRE
-  let y = addHeader(doc, 'Relatorio Completo — DRE', period);
+  let y = addHeader(doc, 'Relatório Completo — DRE', period);
   const dreRows = [
     ['Receita de Frete', formatCurrencyPlain(dreData.receita)],
-    ['(-) Desp. Combustivel', formatCurrencyPlain(dreData.custoCombustivel)],
+    ['(-) Desp. Combustível', formatCurrencyPlain(dreData.custoCombustível)],
     ['(-) Desp. Pedagio', formatCurrencyPlain(dreData.custoPedagio)],
-    ['(-) Desp. Manutencao', formatCurrencyPlain(dreData.custoManutencao)],
+    ['(-) Desp. Manutenção', formatCurrencyPlain(dreData.custoManutenção)],
     ['(-) Desp. Outros', formatCurrencyPlain(dreData.custoOutros)],
     ['(-) Abastecimentos frota', formatCurrencyPlain(dreData.despesasCombGeral)],
-    ['(-) Manutencoes frota', formatCurrencyPlain(dreData.despesasManGeral)],
+    ['(-) Manutenções frota', formatCurrencyPlain(dreData.despesasManGeral)],
     ['RESULTADO', formatCurrencyPlain(dreData.lucro)],
     ['Margem', `${dreData.margem.toFixed(1)}%`],
   ];
   autoTable(doc, {
     startY: y,
-    head: [['Descricao', 'Valor']],
+    head: [['Descrição', 'Valor']],
     body: dreRows,
     theme: 'striped',
     styles: { fontSize: 9, font: 'helvetica' },
     headStyles: { fillColor: [94, 106, 210] },
   });
 
-  // Page 2: Caminhoes
+  // Page 2: Caminhões
   doc.addPage();
-  y = addHeader(doc, 'Relatorio Completo — Caminhoes', period);
+  y = addHeader(doc, 'Relatório Completo — Caminhões', period);
   autoTable(doc, {
     startY: y,
     head: [['Placa', 'Modelo', 'Comb.', 'Manut.', 'Total', 'Viagens', 'Receita', 'Lucro']],
@@ -414,7 +414,7 @@ export function exportFullReportToPDF(dreData, stats, driverStats, fuelRecords, 
   // Page 3: Motoristas
   if (driverStats && driverStats.length > 0) {
     doc.addPage();
-    y = addHeader(doc, 'Relatorio Completo — Motoristas', period);
+    y = addHeader(doc, 'Relatório Completo — Motoristas', period);
     autoTable(doc, {
       startY: y,
       head: [['Motorista', 'Viagens', 'KM Total', 'Litros', 'km/l', 'Receita', 'Lucro', 'Margem']],
@@ -432,11 +432,11 @@ export function exportFullReportToPDF(dreData, stats, driverStats, fuelRecords, 
 
   // Page 4: Ultimos abastecimentos
   doc.addPage();
-  y = addHeader(doc, 'Relatorio Completo — Abastecimentos', period);
+  y = addHeader(doc, 'Relatório Completo — Abastecimentos', period);
   const sortedFuel = [...fuelRecords].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50);
   autoTable(doc, {
     startY: y,
-    head: [['Data', 'Caminhao', 'Litros', 'R$/L', 'Total', 'KM']],
+    head: [['Data', 'Caminhão', 'Litros', 'R$/L', 'Total', 'KM']],
     body: sortedFuel.map(r => {
       const truck = trucks.find(t => t.id === r.caminhao_id);
       return [
@@ -462,15 +462,15 @@ export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords
   const dreSheet = [
     ['DRE Simplificado', '', dateRange || ''],
     [],
-    ['Descricao', 'Valor'],
+    ['Descrição', 'Valor'],
     ['Receita Frete', dreData.receita],
-    ['(-) Combustivel viagens', dreData.custoCombustivel],
+    ['(-) Combustível viagens', dreData.custoCombustível],
     ['(-) Pedagio', dreData.custoPedagio],
-    ['(-) Manutencao viagens', dreData.custoManutencao],
+    ['(-) Manutenção viagens', dreData.custoManutenção],
     ['(-) Outros', dreData.custoOutros],
     ['= Subtotal desp. viagens', dreData.despesasViagens],
     ['(-) Abastecimentos frota', dreData.despesasCombGeral],
-    ['(-) Manutencoes frota', dreData.despesasManGeral],
+    ['(-) Manutenções frota', dreData.despesasManGeral],
     ['= Subtotal desp. frota', dreData.despesasGerais],
     [],
     ['RESULTADO', dreData.lucro],
@@ -480,7 +480,7 @@ export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords
 
   // Trucks sheet
   const truckSheet = [
-    ['Placa', 'Modelo', 'Combustivel', 'Manutencao', 'Total', 'Litros', 'km/l', 'Custo/km', 'Viagens', 'Receita', 'Lucro', 'Margem'],
+    ['Placa', 'Modelo', 'Combustível', 'Manutenção', 'Total', 'Litros', 'km/l', 'Custo/km', 'Viagens', 'Receita', 'Lucro', 'Margem'],
     ...stats.map(s => [
       s.truck.placa, s.truck.modelo || '', s.totalFuel, s.totalMaintenance, s.totalSpent,
       Number(s.totalLiters.toFixed(1)), s.kmPerLiter > 0 ? Number(s.kmPerLiter.toFixed(2)) : '',
@@ -488,7 +488,7 @@ export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords
       s.tripsCount > 0 ? Number(s.tripMargem.toFixed(1)) : '',
     ]),
   ];
-  addSheet(wb, truckSheet, 'Caminhoes');
+  addSheet(wb, truckSheet, 'Caminhões');
 
   // Drivers sheet
   if (driverStats && driverStats.length > 0) {
@@ -505,7 +505,7 @@ export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords
 
   // Fuel sheet
   const fuelSheet = [
-    ['Data', 'Caminhao', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM'],
+    ['Data', 'Caminhão', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM'],
     ...fuelRecords.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(r => {
       const truck = trucks.find(t => t.id === r.caminhao_id);
       return [
@@ -519,7 +519,7 @@ export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords
 
   // Maintenance sheet
   const mainSheet = [
-    ['Data', 'Caminhao', 'Tipo', 'Descricao', 'Oficina', 'Custo', 'KM'],
+    ['Data', 'Caminhão', 'Tipo', 'Descrição', 'Oficina', 'Custo', 'KM'],
     ...maintenanceRecords.sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao)).map(r => {
       const truck = trucks.find(t => t.id === r.caminhao_id);
       return [
@@ -529,7 +529,7 @@ export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords
       ];
     }),
   ];
-  addSheet(wb, mainSheet, 'Manutencoes');
+  addSheet(wb, mainSheet, 'Manutenções');
 
   XLSX.writeFile(wb, `fueltrack-relatorio-completo-${Date.now()}.xlsx`);
 }

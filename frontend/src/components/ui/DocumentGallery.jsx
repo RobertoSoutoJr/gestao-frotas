@@ -75,7 +75,7 @@ export function DocumentGallery({ entidadeTipo, entidadeId, compact = false, qui
 
   const handleUpload = async () => {
     if (!selectedFile || !tipoDocumento) {
-      showError('Validacao', 'Selecione o arquivo e o tipo de documento');
+      showError('Validação', 'Selecione o arquivo e o tipo de documento');
       return;
     }
 
