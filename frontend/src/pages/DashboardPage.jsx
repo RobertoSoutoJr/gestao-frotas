@@ -15,35 +15,24 @@ import {
 function StatCard({ title, value, icon: Icon, color, subtitle, onClick }) {
   return (
     <Card
-      className={`relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-200 ${onClick ? 'cursor-pointer' : ''}`}
+      className={`relative overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between">
-          <div className="space-y-1 sm:space-y-1.5 flex-1">
+          <div className="space-y-1 flex-1">
             <p className="text-[10px] sm:text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
               {title}
             </p>
-            <p className="text-lg sm:text-2xl font-bold text-[var(--color-text)]">
+            <p className="text-lg sm:text-xl font-bold text-[var(--color-text)] tabular-nums">
               {value}
             </p>
             {subtitle && (
-              <p className="text-xs text-[var(--color-text-secondary)]">{subtitle}</p>
+              <p className="text-[11px] text-[var(--color-text-secondary)]">{subtitle}</p>
             )}
           </div>
-          <div
-            className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${color}18` }}
-          >
-            <Icon className="h-5 w-5" style={{ color }} />
-          </div>
+          <Icon className="h-4 w-4 mt-0.5" style={{ color, opacity: 0.5 }} />
         </div>
-        {onClick && (
-          <div className="mt-3 flex items-center gap-1 text-xs text-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <span>Ver detalhes</span>
-            <ArrowRight className="h-3 w-3" />
-          </div>
-        )}
       </CardContent>
     </Card>
   );
@@ -565,6 +554,8 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
         yearly: 'vs ano anterior',
       }[period] || 'vs período anterior';
 
+      const availColor = stats.fleetAvailability >= 80 ? '#10B981' : stats.fleetAvailability >= 50 ? '#F59E0B' : '#EF4444';
+
       return (
         <div>
           <div className="flex items-center justify-between mb-3">
@@ -573,16 +564,45 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
             </h2>
             <span className="text-[10px] text-[var(--color-text-secondary)]">{trendPeriodLabel}</span>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-            <KpiCard
-              title="Custo / km"
-              value={stats.costPerKm > 0 ? formatCurrency(stats.costPerKm) : '—'}
-              icon={DollarSign}
-              color={CHART_COLORS.accent}
-              trend={stats.costPerKm > 0 ? stats.costPerKmTrend : null}
-              invertTrend
-              trendLabel={stats.totalKm > 0 ? `${formatNumber(stats.totalKm, 0)} km rodados` : 'Sem registros de km'}
-            />
+          {/* Asymmetric layout: hero KPI left + 3 stacked right */}
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-3">
+            {/* Hero KPI — Custo/km (the metric that matters most) */}
+            <Card className="lg:row-span-2 relative overflow-hidden">
+              <CardContent className="p-5 sm:p-6 h-full flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${CHART_COLORS.accent}18` }}>
+                    <DollarSign className="h-5 w-5" style={{ color: CHART_COLORS.accent }} />
+                  </div>
+                  {stats.costPerKm > 0 && isFinite(stats.costPerKmTrend) && (
+                    <div
+                      className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium"
+                      style={{
+                        backgroundColor: `${stats.costPerKmTrend < 0 ? '#10B981' : '#EF4444'}15`,
+                        color: stats.costPerKmTrend < 0 ? '#10B981' : '#EF4444'
+                      }}
+                    >
+                      {stats.costPerKmTrend < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                      <span>{Math.abs(stats.costPerKmTrend).toFixed(1)}%</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4">
+                  <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Custo por KM</p>
+                  <p className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mt-1 tabular-nums">
+                    {stats.costPerKm > 0 ? formatCurrency(stats.costPerKm) : '—'}
+                  </p>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-2">
+                    {stats.totalKm > 0 ? `${formatNumber(stats.totalKm, 0)} km rodados` : 'Sem registros de km'}
+                  </p>
+                </div>
+                {/* Decorative bottom bar */}
+                <div className="mt-4 h-1 rounded-full bg-[var(--color-surface)] overflow-hidden">
+                  <div className="h-full rounded-full bg-[var(--color-accent)]" style={{ width: `${Math.min(100, stats.costPerKm > 0 ? 65 : 0)}%` }} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Right column: 3 secondary KPIs */}
             <KpiCard
               title="km / Litro"
               value={stats.kmPerLiter > 0 ? stats.kmPerLiter.toFixed(2) : '—'}
@@ -590,17 +610,17 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
               icon={Droplets}
               color={CHART_COLORS.green}
               trend={stats.kmPerLiter > 0 ? stats.kmPerLiterTrend : null}
-              trendLabel={stats.totalLitros > 0 ? `${formatNumber(stats.totalLitros, 0)} litros` : 'Sem registros de litros'}
+              trendLabel={stats.totalLitros > 0 ? `${formatNumber(stats.totalLitros, 0)} litros` : 'Sem registros'}
             />
             <KpiCard
               title="Disponibilidade"
               value={`${stats.fleetAvailability.toFixed(0)}%`}
               icon={Zap}
-              color={stats.fleetAvailability >= 80 ? '#10B981' : stats.fleetAvailability >= 50 ? '#F59E0B' : '#EF4444'}
+              color={availColor}
               trend={null}
               trendLabel={stats.trucksInMaintenance > 0
                 ? `${stats.trucksInMaintenance} em manutenção`
-                : 'Nenhum em manutenção'}
+                : 'Frota 100% disponível'}
             />
             <KpiCard
               title="Custo / Saca"
@@ -617,19 +637,38 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
 
     main_stats: () => (
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatCard title="Caminhões Ativos" value={stats.activeTrucks} icon={Truck} color={CHART_COLORS.accent} subtitle="Total na frota" onClick={() => onNavigate('trucks')} />
-        <StatCard title="Motoristas" value={stats.totalDrivers} icon={Users} color={CHART_COLORS.secondary} subtitle="Equipe cadastrada" onClick={() => onNavigate('drivers')} />
-        <StatCard title={`Gasto — ${periodLabel}`} value={formatCurrency(stats.totalCost)} icon={DollarSign} color={CHART_COLORS.green} subtitle={`${formatCurrency(stats.fuelCost)} comb. + ${formatCurrency(stats.maintenanceCost)} man.`} onClick={() => onNavigate('reports')} />
+        {/* Gasto total spans 2 cols on mobile for emphasis */}
+        <Card className="col-span-2 cursor-pointer hover:border-[var(--color-border-hover)]" onClick={() => onNavigate('reports')}>
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] sm:text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+                  Gasto Total — {periodLabel}
+                </p>
+                <p className="text-2xl sm:text-3xl font-bold text-[var(--color-text)] mt-1">{formatCurrency(stats.totalCost)}</p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-text-secondary)]">
+                  <span className="flex items-center gap-1"><Fuel className="h-3 w-3 text-[var(--color-accent)]" />{formatCurrency(stats.fuelCost)}</span>
+                  <span className="text-[var(--color-border)]">|</span>
+                  <span className="flex items-center gap-1"><Wrench className="h-3 w-3 text-[#F59E0B]" />{formatCurrency(stats.maintenanceCost)}</span>
+                </div>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
+                <DollarSign className="h-6 w-6 text-emerald-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <StatCard title="Caminhões" value={stats.activeTrucks} icon={Truck} color={CHART_COLORS.accent} subtitle="Na frota" onClick={() => onNavigate('trucks')} />
         <StatCard title="KM Rodado" value={formatNumber(stats.totalKm, 0)} icon={Gauge} color={CHART_COLORS.orange} subtitle={periodSubtitle} onClick={() => onNavigate('fuel')} />
       </div>
     ),
 
     operations: () => (
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <StatCard title="Motoristas" value={stats.totalDrivers} icon={Users} color={CHART_COLORS.secondary} subtitle="Equipe" onClick={() => onNavigate('drivers')} />
         <StatCard title="Clientes" value={stats.totalClients} icon={Building2} color="#06B6D4" subtitle="Cadastrados" onClick={() => onNavigate('clients')} />
         <StatCard title="Fornecedores" value={stats.totalSuppliers} icon={Factory} color="#F97316" subtitle="Cadastrados" onClick={() => onNavigate('suppliers')} />
-        <StatCard title="Viagens" value={stats.totalTrips} icon={Route} color={CHART_COLORS.green} subtitle={`${stats.activeTrips} em andamento · ${stats.completedTrips} finalizadas`} onClick={() => onNavigate('trips', { status: 'cadastrada' })} />
-        <StatCard title="Estoque" value={`${formatNumber(stats.totalSacas, 0)} sacas`} icon={Warehouse} color={CHART_COLORS.red} subtitle={`${formatCurrency(stats.totalStockValue)} investido`} onClick={() => onNavigate('stock')} />
+        <StatCard title="Estoque" value={`${formatNumber(stats.totalSacas, 0)} sacas`} icon={Warehouse} color={CHART_COLORS.red} subtitle={`${formatCurrency(stats.totalStockValue)}`} onClick={() => onNavigate('stock')} />
       </div>
     ),
 

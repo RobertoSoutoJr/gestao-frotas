@@ -473,50 +473,41 @@ export function TrucksPage({ trucks, drivers, onRefetch }) {
                     </div>
                   </div>
                 </div>
-                <CardContent className="px-6 pb-6 pt-2">
-
-                  {/* Action buttons: Fuel & Maintenance */}
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setFuelingTruck(truck)}
-                      className="text-amber-500 border-amber-500/30 hover:bg-amber-500/10"
-                    >
-                      <Fuel className="mr-1.5 h-4 w-4" />
-                      Abastecer
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setMaintainingTruck(truck)}
-                      className="text-purple-400 border-purple-400/30 hover:bg-purple-400/10"
-                    >
-                      <Wrench className="mr-1.5 h-4 w-4" />
-                      Manutenção
-                    </Button>
-                  </div>
-
-                  {/* Edit & Delete */}
-                  <div className="mt-2 flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingTruck(truck)}
-                      className="flex-1"
-                    >
-                      <Edit2 className="mr-2 h-4 w-4" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => setDeletingTruck(truck)}
-                      className="flex-1"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Excluir
-                    </Button>
+                <CardContent className="px-6 pb-5 pt-2">
+                  {/* Actions: quick actions inline + edit/delete as icon buttons */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setFuelingTruck(truck)}
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-500 bg-amber-500/10 hover:bg-amber-500/15 transition-colors"
+                      >
+                        <Fuel className="h-3.5 w-3.5" />
+                        Abastecer
+                      </button>
+                      <button
+                        onClick={() => setMaintainingTruck(truck)}
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                      >
+                        <Wrench className="h-3.5 w-3.5" />
+                        Manutenção
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setEditingTruck(truck)}
+                        className="p-1.5 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                        title="Editar"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeletingTruck(truck)}
+                        className="p-1.5 rounded-lg text-[var(--color-text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        title="Excluir"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

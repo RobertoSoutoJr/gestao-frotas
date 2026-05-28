@@ -64,13 +64,16 @@ export function Sidebar() {
       <button
         onClick={() => navigate(item.path)}
         className={cn(
-          'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer',
+          'relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer',
           indent && 'pl-10',
           active
-            ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)]'
+            ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)] font-semibold'
             : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]'
         )}
       >
+        {active && (
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-[var(--color-accent)]" />
+        )}
         <Icon className="h-4.5 w-4.5 shrink-0" />
         <span className="truncate">{item.label}</span>
       </button>
