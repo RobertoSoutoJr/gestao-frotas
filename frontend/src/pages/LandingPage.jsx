@@ -67,9 +67,9 @@ export function LandingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white">
+    <div className="min-h-screen bg-[#0C0C0E] text-white">
       {/* Nav */}
-      <nav className="border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-xl sticky top-0 z-50">
+      <nav className="border-b border-white/5 bg-[#0C0C0E]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
             <img src={logoDark} alt="FuelTrack" className="h-20 w-auto" />
@@ -83,9 +83,9 @@ export function LandingPage() {
             </button>
             <button
               onClick={() => navigate('/auth?register=1')}
-              className="px-5 py-2 text-sm font-medium bg-[#5E6AD2] hover:bg-[#4F5BC3] text-white rounded-xl transition-colors"
+              className="px-5 py-2 text-sm font-medium bg-[#D97706] hover:bg-[#B45309] text-white rounded-xl transition-colors"
             >
-              Criar conta gratis
+              Criar conta grátis
             </button>
           </div>
         </div>
@@ -93,18 +93,18 @@ export function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#5E6AD2]/8 via-transparent to-transparent" />
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(94,106,210,0.12) 0%, transparent 60%)' }} />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#D97706]/8 via-transparent to-transparent" />
+        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(217,119,6,0.12) 0%, transparent 60%)' }} />
 
         <div className="relative container mx-auto px-4 pt-20 pb-24 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#5E6AD2]/20 bg-[#5E6AD2]/10 px-4 py-1.5 text-xs font-medium text-[#5E6AD2] mb-8">
-            <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5E6AD2] opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-[#5E6AD2]"></span></span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#D97706]/20 bg-[#D97706]/10 px-4 py-1.5 text-xs font-medium text-[#D97706] mb-8">
+            <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D97706] opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-[#D97706]"></span></span>
             Novo: Rotas reais com GPS offline
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-3xl mx-auto">
             Gestão de frotas{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5E6AD2] to-[#8B5CF6]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97706] to-[#F59E0B]">
               simples e inteligente
             </span>
           </h1>
@@ -117,7 +117,7 @@ export function LandingPage() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => navigate('/auth?register=1')}
-              className="group flex items-center gap-2 px-8 py-3.5 text-base font-semibold bg-[#5E6AD2] hover:bg-[#4F5BC3] text-white rounded-xl transition-all shadow-lg shadow-[#5E6AD2]/25 hover:shadow-[#5E6AD2]/40"
+              className="group flex items-center gap-2 px-8 py-3.5 text-base font-semibold bg-[#D97706] hover:bg-[#B45309] text-white rounded-xl transition-all shadow-lg shadow-[#D97706]/25 hover:shadow-[#D97706]/40"
             >
               Comece grátis agora
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
@@ -142,7 +142,7 @@ export function LandingPage() {
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
               Tudo que você precisa para{' '}
-              <span className="text-[#5E6AD2]">gerenciar sua frota</span>
+              <span className="text-[#D97706]">gerenciar sua frota</span>
             </h2>
             <p className="mt-4 text-lg text-white/40 max-w-xl mx-auto">
               Do abastecimento ao relatório financeiro, numa única plataforma.
@@ -157,8 +157,8 @@ export function LandingPage() {
                   key={i}
                   className="group rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10 p-6 transition-all duration-300"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#5E6AD2]/10 border border-[#5E6AD2]/20 mb-4 group-hover:bg-[#5E6AD2]/15 transition-colors">
-                    <Icon className="h-5 w-5 text-[#5E6AD2]" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#D97706]/10 border border-[#D97706]/20 mb-4 group-hover:bg-[#D97706]/15 transition-colors">
+                    <Icon className="h-5 w-5 text-[#D97706]" />
                   </div>
                   <h3 className="text-base font-semibold text-white mb-2">{feature.title}</h3>
                   <p className="text-sm text-white/40 leading-relaxed">{feature.description}</p>
@@ -174,7 +174,7 @@ export function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Planos para cada tamanho de <span className="text-[#5E6AD2]">operação</span>
+              Planos para cada tamanho de <span className="text-[#D97706]">operação</span>
             </h2>
             <p className="mt-4 text-lg text-white/40">
               Comece grátis, escale quando precisar.
@@ -187,12 +187,12 @@ export function LandingPage() {
                 key={i}
                 className={`rounded-2xl p-6 transition-all duration-300 ${
                   plan.highlight
-                    ? 'border-2 border-[#5E6AD2] bg-[#5E6AD2]/5 shadow-lg shadow-[#5E6AD2]/10 scale-[1.02]'
+                    ? 'border-2 border-[#D97706] bg-[#D97706]/5 shadow-lg shadow-[#D97706]/10 scale-[1.02]'
                     : 'border border-white/5 bg-white/[0.02] hover:border-white/10'
                 }`}
               >
                 {plan.highlight && (
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#5E6AD2] mb-3">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#D97706] mb-3">
                     Mais popular
                   </div>
                 )}
@@ -205,7 +205,7 @@ export function LandingPage() {
                 <ul className="mt-6 space-y-2.5">
                   {plan.features.map((f, j) => (
                     <li key={j} className="flex items-center gap-2.5 text-sm text-white/60">
-                      <Check className="h-4 w-4 text-[#5E6AD2] shrink-0" />
+                      <Check className="h-4 w-4 text-[#D97706] shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -214,7 +214,7 @@ export function LandingPage() {
                   onClick={() => navigate('/auth?register=1')}
                   className={`mt-6 w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                     plan.highlight
-                      ? 'bg-[#5E6AD2] hover:bg-[#4F5BC3] text-white'
+                      ? 'bg-[#D97706] hover:bg-[#B45309] text-white'
                       : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
                   }`}
                 >

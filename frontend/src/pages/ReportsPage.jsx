@@ -17,7 +17,7 @@ import {
   exportFuelTableToExcel, exportMaintenanceTableToExcel, exportFullReportToExcel,
 } from '../lib/exportUtils';
 
-const COLORS = ['#5E6AD2', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+const COLORS = ['#D97706', '#10B981', '#F59E0B', '#EF4444', '#F59E0B', '#EC4899'];
 
 const REPORT_TABS = [
   { id: 'all', label: 'Visão Geral', icon: BarChart3, sections: null }, // null = show all visible
@@ -852,7 +852,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                 <YAxis stroke={axisColor} style={{ fontSize: '11px' }} tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value) => value !== null ? formatCurrency(value) : '—'} />
                 <Legend wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter"' }} />
-                <Line type="monotone" dataKey="Real" stroke="#5E6AD2" strokeWidth={2.5} dot={{ r: 4 }} connectNulls={false} />
+                <Line type="monotone" dataKey="Real" stroke="#D97706" strokeWidth={2.5} dot={{ r: 4 }} connectNulls={false} />
                 <Line type="monotone" dataKey="Tendência" stroke="#10B981" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -962,7 +962,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {stats.map(stat => (
               <Card key={stat.truck.id} className="overflow-hidden">
-                <div className="bg-gradient-to-r from-[var(--color-accent)]/20 to-[#8B5CF6]/10 border-b border-[var(--color-border)] px-6 py-4">
+                <div className="bg-gradient-to-r from-[var(--color-accent)]/20 to-[#F59E0B]/10 border-b border-[var(--color-border)] px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-bold text-[var(--color-text)]">{stat.truck.placa}</h3>
@@ -1252,7 +1252,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                     <Legend />
                     <Bar dataKey="Receita" fill="#10B981" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="Custos" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Lucro" fill="#5E6AD2" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Lucro" fill="#D97706" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -1450,7 +1450,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
                     <FileText className="h-3.5 w-3.5 text-red-400" /> Manutenções
                   </button>
                   <button onClick={() => exportFullReportToPDF(dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : '')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors font-medium">
-                    <FileText className="h-3.5 w-3.5 text-[#5E6AD2]" /> Relatório Completo (PDF)
+                    <FileText className="h-3.5 w-3.5 text-[#D97706]" /> Relatório Completo (PDF)
                   </button>
                   <div className="border-t border-[var(--color-border)] my-1" />
                   <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)] font-semibold">Excel</p>

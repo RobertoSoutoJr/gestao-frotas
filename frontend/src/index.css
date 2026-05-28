@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════
-   FUELTRACK — DESIGN SYSTEM (Light + Dark)
+   FUELTRACK — DESIGN SYSTEM v2
+   Dark-first, amber accent, no AI clichés
    ═══════════════════════════════════════════════ */
 
 @theme {
@@ -9,42 +10,42 @@
   --font-mono: "JetBrains Mono", monospace;
 
   /* Dark theme (default) */
-  --color-bg:             #050506;
-  --color-bg-elevated:    #0a0a0c;
-  --color-surface:        rgba(255,255,255,0.05);
-  --color-surface-hover:  rgba(255,255,255,0.08);
-  --color-border:         rgba(255,255,255,0.06);
-  --color-border-hover:   rgba(255,255,255,0.10);
-  --color-text:           #EDEDEF;
-  --color-text-secondary: #8A8F98;
-  --color-text-muted:     rgba(255,255,255,0.60);
-  --color-accent:         #5E6AD2;
-  --color-accent-hover:   #6872D9;
-  --color-card-from:      rgba(255,255,255,0.06);
-  --color-card-to:        rgba(255,255,255,0.02);
-  --color-input-bg:       #0F0F12;
-  --color-overlay:        rgba(0,0,0,0.60);
-  --color-shadow:         rgba(0,0,0,0.4);
-  --color-shadow-hover:   rgba(0,0,0,0.5);
+  --color-bg:             #0C0C0E;
+  --color-bg-elevated:    #131316;
+  --color-surface:        rgba(255,255,255,0.04);
+  --color-surface-hover:  rgba(255,255,255,0.07);
+  --color-border:         rgba(255,255,255,0.07);
+  --color-border-hover:   rgba(255,255,255,0.12);
+  --color-text:           #E8E8EB;
+  --color-text-secondary: #85878F;
+  --color-text-muted:     rgba(255,255,255,0.50);
+  --color-accent:         #D97706;
+  --color-accent-hover:   #E58A0A;
+  --color-card-from:      rgba(255,255,255,0.04);
+  --color-card-to:        rgba(255,255,255,0.01);
+  --color-input-bg:       #111114;
+  --color-overlay:        rgba(0,0,0,0.65);
+  --color-shadow:         rgba(0,0,0,0.5);
+  --color-shadow-hover:   rgba(0,0,0,0.6);
 }
 
 /* ── Light Theme Variables ── */
 html:not(.dark) {
-  --color-bg:             #F8F9FB;
+  --color-bg:             #F5F5F4;
   --color-bg-elevated:    #FFFFFF;
   --color-surface:        rgba(0,0,0,0.03);
   --color-surface-hover:  rgba(0,0,0,0.06);
   --color-border:         rgba(0,0,0,0.08);
-  --color-border-hover:   rgba(0,0,0,0.15);
-  --color-text:           #1A1D23;
-  --color-text-secondary: #6B7280;
-  --color-text-muted:     rgba(0,0,0,0.50);
-  --color-accent:         #4F5BD5;
-  --color-accent-hover:   #5E6AD2;
+  --color-border-hover:   rgba(0,0,0,0.14);
+  --color-text:           #1C1C1E;
+  --color-text-secondary: #6B6E76;
+  --color-text-muted:     rgba(0,0,0,0.45);
+  --color-accent:         #B45309;
+  --color-accent-hover:   #D97706;
   --color-card-from:      rgba(255,255,255,0.90);
   --color-card-to:        rgba(255,255,255,0.70);
   --color-input-bg:       #FFFFFF;
-  --color-overlay:        rgba(0,0,0,0.30);
+  --color-overlay:        rgba(0,0,0,0.25);
   --color-shadow:         rgba(0,0,0,0.06);
   --color-shadow-hover:   rgba(0,0,0,0.10);
 }
@@ -66,11 +67,11 @@ html {
 }
 
 .dark * {
-  scrollbar-color: rgba(255,255,255,0.08) #050506;
+  scrollbar-color: rgba(255,255,255,0.08) #0C0C0E;
 }
 
 html:not(.dark) * {
-  scrollbar-color: rgba(0,0,0,0.15) #F8F9FB;
+  scrollbar-color: rgba(0,0,0,0.15) #F5F5F4;
 }
 
 .scrollbar-hide {
@@ -113,82 +114,25 @@ textarea,
   }
 }
 
-/* ── Ambient Gradient Background ── */
+/* ── Clean ambient background (replaces gradient blobs) ── */
 .linear-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
   pointer-events: none;
 }
 
 .dark .linear-bg {
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(94,106,210,0.15), transparent);
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(217,119,6,0.04), transparent 70%);
 }
 
 html:not(.dark) .linear-bg {
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,91,213,0.08), transparent);
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(180,83,9,0.03), transparent 70%);
 }
 
-.linear-bg::before {
-  content: "";
-  position: absolute;
-  top: -30%;
-  left: -20%;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  filter: blur(120px);
-  animation: float 18s ease-in-out infinite;
-}
-
-.dark .linear-bg::before {
-  background: rgba(94, 106, 210, 0.08);
-}
-
-html:not(.dark) .linear-bg::before {
-  background: rgba(79, 91, 213, 0.05);
-}
-
-.linear-bg::after {
-  content: "";
-  position: absolute;
-  bottom: -20%;
-  right: -10%;
-  width: 500px;
-  height: 500px;
-  border-radius: 50%;
-  filter: blur(120px);
-  animation: float 24s ease-in-out infinite reverse;
-}
-
-.dark .linear-bg::after {
-  background: rgba(139, 92, 246, 0.06);
-}
-
-html:not(.dark) .linear-bg::after {
-  background: rgba(139, 92, 246, 0.04);
-}
-
-/* ── Subtle Grid Overlay ── */
+/* grid kept as empty class so JSX doesn't break */
 .linear-grid {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-size: 64px 64px;
-}
-
-.dark .linear-grid {
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-}
-
-html:not(.dark) .linear-grid {
-  background-image:
-    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  display: none;
 }
 
 /* ── Animations ── */
@@ -238,12 +182,6 @@ html:not(.dark) .linear-grid {
   .slide-in-from-right {
     animation-name: slide-in-from-right;
   }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) translateX(0px); }
-    33%       { transform: translateY(-30px) translateX(20px); }
-    66%       { transform: translateY(20px) translateX(-15px); }
-  }
 }
 
 /* ── Leaflet z-index fix (keep below modals z-50) ── */
@@ -270,9 +208,9 @@ html:not(.dark) .linear-grid {
 .recharts-tooltip-wrapper .recharts-default-tooltip {
   background-color: var(--color-bg-elevated) !important;
   border: 1px solid var(--color-border-hover) !important;
-  border-radius: 12px !important;
+  border-radius: 10px !important;
   font-family: "Inter", sans-serif !important;
-  box-shadow: 0 8px 32px var(--color-shadow) !important;
+  box-shadow: 0 8px 24px var(--color-shadow) !important;
 }
 
 .recharts-tooltip-item {
@@ -286,7 +224,7 @@ html:not(.dark) .linear-grid {
 
 /* ── Select Arrow Fix ── */
 .dark select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238A8F98' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2385878F' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
   background-size: 1.5em 1.5em;
@@ -297,7 +235,7 @@ html:not(.dark) .linear-grid {
 }
 
 html:not(.dark) select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B6E76' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
   background-size: 1.5em 1.5em;

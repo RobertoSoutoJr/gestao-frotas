@@ -92,8 +92,8 @@ function KpiCard({ title, value, unit, icon: Icon, color, trend, trendLabel, inv
 }
 
 const CHART_COLORS = {
-  accent:    '#5E6AD2',
-  secondary: '#8B5CF6',
+  accent:    '#D97706',
+  secondary: '#F59E0B',
   green:     '#10B981',
   orange:    '#F59E0B',
   red:       '#EF4444',
@@ -759,7 +759,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
             </Card>
             <Card className="!rounded-xl !p-0 cursor-pointer" onClick={() => onNavigate('maintenance')}>
               <div className="flex items-center gap-2.5 p-3">
-                <Wrench className="h-4 w-4 text-[#8B5CF6]" />
+                <Wrench className="h-4 w-4 text-[#F59E0B]" />
                 <div>
                   <p className="text-xs text-[var(--color-text-secondary)]">Manutenção</p>
                   <p className="text-sm font-semibold text-[var(--color-text)]">{formatCurrency(stats.maintenanceCost)}</p>
@@ -807,7 +807,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                 <XAxis dataKey="truck" stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} />
                 <YAxis stroke={axisColor} style={{ fontSize: '11px', fontFamily: '"JetBrains Mono"' }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} cursor={{ fill: isDark ? 'rgba(94,106,210,0.05)' : 'rgba(94,106,210,0.08)' }} />
+                <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(v)} cursor={{ fill: isDark ? 'rgba(217,119,6,0.05)' : 'rgba(217,119,6,0.08)' }} />
                 <Bar dataKey="gasto" name="Gasto Total" fill="url(#barGradient)" radius={[4, 4, 0, 0]} maxBarSize={60} />
               </BarChart>
             </ResponsiveContainer>
@@ -897,7 +897,7 @@ export function DashboardPage({ trucks, drivers, clients, suppliers, trips, stoc
                   <Legend wrapperStyle={{ paddingTop: '12px', fontFamily: '"Inter"', fontSize: '12px' }} />
                   <Bar dataKey="receita" name="Receita" fill="#10B981" radius={[3, 3, 0, 0]} maxBarSize={40} />
                   <Bar dataKey="despesa" name="Despesas" fill="#EF4444" radius={[3, 3, 0, 0]} maxBarSize={40} />
-                  <Line type="monotone" dataKey="saldo" name="Saldo Acum." stroke="#5E6AD2" strokeWidth={2.5} dot={{ fill: '#5E6AD2', r: 3, strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="saldo" name="Saldo Acum." stroke="#D97706" strokeWidth={2.5} dot={{ fill: '#D97706', r: 3, strokeWidth: 0 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

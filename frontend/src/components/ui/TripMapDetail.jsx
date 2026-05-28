@@ -193,7 +193,7 @@ export function TripMapDetail({ trip }) {
                   <strong style={{ color: '#3B82F6' }}>Destino</strong><br />
                   {destLabel}
                   {trip.destino_cidade && <><br /><span style={{ color: '#888' }}>{trip.destino_cidade}{trip.destino_estado ? `/${trip.destino_estado}` : ''}</span></>}
-                  {route && <><br /><span style={{ color: '#5E6AD2' }}>{route.distance_km} km — {route.duration_min} min</span></>}
+                  {route && <><br /><span style={{ color: '#D97706' }}>{route.distance_km} km — {route.duration_min} min</span></>}
                 </div>
               </Popup>
             </Marker>
@@ -207,7 +207,7 @@ export function TripMapDetail({ trip }) {
                   ? route.coordinates
                   : [[origin.lat, origin.lng], [destination.lat, destination.lng]]
               }
-              color={route ? '#5E6AD2' : '#6B7280'}
+              color={route ? '#D97706' : '#6B7280'}
               weight={route ? 4 : 2}
               opacity={0.85}
               dashArray={route ? '' : '8 4'}

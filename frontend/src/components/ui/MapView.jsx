@@ -28,7 +28,7 @@ function createColoredIcon(color) {
 }
 
 const ICONS = {
-  origin: createColoredIcon('#5E6AD2'),
+  origin: createColoredIcon('#D97706'),
   destination: createColoredIcon('#10B981'),
   active: createColoredIcon('#F59E0B'),
   finalized: createColoredIcon('#6B7280'),
@@ -226,10 +226,10 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
                     {trip.origem_cidade}{trip.origem_estado ? `/${trip.origem_estado}` : ''}<br />
                     <span style={{ color: '#666' }}>Viagem #{trip.id}</span>
                     {route && (
-                      <><br /><span style={{ color: '#5E6AD2' }}>{route.distance_km} km - {route.duration_min} min</span></>
+                      <><br /><span style={{ color: '#D97706' }}>{route.distance_km} km - {route.duration_min} min</span></>
                     )}
                     {onTripClick && (
-                      <><br /><a href="#" onClick={(e) => { e.preventDefault(); onTripClick(trip); }} style={{ color: '#5E6AD2' }}>Ver detalhes</a></>
+                      <><br /><a href="#" onClick={(e) => { e.preventDefault(); onTripClick(trip); }} style={{ color: '#D97706' }}>Ver detalhes</a></>
                     )}
                   </div>
                 </Popup>
@@ -277,7 +277,7 @@ export function MapView({ trips = [], height = '400px', className = '', onTripCl
             <span className="text-[var(--color-text-secondary)]">Viagem ativa</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#5E6AD2]" />
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#D97706]" />
             <span className="text-[var(--color-text-secondary)]">Origem</span>
           </div>
           <div className="flex items-center gap-2">

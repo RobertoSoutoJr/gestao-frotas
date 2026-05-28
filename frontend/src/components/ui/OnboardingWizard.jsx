@@ -166,8 +166,8 @@ export function OnboardingWizard({ onComplete }) {
           {step === 2 && (
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8B5CF6]/15">
-                  <Users className="h-5 w-5 text-[#8B5CF6]" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F59E0B]/15">
+                  <Users className="h-5 w-5 text-[#F59E0B]" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[var(--color-text)]">Seu primeiro motorista</h2>
