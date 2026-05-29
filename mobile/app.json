@@ -92,7 +92,7 @@
       "enabled": true,
       "url": "https://u.expo.dev/2006f5c0-7ed6-455c-9dcb-9230560f67ff",
       "fallbackToCacheTimeout": 0,
-      "checkAutomatically": "ON_LAUNCH"
+      "checkAutomatically": "ON_ERROR_RECOVERY"
     },
     "extra": {
       "apiUrl": "https://srv1665848.hstgr.cloud/api",
