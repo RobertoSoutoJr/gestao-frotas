@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
+import * as Network from 'expo-network';
 import { Ionicons } from '@expo/vector-icons';
 import { Input } from '../../../src/components/Input';
 import { Button } from '../../../src/components/Button';
@@ -156,7 +157,6 @@ export default function NewManutencaoScreen() {
             },
           );
         } catch {
-          // Non-blocking: maintenance saved even if upload fails
           Alert.alert('Aviso', 'Manutenção salva, mas a foto não foi enviada.');
         } finally {
           setUploading(false);
@@ -171,41 +171,17 @@ export default function NewManutencaoScreen() {
         { text: 'OK', onPress: () => router.back() },
       ]);
     },
-    onError: async (err: any) => {
-      // Network/server error — save offline
-      const status: number | undefined = err?.status;
-      if (status === undefined || status >= 500) {
-        const today = new Date().toISOString().split('T')[0];
-        const payload = {
-          caminhao_id: form.caminhao_id!,
-          tipo_manutencao: form.tipo_manutencao,
-          descricao: form.descricao,
-          valor_total: Number(form.valor_total),
-          km_manutencao: Number(form.km_manutencao) || 0,
-          data_manutencao: today,
-          status: 'concluida',
-          ...(form.oficina_id ? { oficina_id: form.oficina_id } : {}),
-        };
-        await enqueueManutencao(payload);
-        await refreshCount();
-        haptics.success();
-        Alert.alert(
-          'Salvo offline',
-          'Sem conexão — a manutenção será sincronizada automaticamente.',
-          [{ text: 'OK', onPress: () => router.back() }],
-        );
-        return;
-      }
+    onError: (err: any) => {
       haptics.error();
       Alert.alert('Erro', err?.message || 'Falha ao registrar manutenção');
     },
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
 
     const today = new Date().toISOString().split('T')[0];
-    mutation.mutate({
+    const payload: CreateManutencaoPayload = {
       caminhao_id: form.caminhao_id!,
       tipo_manutencao: form.tipo_manutencao,
       descricao: form.descricao,
@@ -214,7 +190,23 @@ export default function NewManutencaoScreen() {
       data_manutencao: today,
       status: 'concluida',
       ...(form.oficina_id ? { oficina_id: form.oficina_id } : {}),
-    });
+    };
+
+    // Check network BEFORE submitting — only save offline if truly offline
+    const state = await Network.getNetworkStateAsync();
+    if (!state.isConnected || !state.isInternetReachable) {
+      await enqueueManutencao(payload);
+      await refreshCount();
+      haptics.success();
+      Alert.alert(
+        'Salvo offline',
+        'Sem conexão — a manutenção será sincronizada automaticamente.',
+        [{ text: 'OK', onPress: () => router.back() }],
+      );
+      return;
+    }
+
+    mutation.mutate(payload);
   };
 
   const isBusy = mutation.isPending || uploading;

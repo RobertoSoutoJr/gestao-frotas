@@ -95,6 +95,27 @@ class FuelService {
       );
     }
 
+    // Deduplication: reject if identical record was created in last 2 minutes
+    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const { data: existing } = await supabase
+      .from('abastecimentos')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('caminhao_id', fuelData.caminhao_id)
+      .eq('litros', fuelData.litros)
+      .eq('valor_total', fuelData.valor_total)
+      .gte('created_at', twoMinAgo)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      const { data: fullRecord } = await supabase
+        .from('abastecimentos')
+        .select('*')
+        .eq('id', existing[0].id)
+        .single();
+      return fullRecord;
+    }
+
     const { data, error } = await supabase
       .from('abastecimentos')
       .insert([{ ...fuelData, user_id: userId }])

@@ -76,6 +76,28 @@ class MaintenanceService {
       }
     }
 
+    // Deduplication: reject if identical record was created in last 2 minutes
+    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const { data: existing } = await supabase
+      .from('manutencoes')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('caminhao_id', maintenanceData.caminhao_id)
+      .eq('descricao', maintenanceData.descricao)
+      .eq('valor_total', maintenanceData.valor_total)
+      .gte('created_at', twoMinAgo)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      // Return existing record instead of creating duplicate
+      const { data: fullRecord } = await supabase
+        .from('manutencoes')
+        .select('*')
+        .eq('id', existing[0].id)
+        .single();
+      return fullRecord;
+    }
+
     const { data, error } = await supabase
       .from('manutencoes')
       .insert([{ ...maintenanceData, user_id: userId }])
