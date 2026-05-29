@@ -23,7 +23,7 @@ import { type Colors, fontSize, radius, spacing } from '../../src/lib/theme';
 import { useColors, useStyles, useTheme } from '../../src/contexts/ThemeContext';
 
 const logoDark = require('../../assets/images/logoFuelTrack_black-removebg.png');
-const logoLight = require('../../assets/images/logoFuelTrack_light-removebg.png');
+const logoGreen = require('../../assets/images/logo-fueltrack-green.png');
 
 const REMEMBER_EMAIL_KEY = '@fueltrack:remember_email';
 const REMEMBER_ENABLED_KEY = '@fueltrack:remember_enabled';
@@ -116,7 +116,7 @@ export default function LoginScreen() {
             {/* Logo Section */}
             <View style={styles.logoSection}>
               <Image
-                source={isDark ? logoDark : logoLight}
+                source={isDark ? logoDark : logoGreen}
                 style={styles.logo}
                 resizeMode="contain"
               />
