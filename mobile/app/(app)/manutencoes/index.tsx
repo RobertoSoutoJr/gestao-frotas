@@ -22,6 +22,7 @@ import { SearchBar } from '../../../src/components/SearchBar';
 import { SkeletonList } from '../../../src/components/Skeleton';
 import { PeriodFilter, getDateFrom, type Periodo } from '../../../src/components/PeriodFilter';
 import { SwipeableRow } from '../../../src/components/SwipeableRow';
+import { ListSummary } from '../../../src/components/ListSummary';
 import type { Manutencao } from '../../../src/api/types';
 import { type Colors, fontSize, spacing } from '../../../src/lib/theme';
 import { formatCurrency, formatDate } from '../../../src/lib/format';
@@ -134,6 +135,16 @@ export default function ManutencoesListScreen() {
 
       <PeriodFilter value={periodo} onChange={setPeriodo} />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por tipo, placa ou oficina..." />
+
+      {records.length > 0 && (
+        <ListSummary
+          count={records.length}
+          items={[
+            { label: 'Total', value: formatCurrency(records.reduce((s: number, r: Manutencao) => s + (Number(r.valor_total) || 0), 0)), color: colors.danger },
+            { label: 'Pendentes', value: String(records.filter((r: Manutencao) => r.status === 'pendente').length), color: colors.warning },
+          ]}
+        />
+      )}
 
       {offlineCount > 0 && (
         <Pressable style={styles.offlineBanner} onPress={sync}>

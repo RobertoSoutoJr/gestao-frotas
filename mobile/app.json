@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f0f23"
+      "backgroundColor": "#0A0A0C"
     },
     "ios": {
       "supportsTablet": true,
@@ -26,7 +26,7 @@
       "package": "com.fueltrack.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0f0f23"
+        "backgroundColor": "#0A0A0C"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -54,7 +54,7 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#0f0f23"
+          "backgroundColor": "#0A0A0C"
         }
       ],
       [
@@ -73,7 +73,7 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#6c63ff",
+          "color": "#28633D",
           "defaultChannel": "default",
           "sounds": []
         }

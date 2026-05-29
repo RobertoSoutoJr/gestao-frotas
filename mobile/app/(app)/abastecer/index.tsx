@@ -26,6 +26,7 @@ import { useHaptics } from '../../../src/hooks/useHaptics';
 import { useOfflineSync } from '../../../src/hooks/useOfflineSync';
 import { PeriodFilter, getDateFrom, type Periodo } from '../../../src/components/PeriodFilter';
 import { SwipeableRow } from '../../../src/components/SwipeableRow';
+import { ListSummary } from '../../../src/components/ListSummary';
 import type { Abastecimento, Caminhao } from '../../../src/api/types';
 import { useColors, useStyles } from '../../../src/contexts/ThemeContext';
 
@@ -221,6 +222,16 @@ export default function AbastecerListScreen() {
 
       <PeriodFilter value={periodo} onChange={setPeriodo} />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Buscar por placa ou posto..." />
+
+      {records.length > 0 && (
+        <ListSummary
+          count={records.length}
+          items={[
+            { label: 'Litros', value: `${formatNumber(records.reduce((s, r) => s + (Number(r.litros) || 0), 0), 0)}L` },
+            { label: 'Total', value: formatCurrency(records.reduce((s, r) => s + (Number(r.valor_total) || 0), 0)), color: colors.success },
+          ]}
+        />
+      )}
 
       {isLoading ? (
         <SkeletonList count={5} />

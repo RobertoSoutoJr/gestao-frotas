@@ -415,95 +415,114 @@ function AdminView({ data }: { data: DashboardData | null }) {
 
   const hasMaintAlert = stats.pendingMaintenance > 0 || stats.inProgressMaintenance > 0;
 
+  const resultado = stats.receitaMes - stats.gastoMes;
+
   return (
     <View>
+      {/* ── Status Strip ── */}
+      <Card style={styles.statusStrip}>
+        <View style={styles.statusRow}>
+          <View style={styles.statusItem}>
+            <Ionicons name="bus-outline" size={14} color={colors.accent} />
+            <Text style={styles.statusValue}>{stats.totalCaminhoes}</Text>
+            <Text style={styles.statusLabel}>Frota</Text>
+          </View>
+          <View style={[styles.statusDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statusItem}>
+            <Ionicons name="navigate-outline" size={14} color={colors.info} />
+            <Text style={styles.statusValue}>{stats.activeTrips}</Text>
+            <Text style={styles.statusLabel}>Ativas</Text>
+          </View>
+          <View style={[styles.statusDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statusItem}>
+            <Ionicons name="checkmark-circle-outline" size={14} color={colors.success} />
+            <Text style={styles.statusValue}>{stats.completedTrips}</Text>
+            <Text style={styles.statusLabel}>Concluídas</Text>
+          </View>
+          <View style={[styles.statusDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statusItem}>
+            <Ionicons name="flash-outline" size={14} color={colors.warning} />
+            <Text style={styles.statusValue}>{formatNumber(stats.kmPerLiter, 1)}</Text>
+            <Text style={styles.statusLabel}>km/L</Text>
+          </View>
+        </View>
+      </Card>
+
+      {/* ── Alert ── */}
       {hasMaintAlert && (
-        <View style={[styles.alertCard, { borderColor: colors.warning + '50', backgroundColor: colors.warning + '10' }]}>
+        <Pressable
+          style={[styles.alertCard, { borderColor: colors.warning + '50', backgroundColor: colors.warning + '10' }]}
+          onPress={() => router.push('/(app)/manutencoes')}
+        >
           <Ionicons name="construct-outline" size={18} color={colors.warning} />
           <Text style={[styles.alertText, { color: colors.warning }]}>
-            {stats.pendingMaintenance > 0
-              ? `${stats.pendingMaintenance} manutencao(oes) pendente(s)`
-              : ''}
+            {stats.pendingMaintenance > 0 ? `${stats.pendingMaintenance} pendente${stats.pendingMaintenance > 1 ? 's' : ''}` : ''}
             {stats.pendingMaintenance > 0 && stats.inProgressMaintenance > 0 ? ' · ' : ''}
-            {stats.inProgressMaintenance > 0
-              ? `${stats.inProgressMaintenance} em andamento`
-              : ''}
+            {stats.inProgressMaintenance > 0 ? `${stats.inProgressMaintenance} em andamento` : ''}
           </Text>
-        </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.warning} />
+        </Pressable>
       )}
 
+      {/* ── Financeiro do Mes ── */}
       <Text style={styles.sectionLabel}>{stats.mesAtual}</Text>
 
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="water-outline"
-          iconColor={colors.warning}
-          value={formatCurrency(stats.gastoMes)}
-          label="Combustivel do mes"
-        />
-        <StatCard
-          icon="cash-outline"
-          iconColor={colors.success}
-          value={formatCurrency(stats.receitaMes)}
-          label="Receita do mes"
-        />
-      </View>
-
-      <Text style={styles.sectionLabel}>Geral</Text>
-
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="bus-outline"
-          iconColor={colors.accent}
-          value={String(stats.totalCaminhoes)}
-          label="Caminhoes"
-        />
-        <StatCard
-          icon="navigate-outline"
-          iconColor={colors.info}
-          value={String(stats.activeTrips)}
-          label="Viagens ativas"
-        />
-      </View>
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="trending-up-outline"
-          iconColor={colors.success}
-          value={formatCurrency(stats.totalFrete)}
-          label="Receita total"
-        />
-        <StatCard
-          icon="flash-outline"
-          iconColor={colors.accent}
-          value={formatNumber(stats.kmPerLiter, 2)}
-          label="km/litro"
-        />
-      </View>
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="speedometer-outline"
-          iconColor={colors.warning}
-          value={`${formatNumber(stats.totalKm, 0)} km`}
-          label="km total"
-        />
-        <StatCard
-          icon="checkmark-circle-outline"
-          iconColor={colors.success}
-          value={String(stats.completedTrips)}
-          label="Viagens finalizadas"
-        />
-      </View>
-
-      <Card style={styles.infoCard}>
-        <View style={styles.infoHeader}>
-          <Ionicons name="bar-chart-outline" size={20} color={colors.accent} />
-          <Text style={styles.infoTitle}>Relatorios detalhados</Text>
+      <Card style={styles.financeCard}>
+        <View style={styles.financeRow}>
+          <View style={styles.financeItem}>
+            <Text style={[styles.financeLabel, { color: colors.textMuted }]}>Receita</Text>
+            <Text style={[styles.financeValue, { color: colors.success }]}>{formatCurrency(stats.receitaMes)}</Text>
+          </View>
+          <View style={styles.financeItem}>
+            <Text style={[styles.financeLabel, { color: colors.textMuted }]}>Gastos</Text>
+            <Text style={[styles.financeValue, { color: colors.danger }]}>{formatCurrency(stats.gastoMes)}</Text>
+          </View>
+          <View style={styles.financeItem}>
+            <Text style={[styles.financeLabel, { color: colors.textMuted }]}>Resultado</Text>
+            <Text style={[styles.financeValue, { color: resultado >= 0 ? colors.success : colors.danger }]}>{formatCurrency(resultado)}</Text>
+          </View>
         </View>
-        <Text style={styles.infoText}>
-          Acesse a aba Relatorios para ver KPIs filtrados por periodo, ranking de
-          veiculos e analise de custos.
-        </Text>
       </Card>
+
+      {/* ── Quick Actions ── */}
+      <Text style={styles.sectionLabel}>Acoes rapidas</Text>
+      <View style={styles.quickActions}>
+        <Pressable
+          style={({ pressed }) => [styles.quickBtn, { backgroundColor: colors.accent + '15', borderColor: colors.accent + '30' }, pressed && styles.quickBtnPressed]}
+          onPress={() => router.push('/(app)/viagens/new')}
+        >
+          <Ionicons name="map" size={22} color={colors.accent} />
+          <Text style={[styles.quickBtnText, { color: colors.accent }]}>Nova Viagem</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.quickBtn, { backgroundColor: colors.info + '15', borderColor: colors.info + '30' }, pressed && styles.quickBtnPressed]}
+          onPress={() => router.push('/(app)/abastecer/new')}
+        >
+          <Ionicons name="water" size={22} color={colors.info} />
+          <Text style={[styles.quickBtnText, { color: colors.info }]}>Abastecer</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.quickBtn, { backgroundColor: colors.warning + '15', borderColor: colors.warning + '30' }, pressed && styles.quickBtnPressed]}
+          onPress={() => router.push('/(app)/manutencoes/new')}
+        >
+          <Ionicons name="construct" size={22} color={colors.warning} />
+          <Text style={[styles.quickBtnText, { color: colors.warning }]}>Manutenção</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.quickBtn, { backgroundColor: colors.success + '15', borderColor: colors.success + '30' }, pressed && styles.quickBtnPressed]}
+          onPress={() => router.push('/(app)/frota')}
+        >
+          <Ionicons name="bus" size={22} color={colors.success} />
+          <Text style={[styles.quickBtnText, { color: colors.success }]}>Frota</Text>
+        </Pressable>
+      </View>
+
+      {/* ── KPIs ── */}
+      <Text style={styles.sectionLabel}>Indicadores</Text>
+      <View style={styles.statsRow}>
+        <StatCard icon="trending-up-outline" iconColor={colors.success} value={formatCurrency(stats.totalFrete)} label="Receita total" />
+        <StatCard icon="speedometer-outline" iconColor={colors.warning} value={`${formatNumber(stats.totalKm, 0)} km`} label="km total" />
+      </View>
     </View>
   );
 }
@@ -716,6 +735,36 @@ const createStyles = (c: Colors) => StyleSheet.create({
     color: c.text,
   },
 
+  // Status strip
+  statusStrip: {
+    marginBottom: spacing.sm,
+    padding: spacing.sm,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  statusItem: {
+    alignItems: 'center',
+    gap: 2,
+  },
+  statusValue: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: c.text,
+  },
+  statusLabel: {
+    fontSize: 10,
+    color: c.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statusDivider: {
+    width: 1,
+    height: 28,
+  },
+
   // Alert card (admin)
   alertCard: {
     flexDirection: 'row',
@@ -732,26 +781,28 @@ const createStyles = (c: Colors) => StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Info card
-  infoCard: {
-    marginTop: spacing.md,
-    borderRadius: radius.lg,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+  // Finance card
+  financeCard: {
     marginBottom: spacing.sm,
+    padding: spacing.md,
   },
-  infoTitle: {
+  financeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  financeItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  financeLabel: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  financeValue: {
     fontSize: fontSize.base,
-    fontWeight: '600',
-    color: c.text,
-  },
-  infoText: {
-    fontSize: fontSize.sm,
-    color: c.textMuted,
-    lineHeight: 20,
+    fontWeight: '700',
   },
 
   // Empty state
