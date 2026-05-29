@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -8,81 +8,64 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { FuelForm } from '../components/forms/FuelForm';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
+import { TableToolbar, FilterSelect } from '../components/ui/TableToolbar';
+import { TableFooter } from '../components/ui/TableFooter';
 import { Fuel, Truck, User, Calendar, DollarSign, Droplet, Edit2, Trash2, Search, Filter, TrendingUp, TrendingDown, Plus, X, Paperclip } from 'lucide-react';
 import { formatNumber, formatCurrency, formatDate } from '../lib/utils';
+import { exportToCsv } from '../lib/exportCsv';
 import { fuelService } from '../services/fuel';
 import { useToast } from '../hooks/useToast';
 import { PageSkeleton } from '../components/ui/Skeleton';
 import { usePagination } from '../hooks/usePagination';
 import { useSortable } from '../hooks/useSortable';
+import { useSelection } from '../hooks/useSelection';
 import { Pagination } from '../components/ui/Pagination';
 import { SortHeader } from '../components/ui/SortHeader';
-
-function PricePerLiter({ valorTotal, litros }) {
-  if (!valorTotal || !litros || litros === 0) return null;
-  const pricePerLiter = Number(valorTotal) / Number(litros);
-  return (
-    <div>
-      <p className="text-xs text-[var(--color-text-secondary)]">R$/Litro</p>
-      <p className="flex items-center gap-1 font-semibold text-[var(--color-accent)] tabular-nums">
-        R$ {pricePerLiter.toFixed(3)}
-      </p>
-    </div>
-  );
-}
 
 function FuelSummaryCards({ records }) {
   const summary = useMemo(() => {
     if (!records.length) return null;
-
     const totalLiters = records.reduce((s, r) => s + (Number(r.litros) || 0), 0);
     const totalCost = records.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
     const avgPricePerLiter = totalLiters > 0 ? totalCost / totalLiters : 0;
-
-    const prices = records
-      .filter(r => r.litros > 0 && r.valor_total > 0)
-      .map(r => Number(r.valor_total) / Number(r.litros));
-
+    const prices = records.filter(r => r.litros > 0 && r.valor_total > 0).map(r => Number(r.valor_total) / Number(r.litros));
     const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
     const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-
     return { totalLiters, totalCost, avgPricePerLiter, maxPrice, minPrice, count: records.length };
   }, [records]);
 
   if (!summary) return null;
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-5">
       <Card className="!rounded-xl">
-        <CardContent className="p-4 !pt-4">
-          <p className="text-xs text-[var(--color-text-secondary)] mb-1">Total Litros</p>
-          <p className="text-lg font-bold text-[var(--color-text)] tabular-nums">{formatNumber(summary.totalLiters)} L</p>
+        <CardContent className="p-3 !pt-3">
+          <p className="text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider mb-0.5">Total Litros</p>
+          <p className="text-base font-bold text-[var(--color-text)] tabular-nums">{formatNumber(summary.totalLiters)} L</p>
         </CardContent>
       </Card>
       <Card className="!rounded-xl">
-        <CardContent className="p-4 !pt-4">
-          <p className="text-xs text-[var(--color-text-secondary)] mb-1">Total Gasto</p>
-          <p className="text-lg font-bold text-[var(--color-text)] tabular-nums">{formatCurrency(summary.totalCost)}</p>
+        <CardContent className="p-3 !pt-3">
+          <p className="text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider mb-0.5">Total Gasto</p>
+          <p className="text-base font-bold text-[var(--color-text)] tabular-nums">{formatCurrency(summary.totalCost)}</p>
         </CardContent>
       </Card>
       <Card className="!rounded-xl">
-        <CardContent className="p-4 !pt-4">
-          <p className="text-xs text-[var(--color-text-secondary)] mb-1">Média R$/L</p>
-          <p className="text-lg font-bold text-[var(--color-accent)] tabular-nums">R$ {summary.avgPricePerLiter.toFixed(3)}</p>
+        <CardContent className="p-3 !pt-3">
+          <p className="text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider mb-0.5">Média R$/L</p>
+          <p className="text-base font-bold text-[var(--color-accent)] tabular-nums">R$ {summary.avgPricePerLiter.toFixed(3)}</p>
         </CardContent>
       </Card>
       <Card className="!rounded-xl">
-        <CardContent className="p-4 !pt-4">
-          <p className="text-xs text-[var(--color-text-secondary)] mb-1">Faixa R$/L</p>
+        <CardContent className="p-3 !pt-3">
+          <p className="text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider mb-0.5">Faixa R$/L</p>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-0.5 text-sm font-semibold text-emerald-500">
-              <TrendingDown className="h-3 w-3" />
-              {summary.minPrice.toFixed(2)}
+              <TrendingDown className="h-3 w-3" />{summary.minPrice.toFixed(2)}
             </span>
-            <span className="text-[var(--color-text-secondary)]">-</span>
+            <span className="text-[var(--color-text-secondary)]">—</span>
             <span className="flex items-center gap-0.5 text-sm font-semibold text-red-400">
-              <TrendingUp className="h-3 w-3" />
-              {summary.maxPrice.toFixed(2)}
+              <TrendingUp className="h-3 w-3" />{summary.maxPrice.toFixed(2)}
             </span>
           </div>
         </CardContent>
@@ -110,140 +93,56 @@ function EditFuelModal({ fuel, trucks, drivers, postos = [], isOpen, onClose, on
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const data = {
+      await fuelService.update(fuel.id, {
         caminhao_id: Number(formData.caminhao_id),
         motorista_id: Number(formData.motorista_id),
         km_registro: Number(formData.km_registro),
         litros: Number(formData.litros),
         valor_total: Number(formData.valor_total),
         posto_id: formData.posto_id ? Number(formData.posto_id) : null
-      };
-
-      await fuelService.update(fuel.id, data);
+      });
       success('Sucesso!', 'Abastecimento atualizado com sucesso');
       onSuccess?.();
       onClose();
     } catch (err) {
-
       error('Erro', err.message || 'Falha ao atualizar abastecimento');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
+  const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Editar Abastecimento">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Select
-            name="caminhao_id"
-            label="Caminhão"
-            value={formData.caminhao_id}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Selecione um caminhão</option>
-            {trucks.map(truck => (
-              <option key={truck.id} value={truck.id}>
-                {truck.placa} - {truck.modelo}
-              </option>
-            ))}
+          <Select name="caminhao_id" label="Caminhão" value={formData.caminhao_id} onChange={handleChange} required>
+            <option value="">Selecione</option>
+            {trucks.map(t => <option key={t.id} value={t.id}>{t.placa} - {t.modelo}</option>)}
           </Select>
-
-          <Select
-            name="motorista_id"
-            label="Motorista"
-            value={formData.motorista_id}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Selecione um motorista</option>
-            {drivers.map(driver => (
-              <option key={driver.id} value={driver.id}>
-                {driver.nome}
-              </option>
-            ))}
+          <Select name="motorista_id" label="Motorista" value={formData.motorista_id} onChange={handleChange} required>
+            <option value="">Selecione</option>
+            {drivers.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
           </Select>
-
-          <Input
-            name="km_registro"
-            label="Quilometragem (km)"
-            type="number"
-            placeholder="50000"
-            value={formData.km_registro}
-            onChange={handleChange}
-            required
-          />
-
-          <Input
-            name="litros"
-            label="Litros"
-            type="number"
-            step="0.01"
-            placeholder="200"
-            value={formData.litros}
-            onChange={handleChange}
-            required
-          />
-
-          <Input
-            name="valor_total"
-            label="Valor Total (R$)"
-            type="number"
-            step="0.01"
-            placeholder="1200.00"
-            value={formData.valor_total}
-            onChange={handleChange}
-            required
-          />
-
-          <Select
-            name="posto_id"
-            label="Posto"
-            value={formData.posto_id}
-            onChange={handleChange}
-          >
+          <Input name="km_registro" label="KM" type="number" value={formData.km_registro} onChange={handleChange} required />
+          <Input name="litros" label="Litros" type="number" step="0.01" value={formData.litros} onChange={handleChange} required />
+          <Input name="valor_total" label="Valor Total (R$)" type="number" step="0.01" value={formData.valor_total} onChange={handleChange} required />
+          <Select name="posto_id" label="Posto" value={formData.posto_id} onChange={handleChange}>
             <option value="">Nenhum posto</option>
-            {postos.map(p => (
-              <option key={p.id} value={p.id}>{p.nome}</option>
-            ))}
+            {postos.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
           </Select>
         </div>
-
         {pricePerLiter && (
           <div className="rounded-xl bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 px-4 py-3">
             <p className="text-xs text-[var(--color-text-secondary)]">Preço por litro calculado</p>
             <p className="text-lg font-bold text-[var(--color-accent)] tabular-nums">R$ {pricePerLiter}</p>
           </div>
         )}
-
         <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="flex-1"
-            disabled={loading}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            loading={loading}
-            className="flex-1"
-          >
-            Salvar Alterações
-          </Button>
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>Cancelar</Button>
+          <Button type="submit" variant="primary" loading={loading} className="flex-1">Salvar</Button>
         </div>
       </form>
     </Modal>
@@ -256,73 +155,67 @@ export function FuelPage({ trucks, drivers, postos = [], onRefetch }) {
   const [loading, setLoading] = useState(true);
   const [editingFuel, setEditingFuel] = useState(null);
   const [deletingFuel, setDeletingFuel] = useState(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTruck, setFilterTruck] = useState('');
-  const [filterPeriod, setFilterPeriod] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
+  const [filterPeriod, setFilterPeriod] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const getTruckName = (caminhaoId) => {
     const truck = trucks.find(t => t.id === caminhaoId);
     return truck ? `${truck.placa} - ${truck.modelo}` : 'N/A';
   };
-
   const getDriverName = (motoristaId) => {
     const driver = drivers.find(d => d.id === motoristaId);
     return driver ? driver.nome : 'N/A';
   };
 
   const filteredFuelRecords = useMemo(() => {
-    let filtered = fuelRecords.filter(record => {
+    return fuelRecords.filter(record => {
       const searchLower = searchTerm.toLowerCase();
       const truckName = getTruckName(record.caminhao_id).toLowerCase();
       const driverName = getDriverName(record.motorista_id).toLowerCase();
       const posto = (record.posto || '').toLowerCase();
 
-      const matchesSearch = !searchTerm ||
-        truckName.includes(searchLower) ||
-        driverName.includes(searchLower) ||
-        posto.includes(searchLower);
-
+      const matchesSearch = !searchTerm || truckName.includes(searchLower) || driverName.includes(searchLower) || posto.includes(searchLower);
       const matchesTruck = !filterTruck || record.caminhao_id === Number(filterTruck);
 
       let matchesPeriod = true;
-      if (filterPeriod !== 'all') {
+      if (filterPeriod) {
         const recordDate = new Date(record.created_at);
         const now = new Date();
-
         switch (filterPeriod) {
-          case 'today':
-            matchesPeriod = recordDate.toDateString() === now.toDateString();
-            break;
-          case 'week': {
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            matchesPeriod = recordDate >= weekAgo;
-            break;
-          }
-          case 'month':
-            matchesPeriod = recordDate.getMonth() === now.getMonth() &&
-                          recordDate.getFullYear() === now.getFullYear();
-            break;
-          case '3months': {
-            const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-            matchesPeriod = recordDate >= threeMonthsAgo;
-            break;
-          }
+          case 'today': matchesPeriod = recordDate.toDateString() === now.toDateString(); break;
+          case 'week': matchesPeriod = recordDate >= new Date(now.getTime() - 7 * 86400000); break;
+          case 'month': matchesPeriod = recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear(); break;
+          case '3months': matchesPeriod = recordDate >= new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()); break;
         }
       }
-
       return matchesSearch && matchesTruck && matchesPeriod;
     });
-
-    return filtered;
   }, [fuelRecords, searchTerm, filterTruck, filterPeriod]);
 
   const { sortedItems: sortedFuel, sortKey, sortDir, requestSort } = useSortable(filteredFuelRecords, { defaultKey: 'created_at', defaultDir: 'desc' });
   const pagination = usePagination(sortedFuel);
+  const selection = useSelection(pagination.paginatedItems);
 
-  const activeFilterCount = [searchTerm, filterTruck, filterPeriod !== 'all' ? filterPeriod : ''].filter(Boolean).length;
+  // Totals for footer
+  const totals = useMemo(() => {
+    const totalLitros = filteredFuelRecords.reduce((s, r) => s + (Number(r.litros) || 0), 0);
+    const totalValor = filteredFuelRecords.reduce((s, r) => s + (Number(r.valor_total) || 0), 0);
+    return [
+      { label: 'Litros', value: totalLitros, format: 'liters', color: 'text-[var(--color-text)]' },
+      { label: 'Total', value: totalValor, format: 'currency', color: 'text-emerald-500' },
+      ...(totalLitros > 0 ? [{ label: 'Média R$/L', value: `R$ ${(totalValor / totalLitros).toFixed(3)}`, format: 'text', color: 'text-[var(--color-accent)]' }] : []),
+    ];
+  }, [filteredFuelRecords]);
+
+  // Filter chips
+  const filterChips = [
+    filterTruck && { label: `Caminhão: ${getTruckName(Number(filterTruck)).split(' - ')[0]}`, active: true, onClear: () => setFilterTruck('') },
+    filterPeriod && { label: filterPeriod === 'today' ? 'Hoje' : filterPeriod === 'week' ? 'Semana' : filterPeriod === 'month' ? 'Mês' : '3 meses', active: true, onClear: () => setFilterPeriod('') },
+  ].filter(Boolean);
 
   const loadFuelRecords = async () => {
     try {
@@ -330,219 +223,212 @@ export function FuelPage({ trucks, drivers, postos = [], onRefetch }) {
       const response = await fuelService.getAll();
       setFuelRecords(response.data || response || []);
     } catch (err) {
-
       error('Erro', 'Falha ao carregar registros de abastecimento');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadFuelRecords();
-  }, []);
+  useEffect(() => { loadFuelRecords(); }, []);
 
-  const handleSuccess = () => {
-    loadFuelRecords();
-    onRefetch?.();
-    setShowCreateForm(false);
-  };
+  const handleSuccess = () => { loadFuelRecords(); onRefetch?.(); setShowCreateForm(false); };
 
   const handleDelete = async () => {
     if (!deletingFuel) return;
-
     setDeleteLoading(true);
     try {
       await fuelService.delete(deletingFuel.id);
-      success('Sucesso!', 'Abastecimento excluído com sucesso');
+      success('Sucesso!', 'Abastecimento excluído');
       handleSuccess();
       setDeletingFuel(null);
     } catch (err) {
-
-      error('Erro', err.message || 'Falha ao excluir abastecimento');
+      error('Erro', err.message || 'Falha ao excluir');
     } finally {
       setDeleteLoading(false);
     }
   };
 
+  const handleBulkDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      await Promise.all(selection.selectedItems.map(item => fuelService.delete(item.id)));
+      success('Sucesso!', `${selection.count} abastecimento${selection.count > 1 ? 's' : ''} excluído${selection.count > 1 ? 's' : ''}`);
+      selection.clear();
+      handleSuccess();
+      setBulkDeleting(false);
+    } catch (err) {
+      error('Erro', err.message || 'Falha ao excluir em lote');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleExport = () => {
+    exportToCsv(filteredFuelRecords, [
+      { key: 'caminhao_id', label: 'Caminhão', format: (v) => getTruckName(v) },
+      { key: 'motorista_id', label: 'Motorista', format: (v) => getDriverName(v) },
+      { key: 'created_at', label: 'Data', format: (v) => formatDate(v) },
+      { key: 'litros', label: 'Litros' },
+      { key: 'valor_total', label: 'Valor Total' },
+      { key: 'km_registro', label: 'KM' },
+      { key: 'posto', label: 'Posto' },
+    ], 'abastecimentos');
+  };
+
   return (
-    <div className="space-y-8">
-      <div>
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-[var(--color-text)]">
-            Abastecimentos ({filteredFuelRecords.length} de {fuelRecords.length})
-          </h2>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="relative"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
-              {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white">
-                  {activeFilterCount}
-                </span>
-              )}
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowCreateForm(true)}
-              disabled={trucks.length === 0 || drivers.length === 0}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Registrar Abastecimento
-            </Button>
-          </div>
-        </div>
-
-        {showFilters && (
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <Input
-                  icon={Search}
-                  placeholder="Buscar por caminhão, motorista ou posto..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Select
-                  label="Filtrar por Caminhão"
-                  value={filterTruck}
-                  onChange={(e) => setFilterTruck(e.target.value)}
-                >
-                  <option value="">Todos os caminhões</option>
-                  {trucks.map(truck => (
-                    <option key={truck.id} value={truck.id}>
-                      {truck.placa} - {truck.modelo}
-                    </option>
-                  ))}
-                </Select>
-                <Select
-                  label="Período"
-                  value={filterPeriod}
-                  onChange={(e) => setFilterPeriod(e.target.value)}
-                >
-                  <option value="all">Todos os períodos</option>
-                  <option value="today">Hoje</option>
-                  <option value="week">Última semana</option>
-                  <option value="month">Este mês</option>
-                  <option value="3months">Últimos 3 meses</option>
-                </Select>
-                {activeFilterCount > 0 && (
-                  <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setFilterTruck(''); setFilterPeriod('all'); }} className="self-end">
-                    <X className="mr-1 h-3.5 w-3.5" /> Limpar Filtros
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Summary Cards */}
-        <FuelSummaryCards records={filteredFuelRecords} />
-
-        {loading ? (
-          <PageSkeleton type="table" />
-        ) : fuelRecords.length === 0 ? (
-          <Card>
-            <CardContent className="py-12">
-              <EmptyState
-                icon={Fuel}
-                title="Nenhum abastecimento registrado"
-                description="Os registros de abastecimento aparecerão aqui"
-              />
-            </CardContent>
-          </Card>
-        ) : filteredFuelRecords.length === 0 ? (
-          <Card>
-            <CardContent className="py-12">
-              <EmptyState
-                icon={Search}
-                title="Nenhum resultado encontrado"
-                description="Tente ajustar os filtros de busca"
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[700px]">
-                <thead>
-                  <tr className="border-b border-[var(--color-border)]">
-                    <SortHeader column="caminhao_id" label="Caminhão" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
-                    <SortHeader column="motorista_id" label="Motorista" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden sm:table-cell" />
-                    <SortHeader column="created_at" label="Data" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden md:table-cell" />
-                    <SortHeader column="litros" label="Litros" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" />
-                    <SortHeader column="valor_total" label="Valor" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" />
-                    <SortHeader column="preco_litro" label="R$/L" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" className="hidden lg:table-cell" />
-                    <SortHeader column="km_registro" label="KM" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" className="hidden lg:table-cell" />
-                    <SortHeader column="posto" label="Posto" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden xl:table-cell" />
-                    <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pagination.paginatedItems.map(fuel => {
-                    const pricePerL = fuel.litros > 0 ? Number(fuel.valor_total) / Number(fuel.litros) : 0;
-                    return (
-                      <tr key={fuel.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)] transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-medium text-[var(--color-text)]">{getTruckName(fuel.caminhao_id).split(' - ')[0]}</p>
-                            {fuel.has_nfce && (
-                              <Paperclip className="h-3.5 w-3.5 text-[var(--color-accent)]" title="NFC-e anexada" />
-                            )}
-                          </div>
-                          <p className="text-xs text-[var(--color-text-secondary)] sm:hidden">{getDriverName(fuel.motorista_id)}</p>
-                          <p className="text-xs text-[var(--color-text-secondary)] md:hidden">{formatDate(fuel.created_at)}</p>
-                        </td>
-                        <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden sm:table-cell">{getDriverName(fuel.motorista_id)}</td>
-                        <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden md:table-cell">{formatDate(fuel.created_at)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-[var(--color-text)] tabular-nums">{formatNumber(fuel.litros)} L</td>
-                        <td className="px-4 py-3 text-right font-semibold text-emerald-500 tabular-nums">{formatCurrency(fuel.valor_total)}</td>
-                        <td className="px-4 py-3 text-right text-[var(--color-accent)] tabular-nums hidden lg:table-cell">R$ {pricePerL.toFixed(3)}</td>
-                        <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] tabular-nums hidden lg:table-cell">{formatNumber(fuel.km_registro, 0)}</td>
-                        <td className="px-4 py-3 hidden xl:table-cell">
-                          {fuel.posto ? <Badge variant="outline">{fuel.posto}</Badge> : <span className="text-[var(--color-text-secondary)]">—</span>}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex justify-end gap-1">
-                            <Button variant="outline" size="sm" onClick={() => setEditingFuel(fuel)} aria-label="Editar">
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button variant="danger" size="sm" onClick={() => setDeletingFuel(fuel)} aria-label="Excluir">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <Pagination {...pagination} />
-          </Card>
-        )}
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">Abastecimentos</h2>
+        <Button variant="primary" size="sm" onClick={() => setShowCreateForm(true)} disabled={trucks.length === 0 || drivers.length === 0}>
+          <Plus className="mr-2 h-4 w-4" />Registrar
+        </Button>
       </div>
 
-      {/* Modal: Registrar Abastecimento */}
+      {/* Summary */}
+      <FuelSummaryCards records={filteredFuelRecords} />
+
+      {loading ? (
+        <PageSkeleton type="table" />
+      ) : fuelRecords.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <EmptyState icon={Fuel} title="Nenhum abastecimento registrado" description="Os registros aparecerão aqui" />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <div className="p-4 pb-0">
+            <TableToolbar
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Buscar caminhão, motorista, posto..."
+              filterChips={filterChips}
+              selectionCount={selection.count}
+              onBulkDelete={() => setBulkDeleting(true)}
+              onClearSelection={selection.clear}
+              onExport={handleExport}
+            >
+              <FilterSelect value={filterTruck} onChange={setFilterTruck} placeholder="Caminhão">
+                {trucks.map(t => <option key={t.id} value={t.id}>{t.placa}</option>)}
+              </FilterSelect>
+              <FilterSelect value={filterPeriod} onChange={setFilterPeriod} placeholder="Período">
+                <option value="today">Hoje</option>
+                <option value="week">Semana</option>
+                <option value="month">Mês</option>
+                <option value="3months">3 meses</option>
+              </FilterSelect>
+            </TableToolbar>
+          </div>
+
+          {filteredFuelRecords.length === 0 ? (
+            <div className="py-12">
+              <EmptyState icon={Search} title="Nenhum resultado" description="Tente ajustar os filtros" />
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto mt-3">
+                <table className="w-full text-sm min-w-[700px]">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)]">
+                      {/* Checkbox column */}
+                      <th className="w-10 px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selection.allSelected}
+                          ref={el => { if (el) el.indeterminate = selection.someSelected; }}
+                          onChange={selection.toggleAll}
+                          className="h-3.5 w-3.5 rounded border-[var(--color-border)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] cursor-pointer"
+                        />
+                      </th>
+                      <SortHeader column="caminhao_id" label="Caminhão" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} />
+                      <SortHeader column="motorista_id" label="Motorista" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden sm:table-cell" />
+                      <SortHeader column="created_at" label="Data" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden md:table-cell" />
+                      <SortHeader column="litros" label="Litros" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" />
+                      <SortHeader column="valor_total" label="Valor" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" />
+                      <SortHeader column="preco_litro" label="R$/L" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" className="hidden lg:table-cell" />
+                      <SortHeader column="km_registro" label="KM" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} align="right" className="hidden lg:table-cell" />
+                      <SortHeader column="posto" label="Posto" sortKey={sortKey} sortDir={sortDir} onSort={requestSort} className="hidden xl:table-cell" />
+                      <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pagination.paginatedItems.map(fuel => {
+                      const pricePerL = fuel.litros > 0 ? Number(fuel.valor_total) / Number(fuel.litros) : 0;
+                      const selected = selection.isSelected(fuel.id);
+                      return (
+                        <tr
+                          key={fuel.id}
+                          className={`border-b border-[var(--color-border)]/50 transition-colors ${
+                            selected
+                              ? 'bg-[var(--color-accent)]/5'
+                              : 'hover:bg-[var(--color-surface)]'
+                          }`}
+                        >
+                          <td className="w-10 px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => selection.toggle(fuel.id)}
+                              className="h-3.5 w-3.5 rounded border-[var(--color-border)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] cursor-pointer"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-medium text-[var(--color-text)]">{getTruckName(fuel.caminhao_id).split(' - ')[0]}</p>
+                              {fuel.has_nfce && <Paperclip className="h-3.5 w-3.5 text-[var(--color-accent)]" title="NFC-e" />}
+                            </div>
+                            <p className="text-xs text-[var(--color-text-secondary)] sm:hidden">{getDriverName(fuel.motorista_id)}</p>
+                            <p className="text-xs text-[var(--color-text-secondary)] md:hidden">{formatDate(fuel.created_at)}</p>
+                          </td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden sm:table-cell">{getDriverName(fuel.motorista_id)}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden md:table-cell">{formatDate(fuel.created_at)}</td>
+                          <td className="px-4 py-3 text-right font-medium text-[var(--color-text)] tabular-nums">{formatNumber(fuel.litros)} L</td>
+                          <td className="px-4 py-3 text-right font-semibold text-emerald-500 tabular-nums">{formatCurrency(fuel.valor_total)}</td>
+                          <td className="px-4 py-3 text-right text-[var(--color-accent)] tabular-nums hidden lg:table-cell">R$ {pricePerL.toFixed(3)}</td>
+                          <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] tabular-nums hidden lg:table-cell">{formatNumber(fuel.km_registro, 0)}</td>
+                          <td className="px-4 py-3 hidden xl:table-cell">
+                            {fuel.posto ? <Badge variant="outline">{fuel.posto}</Badge> : <span className="text-[var(--color-text-secondary)]">—</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex justify-end gap-1">
+                              <Button variant="outline" size="sm" onClick={() => setEditingFuel(fuel)} aria-label="Editar">
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="danger" size="sm" onClick={() => setDeletingFuel(fuel)} aria-label="Excluir">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer with totals */}
+              <TableFooter
+                totals={totals}
+                totalItems={fuelRecords.length}
+                filteredItems={filteredFuelRecords.length}
+              />
+
+              <div className="px-4">
+                <Pagination {...pagination} />
+              </div>
+            </>
+          )}
+        </Card>
+      )}
+
+      {/* Modals */}
       <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} title="Registrar Abastecimento" warnUnsaved>
         <FuelForm trucks={trucks} drivers={drivers} postos={postos} onSuccess={handleSuccess} />
       </Modal>
 
       {editingFuel && (
-        <EditFuelModal
-          fuel={editingFuel}
-          trucks={trucks}
-          drivers={drivers}
-          postos={postos}
-          isOpen={!!editingFuel}
-          onClose={() => setEditingFuel(null)}
-          onSuccess={handleSuccess}
-        />
+        <EditFuelModal fuel={editingFuel} trucks={trucks} drivers={drivers} postos={postos} isOpen={!!editingFuel} onClose={() => setEditingFuel(null)} onSuccess={handleSuccess} />
       )}
 
       <ConfirmDialog
@@ -550,9 +436,19 @@ export function FuelPage({ trucks, drivers, postos = [], onRefetch }) {
         onClose={() => setDeletingFuel(null)}
         onConfirm={handleDelete}
         title="Excluir Abastecimento"
-        description="Tem certeza que deseja excluir este registro de abastecimento? Esta ação não pode ser desfeita."
+        description="Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita."
         confirmText="Excluir"
-        cancelText="Cancelar"
+        variant="danger"
+        isLoading={deleteLoading}
+      />
+
+      <ConfirmDialog
+        isOpen={bulkDeleting}
+        onClose={() => setBulkDeleting(false)}
+        onConfirm={handleBulkDelete}
+        title={`Excluir ${selection.count} abastecimento${selection.count > 1 ? 's' : ''}`}
+        description={`Tem certeza que deseja excluir ${selection.count} registro${selection.count > 1 ? 's' : ''} selecionado${selection.count > 1 ? 's' : ''}? Esta ação não pode ser desfeita.`}
+        confirmText="Excluir Todos"
         variant="danger"
         isLoading={deleteLoading}
       />
