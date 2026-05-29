@@ -64,8 +64,17 @@ class MaintenanceService {
   }
 
   async create(maintenanceData, userId) {
-    // Verify truck exists
-    await truckService.getById(maintenanceData.caminhao_id, userId);
+    // Verify truck exists and validate KM before inserting
+    const truck = await truckService.getById(maintenanceData.caminhao_id, userId);
+
+    if (maintenanceData.km_manutencao && maintenanceData.km_manutencao > 0) {
+      if (truck.km_atual && maintenanceData.km_manutencao < truck.km_atual) {
+        throw new AppError(
+          `Quilometragem inválida: registro atual do veículo é ${truck.km_atual} km`,
+          400
+        );
+      }
+    }
 
     const { data, error } = await supabase
       .from('manutencoes')
@@ -75,9 +84,9 @@ class MaintenanceService {
 
     if (error) throw new AppError('Falha ao criar registro de manutenção', 500, error);
 
-    // Update truck mileage only if provided
+    // Update truck mileage (validation already passed above)
     if (maintenanceData.km_manutencao && maintenanceData.km_manutencao > 0) {
-      await truckService.updateMileage(maintenanceData.caminhao_id, maintenanceData.km_manutencao, userId);
+      await truckService.update(maintenanceData.caminhao_id, { km_atual: maintenanceData.km_manutencao, updated_at: new Date().toISOString() }, userId);
     }
 
     return data;

@@ -93,6 +93,8 @@ export default function AbastecerScreen() {
     }),
   );
 
+  const selectedTruck = (caminhoesQuery.data ?? []).find(c => c.id === form.caminhao_id);
+
   const mutation = useMutation({
     mutationFn: (data: CreateAbastecimentoPayload) =>
       abastecimentosApi.create(data),
@@ -302,8 +304,8 @@ export default function AbastecerScreen() {
           />
 
           <Input
-            label="KM atual *"
-            placeholder="Ex: 150000"
+            label={`KM atual *${selectedTruck?.km_atual ? ` (último: ${Number(selectedTruck.km_atual).toLocaleString('pt-BR')} km)` : ''}`}
+            placeholder={selectedTruck?.km_atual ? `Mínimo: ${Number(selectedTruck.km_atual).toLocaleString('pt-BR')}` : 'Ex: 150000'}
             keyboardType="numeric"
             value={form.km_registro}
             onChangeText={(v) => {

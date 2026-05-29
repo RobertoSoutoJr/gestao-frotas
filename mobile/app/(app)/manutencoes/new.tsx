@@ -83,6 +83,8 @@ export default function NewManutencaoScreen() {
     }),
   );
 
+  const selectedTruck = (caminhoesQuery.data ?? []).find(c => c.id === form.caminhao_id);
+
   const oficinaOptions: PickerOption[] = (oficinasQuery.data ?? []).map(
     (o) => ({
       label: o.nome,
@@ -292,13 +294,14 @@ export default function NewManutencaoScreen() {
           />
 
           <Input
-            label="KM atual"
-            placeholder="Ex: 150000"
+            label={`KM atual${selectedTruck?.km_atual ? ` (último: ${Number(selectedTruck.km_atual).toLocaleString('pt-BR')} km)` : ''}`}
+            placeholder={selectedTruck?.km_atual ? `Mínimo: ${Number(selectedTruck.km_atual).toLocaleString('pt-BR')}` : 'Ex: 150000'}
             keyboardType="numeric"
             value={form.km_manutencao}
             onChangeText={(v) =>
               setForm((p) => ({ ...p, km_manutencao: v.replace(/[^0-9]/g, '') }))
             }
+            error={errors.km_manutencao}
           />
 
           <Picker
