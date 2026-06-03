@@ -76,10 +76,26 @@ function GroupSelect({ value, onChange, options }) {
   );
 }
 
+// Faixa de KPIs densa (uma célula por indicador, números tabulares)
+function KpiBand({ items }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] overflow-hidden">
+      <div className="grid grid-cols-2 md:grid-cols-4">
+        {items.map((k, i) => (
+          <div key={i} className="px-4 py-3.5 border-b border-r border-[var(--color-border)] md:border-b-0 last:border-r-0">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">{k.label}</p>
+            <p className={`mt-1 text-xl font-bold tabular-nums ${k.tone || 'text-[var(--color-text)]'}`}>{k.value}</p>
+            {k.sub && <p className="text-[11px] text-[var(--color-text-secondary)] mt-0.5 truncate">{k.sub}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const REPORT_SECTIONS = [
-  { id: 'filters', label: 'Filtros', description: 'Filtrar por caminhão e período', icon: Filter },
   { id: 'dre', label: 'DRE Simplificado', description: 'Demonstrativo de resultado: receita, despesas e lucro', icon: Receipt },
-  { id: 'summary_cards', label: 'Cards de Resumo', description: 'Total gasto, combustível, manutenção, litros', icon: DollarSign },
   { id: 'maintenance_table', label: 'Manutenções Detalhadas', description: 'Tabela com todos os registros de manutenção', icon: Wrench },
   { id: 'fuel_table', label: 'Abastecimentos Detalhados', description: 'Tabela com todos os registros de abastecimento', icon: FuelIcon },
   { id: 'chart_costs', label: 'Custos por Caminhão', description: 'Gráfico de barras comparativo', icon: BarChart3 },
@@ -507,33 +523,10 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Receipt className="h-5 w-5" />
-                DRE Simplificado
+                Demonstrativo de Resultado (DRE)
               </CardTitle>
-              <CardDescription>
-                Demonstrativo de resultado {startDate || endDate ? 'no periodo filtrado' : 'geral'}
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Result summary cards */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
-                <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-center">
-                  <p className="text-[10px] uppercase tracking-wider text-emerald-400/70">Receita</p>
-                  <p className="text-lg font-bold text-emerald-400">{formatCurrency(d.receita)}</p>
-                </div>
-                <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-center">
-                  <p className="text-[10px] uppercase tracking-wider text-red-400/70">Despesas</p>
-                  <p className="text-lg font-bold text-red-400">{formatCurrency(d.despesasTotal)}</p>
-                </div>
-                <div className={`rounded-xl border p-3 text-center ${d.lucro >= 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-                  <p className={`text-[10px] uppercase tracking-wider ${d.lucro >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}>Resultado</p>
-                  <p className={`text-lg font-bold ${d.lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(d.lucro)}</p>
-                </div>
-                <div className={`rounded-xl border p-3 text-center ${d.margem >= 0 ? 'bg-blue-500/10 border-blue-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-                  <p className="text-[10px] uppercase tracking-wider text-blue-400/70">Margem</p>
-                  <p className={`text-lg font-bold ${d.margem >= 0 ? 'text-blue-400' : 'text-red-400'}`}>{d.margem.toFixed(1)}%</p>
-                </div>
-              </div>
-
               {/* DRE table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -1517,6 +1510,8 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
     };
 
     for (const id of order) {
+      // filtros viraram toolbar; cards de resumo viraram a faixa de KPIs
+      if (id === 'filters' || id === 'summary_cards') continue;
       if (!isVisible(id)) continue;
       if (allowedSections && !allowedSections.includes(id)) continue;
 
@@ -1564,47 +1559,167 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
     }
   };
 
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">Relatórios</h1>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Análise detalhada da frota</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={() => handleReportExport('pdf')} title="Exportar o relatório selecionado em PDF">
-            <FileText className="mr-2 h-4 w-4 text-red-400" />
-            PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleReportExport('excel')} title="Exportar o relatório selecionado em Excel">
-            <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-400" />
-            Excel
-          </Button>
-          <SectionCustomizerButton onClick={() => setShowCustomize(true)} />
-        </div>
-      </div>
+  // ── Metadados do relatório ativo (título + escopo + KPIs) ──
+  const currentReport = REPORT_TABS.find(t => t.id === activeTab) || REPORT_TABS[0];
+  const truckLabel = selectedTruck === 'all'
+    ? 'Toda a frota'
+    : (trucks.find(t => t.id === Number(selectedTruck))?.placa || 'Caminhão');
+  const periodScope = (startDate || endDate)
+    ? `${startDate ? formatDate(startDate) : 'início'} – ${endDate ? formatDate(endDate) : 'hoje'}`
+    : 'Período completo';
 
-      {/* Report Tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mt-4">
-        {REPORT_TABS.map(tab => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                isActive
-                  ? 'bg-[var(--color-accent)] text-white shadow-md'
-                  : 'bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {tab.label}
-            </button>
-          );
-        })}
+  const kpiItems = (() => {
+    const f = filteredData.filteredFuel, m = filteredData.filteredMaintenance;
+    const fuelTotal = f.reduce((s, r) => s + Number(r.valor_total || 0), 0);
+    const fuelLitros = f.reduce((s, r) => s + Number(r.litros || 0), 0);
+    const maintTotal = m.reduce((s, r) => s + Number(r.valor_total || 0), 0);
+    const kmTotal = stats.reduce((s, x) => s + x.totalKm, 0);
+    const kmL = overallStats.totalLiters > 0 ? kmTotal / overallStats.totalLiters : 0;
+    const sign = (v) => (v >= 0 ? 'text-emerald-400' : 'text-red-400');
+    switch (activeTab) {
+      case 'dre': return [
+        { label: 'Receita', value: formatCurrency(dreData.receita), tone: 'text-emerald-400' },
+        { label: 'Despesas', value: formatCurrency(dreData.despesasTotal), tone: 'text-red-400' },
+        { label: 'Resultado', value: formatCurrency(dreData.lucro), tone: sign(dreData.lucro) },
+        { label: 'Margem', value: `${dreData.margem.toFixed(1)}%`, tone: sign(dreData.margem) },
+      ];
+      case 'fuel': return [
+        { label: 'Total gasto', value: formatCurrency(fuelTotal), tone: 'text-[var(--color-accent)]' },
+        { label: 'Litros', value: `${formatNumber(fuelLitros, 0)} L` },
+        { label: 'Preço médio/L', value: fuelLitros > 0 ? formatCurrency(fuelTotal / fuelLitros) : '—' },
+        { label: 'Abastecimentos', value: String(f.length) },
+      ];
+      case 'maintenance': {
+        const pend = m.filter(r => r.status === 'pendente').length;
+        return [
+          { label: 'Total', value: formatCurrency(maintTotal), tone: 'text-red-400' },
+          { label: 'Registros', value: String(m.length) },
+          { label: 'Custo médio', value: m.length > 0 ? formatCurrency(maintTotal / m.length) : '—' },
+          { label: 'Pendentes', value: String(pend), tone: pend > 0 ? 'text-amber-400' : undefined },
+        ];
+      }
+      case 'trucks': return [
+        { label: 'Caminhões', value: String(stats.length) },
+        { label: 'Custo total', value: formatCurrency(overallStats.totalSpent) },
+        { label: 'Custo/km méd.', value: kmTotal > 0 ? formatCurrency(overallStats.totalSpent / kmTotal) : '—' },
+        { label: 'km/L médio', value: kmL > 0 ? kmL.toFixed(2) : '—' },
+      ];
+      case 'drivers': {
+        const rec = driverStats.reduce((s, x) => s + x.receita, 0);
+        const km = driverStats.reduce((s, x) => s + x.totalKm, 0);
+        const lit = driverStats.reduce((s, x) => s + x.litros, 0);
+        return [
+          { label: 'Motoristas', value: String(driverStats.length) },
+          { label: 'Receita', value: formatCurrency(rec), tone: 'text-emerald-400' },
+          { label: 'km total', value: `${formatNumber(km, 0)} km` },
+          { label: 'km/L médio', value: lit > 0 ? (km / lit).toFixed(2) : '—' },
+        ];
+      }
+      case 'clients': {
+        const rec = clientStats.reduce((s, x) => s + x.receita, 0);
+        const luc = clientStats.reduce((s, x) => s + x.lucro, 0);
+        const marg = rec > 0 ? (luc / rec) * 100 : 0;
+        return [
+          { label: 'Clientes ativos', value: String(clientStats.length) },
+          { label: 'Receita', value: formatCurrency(rec), tone: 'text-emerald-400' },
+          { label: 'Lucro', value: formatCurrency(luc), tone: sign(luc) },
+          { label: 'Margem', value: `${marg.toFixed(1)}%`, tone: sign(marg) },
+        ];
+      }
+      case 'projections': {
+        const reals = projectionData.filter(p => p.Real !== null).map(p => p.Real);
+        const future = projectionData.filter(p => p.Real === null);
+        const next = future[0]?.Tendência;
+        const avg = reals.length ? reals.reduce((a, b) => a + b, 0) / reals.length : 0;
+        const up = future.length >= 2 ? future[future.length - 1].Tendência >= future[0].Tendência : false;
+        return [
+          { label: 'Próx. mês (proj.)', value: next != null ? formatCurrency(next) : '—' },
+          { label: 'Média mensal', value: formatCurrency(avg) },
+          { label: 'Tendência', value: reals.length >= 3 ? (up ? 'Em alta' : 'Em queda') : '—', tone: reals.length >= 3 ? (up ? 'text-red-400' : 'text-emerald-400') : undefined },
+          { label: 'Meses analisados', value: String(reals.length) },
+        ];
+      }
+      default: return [
+        { label: 'Total gasto', value: formatCurrency(overallStats.totalSpent) },
+        { label: 'Receita', value: formatCurrency(dreData.receita), tone: 'text-emerald-400' },
+        { label: 'Resultado', value: formatCurrency(dreData.lucro), tone: sign(dreData.lucro) },
+        { label: 'Margem', value: `${dreData.margem.toFixed(1)}%`, tone: sign(dreData.margem) },
+      ];
+    }
+  })();
+
+  const ctrl = 'rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2.5 py-1.5 text-xs text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]';
+
+  return (
+    <div className="space-y-5">
+      <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">Relatórios</h1>
+
+      <div className="flex flex-col lg:flex-row gap-5">
+        {/* ── Menu lateral de relatórios ── */}
+        <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible lg:w-56 shrink-0 pb-1 lg:pb-0 lg:sticky lg:top-0 lg:self-start scrollbar-hide">
+          <p className="hidden lg:block px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Relatórios</p>
+          {REPORT_TABS.map(tab => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-left transition-colors lg:w-full lg:border-l-2 ${
+                  active
+                    ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)] lg:border-[var(--color-accent)]'
+                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] lg:border-transparent'
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* ── Conteúdo ── */}
+        <div className="flex-1 min-w-0 space-y-5">
+          {/* Toolbar fixa */}
+          <div className="sticky top-0 z-20 -mx-1 px-1 py-2 bg-[var(--color-bg)]/95 backdrop-blur-sm border-b border-[var(--color-border)]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <select value={selectedTruck} onChange={(e) => setSelectedTruck(e.target.value)} className={`${ctrl} cursor-pointer ${selectedTruck !== 'all' ? 'border-[var(--color-accent)]/50' : ''}`}>
+                <option value="all">Todos os caminhões</option>
+                {trucks.map(t => <option key={t.id} value={t.id}>{t.placa}</option>)}
+              </select>
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={`${ctrl} ${startDate ? 'border-[var(--color-accent)]/50' : ''}`} />
+              <span className="text-xs text-[var(--color-text-secondary)]">–</span>
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={`${ctrl} ${endDate ? 'border-[var(--color-accent)]/50' : ''}`} />
+              {hasActiveFilters && (
+                <button onClick={clearFilters} className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors">
+                  <X className="h-3.5 w-3.5" /> Limpar
+                </button>
+              )}
+              <div className="flex-1" />
+              <Button variant="outline" size="sm" onClick={() => handleReportExport('pdf')} title="Exportar em PDF">
+                <FileText className="mr-1.5 h-4 w-4 text-red-400" /> PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleReportExport('excel')} title="Exportar em Excel">
+                <FileSpreadsheet className="mr-1.5 h-4 w-4 text-emerald-400" /> Excel
+              </Button>
+              <SectionCustomizerButton onClick={() => setShowCustomize(true)} />
+            </div>
+          </div>
+
+          {/* Bloco de contexto + KPIs */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <currentReport.icon className="h-5 w-5 text-[var(--color-accent)]" />
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--color-text)] leading-tight">{currentReport.label}</h2>
+                <p className="text-xs text-[var(--color-text-secondary)]">{truckLabel} · {periodScope}</p>
+              </div>
+            </div>
+            <KpiBand items={kpiItems} />
+          </div>
+
+          {renderOrderedSections()}
+        </div>
       </div>
 
       <SectionCustomizerModal
@@ -1618,8 +1733,6 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
         toggleVisibility={toggleVisibility}
         reset={reset}
       />
-
-      {renderOrderedSections()}
     </div>
   );
 }
