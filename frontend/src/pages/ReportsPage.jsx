@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, Fragment } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -29,6 +29,45 @@ const REPORT_TABS = [
   { id: 'clients', label: 'Clientes', icon: Building2, sections: ['filters', 'client_profitability'] },
   { id: 'projections', label: 'Projeções', icon: TrendingUp, sections: ['filters', 'chart_monthly', 'spend_projection'] },
 ];
+
+// Agrupa registros por uma chave; retorna [{ key, label, rows }] ordenado por label
+function groupRecords(records, keyFn) {
+  const map = new Map();
+  for (const r of records) {
+    const { key, label } = keyFn(r);
+    if (!map.has(key)) map.set(key, { key, label, rows: [] });
+    map.get(key).rows.push(r);
+  }
+  return Array.from(map.values()).sort((a, b) =>
+    String(a.label).localeCompare(String(b.label), 'pt-BR', { numeric: true })
+  );
+}
+
+// Rótulo de mês a partir de uma data (ex.: "Maio/2026")
+function monthLabel(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return 'Sem data';
+  const m = d.toLocaleDateString('pt-BR', { month: 'long' });
+  return `${m.charAt(0).toUpperCase() + m.slice(1)}/${d.getFullYear()}`;
+}
+
+const STATUS_LABELS = { pendente: 'Pendente', em_andamento: 'Em andamento', concluida: 'Concluída' };
+
+// Seletor compacto "Agrupar por"
+function GroupSelect({ value, onChange, options }) {
+  return (
+    <div className="flex items-center gap-1.5 shrink-0">
+      <span className="text-xs text-[var(--color-text-secondary)] whitespace-nowrap">Agrupar por:</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`rounded-lg border bg-[var(--color-bg-elevated)] px-2.5 py-1.5 text-xs text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] cursor-pointer transition-colors ${value !== 'none' ? 'border-[var(--color-accent)]/50' : 'border-[var(--color-border)]'}`}
+      >
+        {options.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
+      </select>
+    </div>
+  );
+}
 
 const REPORT_SECTIONS = [
   { id: 'filters', label: 'Filtros', description: 'Filtrar por caminhão e período', icon: Filter },
@@ -88,6 +127,8 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
   const [selectedTruck, setSelectedTruck] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [maintGroupBy, setMaintGroupBy] = useState('none');
+  const [fuelGroupBy, setFuelGroupBy] = useState('none');
 
   // Aplicar filtros
   const filteredData = useMemo(() => {
@@ -604,133 +645,205 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
       </div>
     ),
 
-    maintenance_table: () => (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wrench className="h-5 w-5 text-red-400" />
-            Manutenções Detalhadas ({filteredData.filteredMaintenance.length})
-          </CardTitle>
-          <CardDescription>Registros individuais de manutenção</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredData.filteredMaintenance.length === 0 ? (
-            <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhuma manutenção encontrada no período</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--color-border)]">
-                    {selectedTruck === 'all' && <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>}
-                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
-                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
-                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Descrição</th>
-                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Oficina</th>
-                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Custo</th>
-                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.filteredMaintenance
-                    .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
-                    .map(record => {
-                    const truckInfo = trucks.find(t => t.id === record.caminhao_id);
-                    return (
-                      <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
-                        {selectedTruck === 'all' && <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>}
-                        <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.data_manutencao)}</td>
-                        <td className="px-3 py-2">
-                          <Badge variant={record.tipo_manutencao === 'Preventiva' ? 'success' : 'warning'}>
-                            {record.tipo_manutencao || '-'}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-2 text-[var(--color-text)]">{record.descricao || '-'}</td>
-                        <td className="px-3 py-2 text-[var(--color-text-secondary)]">{record.oficina || '-'}</td>
-                        <td className="px-3 py-2 text-right font-medium text-red-500">{formatCurrency(record.valor_total)}</td>
-                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_manutencao ? formatNumber(record.km_manutencao, 0) : '-'}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 border-[var(--color-border)]">
-                    <td colSpan={selectedTruck === 'all' ? 5 : 4} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
-                    <td className="px-3 py-2 text-right font-bold text-red-500">
-                      {formatCurrency(filteredData.filteredMaintenance.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0))}
-                    </td>
-                    <td className="px-3 py-2"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    ),
+    maintenance_table: () => {
+      const records = [...filteredData.filteredMaintenance].sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao));
+      const colCount = selectedTruck === 'all' ? 7 : 6;
+      const labelSpan = colCount - 2;
+      const subtotal = (rows) => rows.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0);
 
-    fuel_table: () => (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FuelIcon className="h-5 w-5 text-emerald-400" />
-            Abastecimentos Detalhados ({filteredData.filteredFuel.length})
-          </CardTitle>
-          <CardDescription>Registros individuais de abastecimento</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredData.filteredFuel.length === 0 ? (
-            <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhum abastecimento encontrado no período</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--color-border)]">
-                    {selectedTruck === 'all' && <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>}
-                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
-                    <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Posto</th>
-                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Litros</th>
-                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Preço/L</th>
-                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Total</th>
-                    <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.filteredFuel
-                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                    .map(record => {
-                    const truckInfo = trucks.find(t => t.id === record.caminhao_id);
-                    return (
-                      <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
-                        {selectedTruck === 'all' && <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>}
-                        <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.created_at)}</td>
-                        <td className="px-3 py-2 text-[var(--color-text)]">{record.posto || '-'}</td>
-                        <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatNumber(record.litros, 2)}</td>
-                        <td className="px-3 py-2 text-right text-[var(--color-text)]">{record.litros > 0 ? formatCurrency(Number(record.valor_total) / Number(record.litros)) : '-'}</td>
-                        <td className="px-3 py-2 text-right font-medium text-emerald-500">{formatCurrency(record.valor_total)}</td>
-                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_registro ? formatNumber(record.km_registro, 0) : '-'}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 border-[var(--color-border)]">
-                    <td colSpan={selectedTruck === 'all' ? 3 : 2} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
-                    <td className="px-3 py-2 text-right font-semibold text-[var(--color-text)]">
-                      {formatNumber(filteredData.filteredFuel.reduce((s, r) => s + Number(r.litros || 0), 0), 2)}
-                    </td>
-                    <td className="px-3 py-2"></td>
-                    <td className="px-3 py-2 text-right font-bold text-emerald-500">
-                      {formatCurrency(filteredData.filteredFuel.reduce((s, r) => s + Number(r.valor_total || 0), 0))}
-                    </td>
-                    <td className="px-3 py-2"></td>
-                  </tr>
-                </tfoot>
-              </table>
+      const keyFns = {
+        caminhao: (r) => { const t = trucks.find(t => t.id === r.caminhao_id); return { key: r.caminhao_id ?? 'x', label: t?.placa || 'Sem caminhão' }; },
+        tipo: (r) => ({ key: r.tipo_manutencao || 'Outros', label: r.tipo_manutencao || 'Outros' }),
+        mes: (r) => { const l = monthLabel(r.data_manutencao || r.created_at); return { key: l, label: l }; },
+        status: (r) => ({ key: r.status || 'concluida', label: STATUS_LABELS[r.status] || 'Concluída' }),
+      };
+      const groups = maintGroupBy !== 'none' ? groupRecords(records, keyFns[maintGroupBy]) : null;
+
+      const renderRow = (record) => {
+        const truckInfo = trucks.find(t => t.id === record.caminhao_id);
+        return (
+          <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
+            {selectedTruck === 'all' && <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>}
+            <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.data_manutencao)}</td>
+            <td className="px-3 py-2">
+              <Badge variant={record.tipo_manutencao === 'Preventiva' ? 'success' : 'warning'}>{record.tipo_manutencao || '-'}</Badge>
+            </td>
+            <td className="px-3 py-2 text-[var(--color-text)]">{record.descricao || '-'}</td>
+            <td className="px-3 py-2 text-[var(--color-text-secondary)]">{record.oficina || '-'}</td>
+            <td className="px-3 py-2 text-right font-medium text-red-500">{formatCurrency(record.valor_total)}</td>
+            <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_manutencao ? formatNumber(record.km_manutencao, 0) : '-'}</td>
+          </tr>
+        );
+      };
+
+      return (
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Wrench className="h-5 w-5 text-red-400" /> Manutenções Detalhadas ({records.length})
+                </CardTitle>
+                <CardDescription>Registros individuais de manutenção</CardDescription>
+              </div>
+              <GroupSelect value={maintGroupBy} onChange={setMaintGroupBy}
+                options={[['none','Sem agrupamento'],['caminhao','Caminhão'],['tipo','Tipo'],['mes','Mês'],['status','Status']]} />
             </div>
-          )}
-        </CardContent>
-      </Card>
-    ),
+          </CardHeader>
+          <CardContent>
+            {records.length === 0 ? (
+              <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhuma manutenção encontrada no período</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)]">
+                      {selectedTruck === 'all' && <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>}
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Tipo</th>
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Descrição</th>
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Oficina</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Custo</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groups
+                      ? groups.map(g => (
+                        <Fragment key={g.key}>
+                          <tr className="bg-[var(--color-surface)]">
+                            <td colSpan={colCount} className="px-3 py-2 font-semibold text-[var(--color-text)]">
+                              {g.label} <span className="text-xs font-normal text-[var(--color-text-secondary)]">({g.rows.length})</span>
+                            </td>
+                          </tr>
+                          {g.rows.map(renderRow)}
+                          <tr className="border-b-2 border-[var(--color-border)] bg-[var(--color-surface)]/40">
+                            <td colSpan={labelSpan} className="px-3 py-1.5 text-right text-xs font-medium text-[var(--color-text-secondary)]">Subtotal — {g.label}</td>
+                            <td className="px-3 py-1.5 text-right font-semibold text-red-500">{formatCurrency(subtotal(g.rows))}</td>
+                            <td className="px-3 py-1.5"></td>
+                          </tr>
+                        </Fragment>
+                      ))
+                      : records.map(renderRow)}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-[var(--color-border)]">
+                      <td colSpan={labelSpan} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
+                      <td className="px-3 py-2 text-right font-bold text-red-500">{formatCurrency(subtotal(records))}</td>
+                      <td className="px-3 py-2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      );
+    },
+
+    fuel_table: () => {
+      const records = [...filteredData.filteredFuel].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const labelSpan = selectedTruck === 'all' ? 3 : 2;
+      const sumLitros = (rows) => rows.reduce((s, r) => s + Number(r.litros || 0), 0);
+      const sumValor = (rows) => rows.reduce((s, r) => s + Number(r.valor_total || 0), 0);
+
+      const keyFns = {
+        caminhao: (r) => { const t = trucks.find(t => t.id === r.caminhao_id); return { key: r.caminhao_id ?? 'x', label: t?.placa || 'Sem caminhão' }; },
+        posto: (r) => { const l = r.posto || r.postos?.nome || 'Sem posto'; return { key: l, label: l }; },
+        mes: (r) => { const l = monthLabel(r.created_at); return { key: l, label: l }; },
+      };
+      const groups = fuelGroupBy !== 'none' ? groupRecords(records, keyFns[fuelGroupBy]) : null;
+
+      const renderRow = (record) => {
+        const truckInfo = trucks.find(t => t.id === record.caminhao_id);
+        return (
+          <tr key={record.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface)]">
+            {selectedTruck === 'all' && <td className="px-3 py-2 font-medium text-[var(--color-text)]">{truckInfo?.placa || '-'}</td>}
+            <td className="px-3 py-2 text-[var(--color-text)]">{formatDate(record.created_at)}</td>
+            <td className="px-3 py-2 text-[var(--color-text)]">{record.posto || '-'}</td>
+            <td className="px-3 py-2 text-right text-[var(--color-text)]">{formatNumber(record.litros, 2)}</td>
+            <td className="px-3 py-2 text-right text-[var(--color-text)]">{record.litros > 0 ? formatCurrency(Number(record.valor_total) / Number(record.litros)) : '-'}</td>
+            <td className="px-3 py-2 text-right font-medium text-emerald-500">{formatCurrency(record.valor_total)}</td>
+            <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">{record.km_registro ? formatNumber(record.km_registro, 0) : '-'}</td>
+          </tr>
+        );
+      };
+
+      const subtotalRow = (g) => (
+        <tr className="border-b-2 border-[var(--color-border)] bg-[var(--color-surface)]/40">
+          <td colSpan={labelSpan} className="px-3 py-1.5 text-right text-xs font-medium text-[var(--color-text-secondary)]">Subtotal — {g.label}</td>
+          <td className="px-3 py-1.5 text-right font-semibold text-[var(--color-text)]">{formatNumber(sumLitros(g.rows), 2)}</td>
+          <td className="px-3 py-1.5"></td>
+          <td className="px-3 py-1.5 text-right font-semibold text-emerald-500">{formatCurrency(sumValor(g.rows))}</td>
+          <td className="px-3 py-1.5"></td>
+        </tr>
+      );
+
+      return (
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <FuelIcon className="h-5 w-5 text-emerald-400" /> Abastecimentos Detalhados ({records.length})
+                </CardTitle>
+                <CardDescription>Registros individuais de abastecimento</CardDescription>
+              </div>
+              <GroupSelect value={fuelGroupBy} onChange={setFuelGroupBy}
+                options={[['none','Sem agrupamento'],['caminhao','Caminhão'],['posto','Posto'],['mes','Mês']]} />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {records.length === 0 ? (
+              <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">Nenhum abastecimento encontrado no período</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)]">
+                      {selectedTruck === 'all' && <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Caminhão</th>}
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Data</th>
+                      <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)]">Posto</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Litros</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Preço/L</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">Total</th>
+                      <th className="px-3 py-2 text-right font-medium text-[var(--color-text-secondary)]">KM</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groups
+                      ? groups.map(g => {
+                        const colCount = selectedTruck === 'all' ? 7 : 6;
+                        return (
+                          <Fragment key={g.key}>
+                            <tr className="bg-[var(--color-surface)]">
+                              <td colSpan={colCount} className="px-3 py-2 font-semibold text-[var(--color-text)]">
+                                {g.label} <span className="text-xs font-normal text-[var(--color-text-secondary)]">({g.rows.length})</span>
+                              </td>
+                            </tr>
+                            {g.rows.map(renderRow)}
+                            {subtotalRow(g)}
+                          </Fragment>
+                        );
+                      })
+                      : records.map(renderRow)}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-[var(--color-border)]">
+                      <td colSpan={labelSpan} className="px-3 py-2 font-semibold text-[var(--color-text)]">Total</td>
+                      <td className="px-3 py-2 text-right font-semibold text-[var(--color-text)]">{formatNumber(sumLitros(records), 2)}</td>
+                      <td className="px-3 py-2"></td>
+                      <td className="px-3 py-2 text-right font-bold text-emerald-500">{formatCurrency(sumValor(records))}</td>
+                      <td className="px-3 py-2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      );
+    },
 
     chart_costs: () => (
       <Card>
