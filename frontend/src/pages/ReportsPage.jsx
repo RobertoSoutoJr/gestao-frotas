@@ -7,7 +7,7 @@ import { Input } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useSectionPrefs, SectionCustomizerButton, SectionCustomizerModal } from '../components/ui/SectionCustomizer';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X, Truck, PieChart as PieChartIcon, LineChart as LineChartIcon, Receipt, Gauge, Route, Award, Users, Download, FileSpreadsheet, FileText, Building2, Trophy } from 'lucide-react';
+import { TrendingUp, DollarSign, Fuel as FuelIcon, Wrench, BarChart3, Filter, X, Truck, PieChart as PieChartIcon, LineChart as LineChartIcon, Receipt, Gauge, Route, Award, Users, FileSpreadsheet, FileText, Building2, Trophy } from 'lucide-react';
 import { formatCurrency, formatNumber, formatDate } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -1416,6 +1416,34 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
     return elements;
   };
 
+  // Exporta apenas o relatório da aba selecionada (PDF ou Excel)
+  const periodLabel = (startDate || endDate) ? `${startDate || '...'} a ${endDate || '...'}` : '';
+  const handleReportExport = (format) => {
+    const isPdf = format === 'pdf';
+    switch (activeTab) {
+      case 'dre':
+        (isPdf ? exportDREtoPDF : exportDREtoExcel)(dreData, periodLabel || null);
+        break;
+      case 'fuel':
+        (isPdf ? exportFuelTableToPDF : exportFuelTableToExcel)(filteredData.filteredFuel, trucks);
+        break;
+      case 'maintenance':
+        (isPdf ? exportMaintenanceTableToPDF : exportMaintenanceTableToExcel)(filteredData.filteredMaintenance, trucks);
+        break;
+      case 'trucks':
+        (isPdf ? exportTruckReportToPDF : exportTruckReportToExcel)(stats);
+        break;
+      case 'drivers':
+        (isPdf ? exportDriverReportToPDF : exportDriverReportToExcel)(driverStats);
+        break;
+      // 'all', 'clients', 'projections' → relatório completo
+      default:
+        (isPdf ? exportFullReportToPDF : exportFullReportToExcel)(
+          dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, periodLabel
+        );
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -1425,57 +1453,14 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Análise detalhada da frota</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative group">
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Exportar
-            </Button>
-            <div className="absolute right-0 top-full mt-1 z-50 hidden group-hover:block min-w-[220px]">
-              <Card className="shadow-xl border border-[var(--color-border)]">
-                <CardContent className="p-2 space-y-0.5">
-                  <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)] font-semibold">PDF</p>
-                  <button onClick={() => exportDREtoPDF(dreData, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : null)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileText className="h-3.5 w-3.5 text-red-400" /> DRE Simplificado
-                  </button>
-                  <button onClick={() => exportTruckReportToPDF(stats)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileText className="h-3.5 w-3.5 text-red-400" /> Relatório Caminhões
-                  </button>
-                  <button onClick={() => exportDriverReportToPDF(driverStats)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileText className="h-3.5 w-3.5 text-red-400" /> Relatório Motoristas
-                  </button>
-                  <button onClick={() => exportFuelTableToPDF(filteredData.filteredFuel, trucks)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileText className="h-3.5 w-3.5 text-red-400" /> Abastecimentos
-                  </button>
-                  <button onClick={() => exportMaintenanceTableToPDF(filteredData.filteredMaintenance, trucks)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileText className="h-3.5 w-3.5 text-red-400" /> Manutenções
-                  </button>
-                  <button onClick={() => exportFullReportToPDF(dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : '')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors font-medium">
-                    <FileText className="h-3.5 w-3.5 text-[#28633D]" /> Relatório Completo (PDF)
-                  </button>
-                  <div className="border-t border-[var(--color-border)] my-1" />
-                  <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)] font-semibold">Excel</p>
-                  <button onClick={() => exportFullReportToExcel(dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : '')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Relatório Completo
-                  </button>
-                  <button onClick={() => exportDREtoExcel(dreData, startDate || endDate ? `${startDate || '...'} a ${endDate || '...'}` : null)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> DRE Simplificado
-                  </button>
-                  <button onClick={() => exportTruckReportToExcel(stats)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Caminhões
-                  </button>
-                  <button onClick={() => exportDriverReportToExcel(driverStats)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Motoristas
-                  </button>
-                  <button onClick={() => exportFuelTableToExcel(filteredData.filteredFuel, trucks)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Abastecimentos
-                  </button>
-                  <button onClick={() => exportMaintenanceTableToExcel(filteredData.filteredMaintenance, trucks)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded-lg transition-colors">
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Manutenções
-                  </button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => handleReportExport('pdf')} title="Exportar o relatório selecionado em PDF">
+            <FileText className="mr-2 h-4 w-4 text-red-400" />
+            PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleReportExport('excel')} title="Exportar o relatório selecionado em Excel">
+            <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-400" />
+            Excel
+          </Button>
           <SectionCustomizerButton onClick={() => setShowCustomize(true)} />
         </div>
       </div>
