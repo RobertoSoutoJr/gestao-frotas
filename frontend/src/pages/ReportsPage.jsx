@@ -30,25 +30,32 @@ const REPORT_TABS = [
   { id: 'projections', label: 'Projeções', icon: TrendingUp, sections: ['filters', 'chart_monthly', 'spend_projection'] },
 ];
 
-// Agrupa registros por uma chave; retorna [{ key, label, rows }] ordenado por label
-function groupRecords(records, keyFn) {
+// Agrupa registros por uma chave; retorna [{ key, label, sort, rows }].
+// Ordena por `sort` numérico quando presente (ex.: mês cronológico), senão alfabético.
+// desc=true inverte a ordem (mais recente primeiro).
+function groupRecords(records, keyFn, desc = false) {
   const map = new Map();
   for (const r of records) {
-    const { key, label } = keyFn(r);
-    if (!map.has(key)) map.set(key, { key, label, rows: [] });
+    const { key, label, sort } = keyFn(r);
+    if (!map.has(key)) map.set(key, { key, label, sort, rows: [] });
     map.get(key).rows.push(r);
   }
-  return Array.from(map.values()).sort((a, b) =>
-    String(a.label).localeCompare(String(b.label), 'pt-BR', { numeric: true })
-  );
+  const arr = Array.from(map.values());
+  arr.sort((a, b) => {
+    const cmp = (a.sort != null && b.sort != null)
+      ? a.sort - b.sort
+      : String(a.label).localeCompare(String(b.label), 'pt-BR', { numeric: true });
+    return desc ? -cmp : cmp;
+  });
+  return arr;
 }
 
-// Rótulo de mês a partir de uma data (ex.: "Maio/2026")
-function monthLabel(dateStr) {
+// Info de mês a partir de uma data: { label: "Maio/2026", sort: ano*12+mes }
+function monthInfo(dateStr) {
   const d = new Date(dateStr);
-  if (isNaN(d)) return 'Sem data';
+  if (isNaN(d)) return { label: 'Sem data', sort: -Infinity };
   const m = d.toLocaleDateString('pt-BR', { month: 'long' });
-  return `${m.charAt(0).toUpperCase() + m.slice(1)}/${d.getFullYear()}`;
+  return { label: `${m.charAt(0).toUpperCase() + m.slice(1)}/${d.getFullYear()}`, sort: d.getFullYear() * 12 + d.getMonth() };
 }
 
 const STATUS_LABELS = { pendente: 'Pendente', em_andamento: 'Em andamento', concluida: 'Concluída' };
@@ -654,10 +661,10 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
       const keyFns = {
         caminhao: (r) => { const t = trucks.find(t => t.id === r.caminhao_id); return { key: r.caminhao_id ?? 'x', label: t?.placa || 'Sem caminhão' }; },
         tipo: (r) => ({ key: r.tipo_manutencao || 'Outros', label: r.tipo_manutencao || 'Outros' }),
-        mes: (r) => { const l = monthLabel(r.data_manutencao || r.created_at); return { key: l, label: l }; },
+        mes: (r) => { const mi = monthInfo(r.data_manutencao || r.created_at); return { key: mi.label, label: mi.label, sort: mi.sort }; },
         status: (r) => ({ key: r.status || 'concluida', label: STATUS_LABELS[r.status] || 'Concluída' }),
       };
-      const groups = maintGroupBy !== 'none' ? groupRecords(records, keyFns[maintGroupBy]) : null;
+      const groups = maintGroupBy !== 'none' ? groupRecords(records, keyFns[maintGroupBy], maintGroupBy === 'mes') : null;
 
       const renderRow = (record) => {
         const truckInfo = trucks.find(t => t.id === record.caminhao_id);
@@ -750,9 +757,9 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
       const keyFns = {
         caminhao: (r) => { const t = trucks.find(t => t.id === r.caminhao_id); return { key: r.caminhao_id ?? 'x', label: t?.placa || 'Sem caminhão' }; },
         posto: (r) => { const l = r.posto || r.postos?.nome || 'Sem posto'; return { key: l, label: l }; },
-        mes: (r) => { const l = monthLabel(r.created_at); return { key: l, label: l }; },
+        mes: (r) => { const mi = monthInfo(r.created_at); return { key: mi.label, label: mi.label, sort: mi.sort }; },
       };
-      const groups = fuelGroupBy !== 'none' ? groupRecords(records, keyFns[fuelGroupBy]) : null;
+      const groups = fuelGroupBy !== 'none' ? groupRecords(records, keyFns[fuelGroupBy], fuelGroupBy === 'mes') : null;
 
       const renderRow = (record) => {
         const truckInfo = trucks.find(t => t.id === record.caminhao_id);
@@ -1538,10 +1545,10 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
         (isPdf ? exportDREtoPDF : exportDREtoExcel)(dreData, periodLabel || null);
         break;
       case 'fuel':
-        (isPdf ? exportFuelTableToPDF : exportFuelTableToExcel)(filteredData.filteredFuel, trucks);
+        (isPdf ? exportFuelTableToPDF : exportFuelTableToExcel)(filteredData.filteredFuel, trucks, fuelGroupBy);
         break;
       case 'maintenance':
-        (isPdf ? exportMaintenanceTableToPDF : exportMaintenanceTableToExcel)(filteredData.filteredMaintenance, trucks);
+        (isPdf ? exportMaintenanceTableToPDF : exportMaintenanceTableToExcel)(filteredData.filteredMaintenance, trucks, maintGroupBy);
         break;
       case 'trucks':
         (isPdf ? exportTruckReportToPDF : exportTruckReportToExcel)(stats);
@@ -1552,7 +1559,7 @@ export function ReportsPage({ trucks, drivers, clients, fuelRecords, maintenance
       // 'all', 'clients', 'projections' → relatório completo
       default:
         (isPdf ? exportFullReportToPDF : exportFullReportToExcel)(
-          dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, periodLabel
+          dreData, stats, driverStats, filteredData.filteredFuel, filteredData.filteredMaintenance, trucks, periodLabel, maintGroupBy, fuelGroupBy
         );
     }
   };

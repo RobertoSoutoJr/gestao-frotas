@@ -41,6 +41,52 @@ function formatCurrencyPlain(val) {
   return `R$ ${Number(val || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+// ==================== AGRUPAMENTO ====================
+
+const STATUS_LABELS = { pendente: 'Pendente', em_andamento: 'Em andamento', concluida: 'Concluída' };
+
+function monthInfo(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return { label: 'Sem data', sort: -Infinity };
+  const m = d.toLocaleDateString('pt-BR', { month: 'long' });
+  return { label: `${m.charAt(0).toUpperCase() + m.slice(1)}/${d.getFullYear()}`, sort: d.getFullYear() * 12 + d.getMonth() };
+}
+
+function groupAndSort(records, keyFn, desc) {
+  const map = new Map();
+  for (const r of records) {
+    const info = keyFn(r);
+    if (!map.has(info.key)) map.set(info.key, { label: info.label, sort: info.sort, rows: [] });
+    map.get(info.key).rows.push(r);
+  }
+  const arr = [...map.values()];
+  arr.sort((a, b) => {
+    const cmp = (a.sort != null && b.sort != null)
+      ? a.sort - b.sort
+      : String(a.label).localeCompare(String(b.label), 'pt-BR', { numeric: true });
+    return desc ? -cmp : cmp;
+  });
+  return arr;
+}
+
+function maintKeyFn(groupBy, trucks) {
+  return (r) => {
+    if (groupBy === 'caminhao') { const t = trucks.find(t => t.id === r.caminhao_id); return { key: r.caminhao_id ?? 'x', label: t?.placa || 'Sem caminhão' }; }
+    if (groupBy === 'tipo') return { key: r.tipo_manutencao || 'Outros', label: r.tipo_manutencao || 'Outros' };
+    if (groupBy === 'status') return { key: r.status || 'concluida', label: STATUS_LABELS[r.status] || 'Concluída' };
+    const mi = monthInfo(r.data_manutencao || r.created_at); return { key: mi.label, label: mi.label, sort: mi.sort };
+  };
+}
+function fuelKeyFn(groupBy, trucks) {
+  return (r) => {
+    if (groupBy === 'caminhao') { const t = trucks.find(t => t.id === r.caminhao_id); return { key: r.caminhao_id ?? 'x', label: t?.placa || 'Sem caminhão' }; }
+    if (groupBy === 'posto') { const l = r.posto || r.postos?.nome || 'Sem posto'; return { key: l, label: l }; }
+    const mi = monthInfo(r.created_at); return { key: mi.label, label: mi.label, sort: mi.sort };
+  };
+}
+const isGrouped = (g) => g && g !== 'none';
+const isDescGroup = (g) => g === 'mes';
+
 // ==================== PDF EXPORTS ====================
 
 export function exportDREtoPDF(dreData, dateRange) {
@@ -153,68 +199,92 @@ export function exportDriverReportToPDF(driverStats) {
   doc.save(`fueltrack-motoristas-${Date.now()}.pdf`);
 }
 
-export function exportFuelTableToPDF(fuelRecords, trucks) {
+export function exportFuelTableToPDF(fuelRecords, trucks, groupBy = 'none') {
   const doc = new jsPDF('landscape');
   let y = addHeader(doc, 'Abastecimentos Detalhados', `${fuelRecords.length} registros`);
 
   const head = [['Data', 'Caminhão', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM']];
-  const body = fuelRecords
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .map(r => {
-      const truck = trucks.find(t => t.id === r.caminhao_id);
-      return [
-        new Date(r.created_at).toLocaleDateString('pt-BR'),
-        truck?.placa || '-',
-        r.posto || '-',
-        Number(r.litros).toFixed(2),
-        r.litros > 0 ? formatCurrencyPlain(Number(r.valor_total) / Number(r.litros)) : '-',
-        formatCurrencyPlain(r.valor_total),
-        r.km_registro ? Number(r.km_registro).toFixed(0) : '-',
-      ];
+  const rowOf = (r) => {
+    const truck = trucks.find(t => t.id === r.caminhao_id);
+    return [
+      new Date(r.created_at).toLocaleDateString('pt-BR'),
+      truck?.placa || '-', r.posto || '-',
+      Number(r.litros).toFixed(2),
+      r.litros > 0 ? formatCurrencyPlain(Number(r.valor_total) / Number(r.litros)) : '-',
+      formatCurrencyPlain(r.valor_total),
+      r.km_registro ? Number(r.km_registro).toFixed(0) : '-',
+    ];
+  };
+  const sumLitros = (rows) => rows.reduce((s, r) => s + Number(r.litros || 0), 0);
+  const sumValor = (rows) => rows.reduce((s, r) => s + Number(r.valor_total || 0), 0);
+  const subRow = (label, rows, head2 = false) => ([
+    { content: label, colSpan: 3, styles: { halign: 'right', fontStyle: 'bold', ...(head2 ? { fillColor: [245, 245, 245] } : {}) } },
+    { content: sumLitros(rows).toFixed(2), styles: { halign: 'right', fontStyle: 'bold', ...(head2 ? { fillColor: [245, 245, 245] } : {}) } },
+    { content: '', styles: head2 ? { fillColor: [245, 245, 245] } : {} },
+    { content: formatCurrencyPlain(sumValor(rows)), styles: { halign: 'right', fontStyle: 'bold', textColor: [16, 185, 129], ...(head2 ? { fillColor: [245, 245, 245] } : {}) } },
+    { content: '', styles: head2 ? { fillColor: [245, 245, 245] } : {} },
+  ]);
+
+  let body;
+  if (isGrouped(groupBy)) {
+    const groups = groupAndSort(fuelRecords, fuelKeyFn(groupBy, trucks), isDescGroup(groupBy));
+    body = [];
+    groups.forEach(g => {
+      body.push([{ content: `${g.label} (${g.rows.length})`, colSpan: 7, styles: { fontStyle: 'bold', fillColor: [230, 230, 230], textColor: [20, 20, 20] } }]);
+      g.rows.forEach(r => body.push(rowOf(r)));
+      body.push(subRow(`Subtotal — ${g.label}`, g.rows));
     });
+    body.push(subRow('TOTAL', fuelRecords, true));
+  } else {
+    body = [...fuelRecords].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(rowOf);
+  }
 
-  autoTable(doc, {
-    startY: y,
-    head,
-    body,
-    theme: 'striped',
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [245, 158, 11] },
-  });
-
+  autoTable(doc, { startY: y, head, body, theme: 'striped', styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [245, 158, 11] } });
   addFooter(doc);
   doc.save(`fueltrack-abastecimentos-${Date.now()}.pdf`);
 }
 
-export function exportMaintenanceTableToPDF(maintenanceRecords, trucks) {
+export function exportMaintenanceTableToPDF(maintenanceRecords, trucks, groupBy = 'none') {
   const doc = new jsPDF('landscape');
   let y = addHeader(doc, 'Manutenções Detalhadas', `${maintenanceRecords.length} registros`);
 
   const head = [['Data', 'Caminhão', 'Tipo', 'Descrição', 'Oficina', 'Custo', 'KM']];
-  const body = maintenanceRecords
-    .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
-    .map(r => {
-      const truck = trucks.find(t => t.id === r.caminhao_id);
-      return [
-        new Date(r.data_manutencao).toLocaleDateString('pt-BR'),
-        truck?.placa || '-',
-        r.tipo_manutencao || '-',
-        r.descricao || '-',
-        r.oficina || '-',
-        formatCurrencyPlain(r.valor_total || r.custo),
-        r.km_manutencao ? Number(r.km_manutencao).toFixed(0) : '-',
-      ];
+  const rowOf = (r) => {
+    const truck = trucks.find(t => t.id === r.caminhao_id);
+    return [
+      new Date(r.data_manutencao).toLocaleDateString('pt-BR'),
+      truck?.placa || '-', r.tipo_manutencao || '-', r.descricao || '-', r.oficina || '-',
+      formatCurrencyPlain(r.valor_total || r.custo),
+      r.km_manutencao ? Number(r.km_manutencao).toFixed(0) : '-',
+    ];
+  };
+  const sumCusto = (rows) => rows.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0);
+
+  let body;
+  if (isGrouped(groupBy)) {
+    const groups = groupAndSort(maintenanceRecords, maintKeyFn(groupBy, trucks), isDescGroup(groupBy));
+    body = [];
+    groups.forEach(g => {
+      body.push([{ content: `${g.label} (${g.rows.length})`, colSpan: 7, styles: { fontStyle: 'bold', fillColor: [230, 230, 230], textColor: [20, 20, 20] } }]);
+      g.rows.forEach(r => body.push(rowOf(r)));
+      body.push([
+        { content: `Subtotal — ${g.label}`, colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } },
+        { content: formatCurrencyPlain(sumCusto(g.rows)), styles: { halign: 'right', fontStyle: 'bold', textColor: [239, 68, 68] } },
+        '',
+      ]);
     });
+    body.push([
+      { content: 'TOTAL', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold', fillColor: [245, 245, 245] } },
+      { content: formatCurrencyPlain(sumCusto(maintenanceRecords)), styles: { halign: 'right', fontStyle: 'bold', textColor: [239, 68, 68], fillColor: [245, 245, 245] } },
+      { content: '', styles: { fillColor: [245, 245, 245] } },
+    ]);
+  } else {
+    body = [...maintenanceRecords]
+      .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
+      .map(rowOf);
+  }
 
-  autoTable(doc, {
-    startY: y,
-    head,
-    body,
-    theme: 'striped',
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [239, 68, 68] },
-  });
-
+  autoTable(doc, { startY: y, head, body, theme: 'striped', styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [239, 68, 68] } });
   addFooter(doc);
   doc.save(`fueltrack-manutencoes-${Date.now()}.pdf`);
 }
@@ -320,55 +390,76 @@ export function exportDriverReportToExcel(driverStats) {
   XLSX.writeFile(wb, `fueltrack-motoristas-${Date.now()}.xlsx`);
 }
 
-export function exportFuelTableToExcel(fuelRecords, trucks) {
+export function exportFuelTableToExcel(fuelRecords, trucks, groupBy = 'none') {
   const wb = createWorkbook();
-  const data = [
-    ['Data', 'Caminhão', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM'],
-    ...fuelRecords
+  const rowOf = (r) => {
+    const truck = trucks.find(t => t.id === r.caminhao_id);
+    return [
+      new Date(r.created_at).toLocaleDateString('pt-BR'),
+      truck?.placa || '', r.posto || '',
+      Number(r.litros),
+      r.litros > 0 ? Number((Number(r.valor_total) / Number(r.litros)).toFixed(2)) : '',
+      Number(r.valor_total),
+      r.km_registro ? Number(r.km_registro) : '',
+    ];
+  };
+  const sumLitros = (rows) => Number(rows.reduce((s, r) => s + Number(r.litros || 0), 0).toFixed(2));
+  const sumValor = (rows) => Number(rows.reduce((s, r) => s + Number(r.valor_total || 0), 0).toFixed(2));
+  const data = [['Data', 'Caminhão', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM']];
+
+  if (isGrouped(groupBy)) {
+    const groups = groupAndSort(fuelRecords, fuelKeyFn(groupBy, trucks), isDescGroup(groupBy));
+    groups.forEach(g => {
+      data.push([`${g.label} (${g.rows.length})`]);
+      g.rows.forEach(r => data.push(rowOf(r)));
+      data.push([`Subtotal — ${g.label}`, '', '', sumLitros(g.rows), '', sumValor(g.rows), '']);
+    });
+    data.push(['TOTAL', '', '', sumLitros(fuelRecords), '', sumValor(fuelRecords), '']);
+  } else {
+    [...fuelRecords]
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .map(r => {
-        const truck = trucks.find(t => t.id === r.caminhao_id);
-        return [
-          new Date(r.created_at).toLocaleDateString('pt-BR'),
-          truck?.placa || '',
-          r.posto || '',
-          Number(r.litros),
-          r.litros > 0 ? Number((Number(r.valor_total) / Number(r.litros)).toFixed(2)) : '',
-          Number(r.valor_total),
-          r.km_registro ? Number(r.km_registro) : '',
-        ];
-      }),
-  ];
+      .forEach(r => data.push(rowOf(r)));
+  }
+
   addSheet(wb, data, 'Abastecimentos');
   XLSX.writeFile(wb, `fueltrack-abastecimentos-${Date.now()}.xlsx`);
 }
 
-export function exportMaintenanceTableToExcel(maintenanceRecords, trucks) {
+export function exportMaintenanceTableToExcel(maintenanceRecords, trucks, groupBy = 'none') {
   const wb = createWorkbook();
-  const data = [
-    ['Data', 'Caminhão', 'Tipo', 'Descrição', 'Oficina', 'Custo', 'KM'],
-    ...maintenanceRecords
+  const rowOf = (r) => {
+    const truck = trucks.find(t => t.id === r.caminhao_id);
+    return [
+      new Date(r.data_manutencao).toLocaleDateString('pt-BR'),
+      truck?.placa || '', r.tipo_manutencao || '', r.descricao || '', r.oficina || '',
+      Number(r.valor_total || r.custo || 0),
+      r.km_manutencao ? Number(r.km_manutencao) : '',
+    ];
+  };
+  const sumCusto = (rows) => Number(rows.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0).toFixed(2));
+  const data = [['Data', 'Caminhão', 'Tipo', 'Descrição', 'Oficina', 'Custo', 'KM']];
+
+  if (isGrouped(groupBy)) {
+    const groups = groupAndSort(maintenanceRecords, maintKeyFn(groupBy, trucks), isDescGroup(groupBy));
+    groups.forEach(g => {
+      data.push([`${g.label} (${g.rows.length})`]);
+      g.rows.forEach(r => data.push(rowOf(r)));
+      data.push([`Subtotal — ${g.label}`, '', '', '', '', sumCusto(g.rows), '']);
+    });
+    data.push(['TOTAL', '', '', '', '', sumCusto(maintenanceRecords), '']);
+  } else {
+    [...maintenanceRecords]
       .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
-      .map(r => {
-        const truck = trucks.find(t => t.id === r.caminhao_id);
-        return [
-          new Date(r.data_manutencao).toLocaleDateString('pt-BR'),
-          truck?.placa || '',
-          r.tipo_manutencao || '',
-          r.descricao || '',
-          r.oficina || '',
-          Number(r.valor_total || r.custo || 0),
-          r.km_manutencao ? Number(r.km_manutencao) : '',
-        ];
-      }),
-  ];
+      .forEach(r => data.push(rowOf(r)));
+  }
+
   addSheet(wb, data, 'Manutenções');
   XLSX.writeFile(wb, `fueltrack-manutencoes-${Date.now()}.xlsx`);
 }
 
 // ==================== FULL REPORT ====================
 
-export function exportFullReportToPDF(dreData, stats, driverStats, fuelRecords, maintenanceRecords, trucks, dateRange) {
+export function exportFullReportToPDF(dreData, stats, driverStats, fuelRecords, maintenanceRecords, trucks, dateRange, maintGroupBy = 'none', fuelGroupBy = 'none') {
   const doc = new jsPDF();
   const period = dateRange || 'Periodo completo';
 
@@ -430,22 +521,42 @@ export function exportFullReportToPDF(dreData, stats, driverStats, fuelRecords, 
     });
   }
 
-  // Page 4: Ultimos abastecimentos
+  // Page 4: Abastecimentos
   doc.addPage();
   y = addHeader(doc, 'Relatório Completo — Abastecimentos', period);
-  const sortedFuel = [...fuelRecords].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50);
+  const fuelRowOf = (r) => {
+    const truck = trucks.find(t => t.id === r.caminhao_id);
+    return [
+      new Date(r.created_at).toLocaleDateString('pt-BR'),
+      truck?.placa || '', Number(r.litros).toFixed(1),
+      r.litros > 0 ? (Number(r.valor_total) / Number(r.litros)).toFixed(2) : '',
+      formatCurrencyPlain(r.valor_total), r.km_registro || '',
+    ];
+  };
+  let fuelBody;
+  if (isGrouped(fuelGroupBy)) {
+    const groups = groupAndSort(fuelRecords, fuelKeyFn(fuelGroupBy, trucks), isDescGroup(fuelGroupBy));
+    fuelBody = [];
+    groups.forEach(g => {
+      fuelBody.push([{ content: `${g.label} (${g.rows.length})`, colSpan: 6, styles: { fontStyle: 'bold', fillColor: [230, 230, 230] } }]);
+      g.rows.forEach(r => fuelBody.push(fuelRowOf(r)));
+      const sl = g.rows.reduce((s, r) => s + Number(r.litros || 0), 0);
+      const sv = g.rows.reduce((s, r) => s + Number(r.valor_total || 0), 0);
+      fuelBody.push([
+        { content: `Subtotal — ${g.label}`, colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
+        { content: sl.toFixed(1), styles: { halign: 'right', fontStyle: 'bold' } },
+        '',
+        { content: formatCurrencyPlain(sv), styles: { halign: 'right', fontStyle: 'bold' } },
+        '',
+      ]);
+    });
+  } else {
+    fuelBody = [...fuelRecords].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50).map(fuelRowOf);
+  }
   autoTable(doc, {
     startY: y,
     head: [['Data', 'Caminhão', 'Litros', 'R$/L', 'Total', 'KM']],
-    body: sortedFuel.map(r => {
-      const truck = trucks.find(t => t.id === r.caminhao_id);
-      return [
-        new Date(r.created_at).toLocaleDateString('pt-BR'),
-        truck?.placa || '', Number(r.litros).toFixed(1),
-        r.litros > 0 ? (Number(r.valor_total) / Number(r.litros)).toFixed(2) : '',
-        formatCurrencyPlain(r.valor_total), r.km_registro || '',
-      ];
-    }),
+    body: fuelBody,
     theme: 'striped',
     styles: { fontSize: 8, font: 'helvetica' },
     headStyles: { fillColor: [94, 106, 210] },
@@ -455,7 +566,7 @@ export function exportFullReportToPDF(dreData, stats, driverStats, fuelRecords, 
   doc.save(`fueltrack-relatorio-completo-${Date.now()}.pdf`);
 }
 
-export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords, maintenanceRecords, trucks, dateRange) {
+export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords, maintenanceRecords, trucks, dateRange, maintGroupBy = 'none', fuelGroupBy = 'none') {
   const wb = createWorkbook();
 
   // DRE sheet
@@ -504,31 +615,50 @@ export function exportFullReportToExcel(dreData, stats, driverStats, fuelRecords
   }
 
   // Fuel sheet
-  const fuelSheet = [
-    ['Data', 'Caminhão', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM'],
-    ...fuelRecords.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(r => {
-      const truck = trucks.find(t => t.id === r.caminhao_id);
-      return [
-        new Date(r.created_at).toLocaleDateString('pt-BR'), truck?.placa || '', r.posto || '',
-        Number(r.litros), r.litros > 0 ? Number((Number(r.valor_total) / Number(r.litros)).toFixed(2)) : '',
-        Number(r.valor_total), r.km_registro ? Number(r.km_registro) : '',
-      ];
-    }),
-  ];
+  const fuelRowOf = (r) => {
+    const truck = trucks.find(t => t.id === r.caminhao_id);
+    return [
+      new Date(r.created_at).toLocaleDateString('pt-BR'), truck?.placa || '', r.posto || '',
+      Number(r.litros), r.litros > 0 ? Number((Number(r.valor_total) / Number(r.litros)).toFixed(2)) : '',
+      Number(r.valor_total), r.km_registro ? Number(r.km_registro) : '',
+    ];
+  };
+  const fuelSheet = [['Data', 'Caminhão', 'Posto', 'Litros', 'Preco/L', 'Total', 'KM']];
+  if (isGrouped(fuelGroupBy)) {
+    const groups = groupAndSort(fuelRecords, fuelKeyFn(fuelGroupBy, trucks), isDescGroup(fuelGroupBy));
+    groups.forEach(g => {
+      fuelSheet.push([`${g.label} (${g.rows.length})`]);
+      g.rows.forEach(r => fuelSheet.push(fuelRowOf(r)));
+      const sl = Number(g.rows.reduce((s, r) => s + Number(r.litros || 0), 0).toFixed(2));
+      const sv = Number(g.rows.reduce((s, r) => s + Number(r.valor_total || 0), 0).toFixed(2));
+      fuelSheet.push([`Subtotal — ${g.label}`, '', '', sl, '', sv, '']);
+    });
+  } else {
+    [...fuelRecords].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).forEach(r => fuelSheet.push(fuelRowOf(r)));
+  }
   addSheet(wb, fuelSheet, 'Abastecimentos');
 
   // Maintenance sheet
-  const mainSheet = [
-    ['Data', 'Caminhão', 'Tipo', 'Descrição', 'Oficina', 'Custo', 'KM'],
-    ...maintenanceRecords.sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao)).map(r => {
-      const truck = trucks.find(t => t.id === r.caminhao_id);
-      return [
-        new Date(r.data_manutencao).toLocaleDateString('pt-BR'), truck?.placa || '', r.tipo_manutencao || '',
-        r.descricao || '', r.oficina || '', Number(r.valor_total || r.custo || 0),
-        r.km_manutencao ? Number(r.km_manutencao) : '',
-      ];
-    }),
-  ];
+  const maintRowOf = (r) => {
+    const truck = trucks.find(t => t.id === r.caminhao_id);
+    return [
+      new Date(r.data_manutencao).toLocaleDateString('pt-BR'), truck?.placa || '', r.tipo_manutencao || '',
+      r.descricao || '', r.oficina || '', Number(r.valor_total || r.custo || 0),
+      r.km_manutencao ? Number(r.km_manutencao) : '',
+    ];
+  };
+  const mainSheet = [['Data', 'Caminhão', 'Tipo', 'Descrição', 'Oficina', 'Custo', 'KM']];
+  if (isGrouped(maintGroupBy)) {
+    const groups = groupAndSort(maintenanceRecords, maintKeyFn(maintGroupBy, trucks), isDescGroup(maintGroupBy));
+    groups.forEach(g => {
+      mainSheet.push([`${g.label} (${g.rows.length})`]);
+      g.rows.forEach(r => mainSheet.push(maintRowOf(r)));
+      const sv = Number(g.rows.reduce((s, r) => s + Number(r.valor_total || r.custo || 0), 0).toFixed(2));
+      mainSheet.push([`Subtotal — ${g.label}`, '', '', '', '', sv, '']);
+    });
+  } else {
+    [...maintenanceRecords].sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao)).forEach(r => mainSheet.push(maintRowOf(r)));
+  }
   addSheet(wb, mainSheet, 'Manutenções');
 
   XLSX.writeFile(wb, `fueltrack-relatorio-completo-${Date.now()}.xlsx`);
