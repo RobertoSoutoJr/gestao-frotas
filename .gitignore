@@ -30,3 +30,6 @@ Thumbs.db
 dist/
 build/
 *.tsbuildinfo
+
+# Backups locais (contem dados reais - nao subir para o GitHub)
+backups/

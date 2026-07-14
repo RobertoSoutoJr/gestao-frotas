@@ -1,0 +1,25 @@
+# Blueprint do Render — deploy do FuelTrack como UM servico so (site + API).
+# O Render le este arquivo automaticamente ao criar um "Blueprint".
+services:
+  - type: web
+    name: fueltrack
+    runtime: node
+    plan: free
+    region: oregon
+    # Instala e builda o frontend (com a API em /api) e instala o backend
+    buildCommand: cd frontend && npm install && VITE_API_URL=/api npm run build && cd ../backend && npm install
+    # Sobe o servidor, que serve o site e a API juntos
+    startCommand: node backend/src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Gerado automaticamente pelo Render (nao precisa preencher)
+      - key: JWT_SECRET
+        generateValue: true
+      # Voce preenche estes 3 no painel do Render (do supabase.com -> Settings -> API)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
