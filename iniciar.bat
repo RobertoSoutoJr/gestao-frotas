@@ -45,7 +45,7 @@ echo.
 :INSTALAR
 REM --- 3. Cria o frontend\.env (sem segredo) se nao existir ---
 if not exist "frontend\.env" (
-  echo VITE_API_URL=http://localhost:3001> "frontend\.env"
+  echo VITE_API_URL=http://localhost:3001/api> "frontend\.env"
 )
 
 REM --- 4. Instala dependencias na primeira execucao ---

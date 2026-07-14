@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const Sentry = require('@sentry/node');
 const express = require('express');
 const cors = require('cors');
@@ -31,7 +33,10 @@ if (process.env.SENTRY_DSN) {
 const app = express();
 
 // Security headers
+// contentSecurityPolicy desativado: este mesmo serviço serve o frontend (SPA),
+// que carrega mapas/imagens externas — a CSP padrão do helmet quebraria a tela.
 app.use(helmet({
+  contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
@@ -86,16 +91,30 @@ app.use(pinoHttp({
   },
 }));
 
-// API routes
-app.use('/', routes);
+// API routes (sob /api)
+app.use('/api', routes);
 
-// 404 handler
-app.use((req, res) => {
+// 404 das rotas de API (JSON) — só para caminhos /api não encontrados
+app.use('/api', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'Endpoint não encontrado'
   });
 });
+
+// --- Servir o frontend (SPA) a partir do mesmo serviço ---
+// Em produção (Render), o build do frontend fica em frontend/dist.
+const frontendDist = path.join(__dirname, '../../frontend/dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  // Qualquer GET que não seja /api nem arquivo estático devolve o index.html
+  // (React Router cuida do resto). Middleware sem path — compatível com Express 5.
+  app.use((req, res, next) => {
+    if (req.method !== 'GET') return next();
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+  logger.info('Servindo frontend estático de frontend/dist');
+}
 
 // Sentry error handler (captures exceptions before our handler)
 if (process.env.SENTRY_DSN) {
