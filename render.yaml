@@ -6,8 +6,10 @@ services:
     runtime: node
     plan: free
     region: oregon
-    # Instala e builda o frontend e instala o backend
-    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install
+    # Instala e builda o frontend e instala o backend.
+    # --include=dev no frontend garante o vite (devDependency), que o
+    # NODE_ENV=production faria o npm pular, quebrando o build.
+    buildCommand: cd frontend && npm install --include=dev && npm run build && cd ../backend && npm install
     # Sobe o servidor, que serve o site e a API juntos
     startCommand: node backend/src/server.js
     envVars:
