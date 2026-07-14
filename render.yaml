@@ -6,13 +6,16 @@ services:
     runtime: node
     plan: free
     region: oregon
-    # Instala e builda o frontend (com a API em /api) e instala o backend
-    buildCommand: cd frontend && npm install && VITE_API_URL=/api npm run build && cd ../backend && npm install
+    # Instala e builda o frontend e instala o backend
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install
     # Sobe o servidor, que serve o site e a API juntos
     startCommand: node backend/src/server.js
     envVars:
       - key: NODE_ENV
         value: production
+      # A tela chama a API em /api (mesmo endereco). Lida pelo Vite durante o build.
+      - key: VITE_API_URL
+        value: /api
       # Gerado automaticamente pelo Render (nao precisa preencher)
       - key: JWT_SECRET
         generateValue: true
