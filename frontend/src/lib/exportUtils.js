@@ -237,6 +237,7 @@ export function exportFuelTableToPDF(fuelRecords, trucks, groupBy = 'none') {
     body.push(subRow('TOTAL', fuelRecords, true));
   } else {
     body = [...fuelRecords].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(rowOf);
+    body.push(subRow('TOTAL', fuelRecords, true));
   }
 
   autoTable(doc, { startY: y, head, body, theme: 'striped', styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [245, 158, 11] } });
@@ -282,6 +283,11 @@ export function exportMaintenanceTableToPDF(maintenanceRecords, trucks, groupBy 
     body = [...maintenanceRecords]
       .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
       .map(rowOf);
+    body.push([
+      { content: 'TOTAL', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold', fillColor: [245, 245, 245] } },
+      { content: formatCurrencyPlain(sumCusto(maintenanceRecords)), styles: { halign: 'right', fontStyle: 'bold', textColor: [239, 68, 68], fillColor: [245, 245, 245] } },
+      { content: '', styles: { fillColor: [245, 245, 245] } },
+    ]);
   }
 
   autoTable(doc, { startY: y, head, body, theme: 'striped', styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [239, 68, 68] } });
@@ -419,6 +425,7 @@ export function exportFuelTableToExcel(fuelRecords, trucks, groupBy = 'none') {
     [...fuelRecords]
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .forEach(r => data.push(rowOf(r)));
+    data.push(['TOTAL', '', '', sumLitros(fuelRecords), '', sumValor(fuelRecords), '']);
   }
 
   addSheet(wb, data, 'Abastecimentos');
@@ -451,6 +458,7 @@ export function exportMaintenanceTableToExcel(maintenanceRecords, trucks, groupB
     [...maintenanceRecords]
       .sort((a, b) => new Date(b.data_manutencao) - new Date(a.data_manutencao))
       .forEach(r => data.push(rowOf(r)));
+    data.push(['TOTAL', '', '', '', '', sumCusto(maintenanceRecords), '']);
   }
 
   addSheet(wb, data, 'Manutenções');
